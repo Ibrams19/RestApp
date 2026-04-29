@@ -164,7 +164,7 @@ app.post('/api/payer', async (req, res) => {
   res.json({ success: true });
 });
 
-// Route API QR Code (retourne JSON avec l'image)
+// Route API QR Code (retourne JSON avec l'image) - PUBLIQUE
 app.get('/api/qrcode/:restoId/:tableId', async (req, res) => {
   const { restoId, tableId } = req.params;
   const url = `${PUBLIC_URL}/menu.html?resto=${restoId}&table=${tableId}`;
@@ -178,14 +178,13 @@ app.get('/api/qrcode/:restoId/:tableId', async (req, res) => {
   }
 });
 
-// Route IMAGE QR Code (pour <img src="">)
+// Route IMAGE QR Code (pour <img src="">) - PUBLIQUE
 app.get('/api/qrcode-image/:restoId/:tableId', async (req, res) => {
   const { restoId, tableId } = req.params;
   const url = `${PUBLIC_URL}/menu.html?resto=${restoId}&table=${tableId}`;
   
   try {
     const qrImage = await QRCode.toDataURL(url, { width: 200, margin: 1 });
-    // Extraire le base64
     const base64 = qrImage.replace(/^data:image\/png;base64,/, '');
     const imgBuffer = Buffer.from(base64, 'base64');
     
@@ -196,6 +195,89 @@ app.get('/api/qrcode-image/:restoId/:tableId', async (req, res) => {
     console.error('Erreur QR Code Image:', error);
     res.status(500).send('Erreur génération QR code');
   }
+});
+
+// Route génération QR code imprimable - PUBLIQUE
+app.get('/api/generate-qr/:restoId/:tableId', async (req, res) => {
+  const { restoId, tableId } = req.params;
+  const url = `${PUBLIC_URL}/menu.html?resto=${restoId}&table=${tableId}`;
+  const qrImage = await QRCode.toDataURL(url, { width: 300, margin: 2 });
+  
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>QR Code Table ${tableId}</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+          font-family: 'Segoe UI', Arial, sans-serif; 
+          text-align: center; 
+          padding: 50px; 
+          background: #f5f5f5;
+        }
+        .container {
+          background: white;
+          max-width: 400px;
+          margin: 0 auto;
+          padding: 40px;
+          border-radius: 32px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        img { 
+          width: 250px; 
+          height: 250px; 
+          margin: 20px 0;
+        }
+        .resto-name { 
+          font-size: 24px; 
+          font-weight: bold; 
+          margin-bottom: 10px; 
+          color: #1A1A2E; 
+        }
+        .resto-name span { color: #C6A43F; }
+        .table-number { 
+          font-size: 48px; 
+          color: #C6A43F; 
+          margin: 20px 0; 
+          font-weight: bold; 
+        }
+        .instruction { 
+          color: #666; 
+          margin-top: 20px; 
+          font-size: 14px;
+        }
+        @media print {
+          body { padding: 0; background: white; }
+          .container { box-shadow: none; padding: 20px; }
+          .no-print { display: none; }
+        }
+        .print-btn {
+          background: #C6A43F;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 40px;
+          font-weight: bold;
+          cursor: pointer;
+          margin-top: 20px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="resto-name">🍽️ <span>RESTAURANT ÉLITE</span></div>
+        <div class="table-number">TABLE ${tableId}</div>
+        <img src="${qrImage}" alt="QR Code">
+        <div class="instruction">📱 Scannez ce code avec votre téléphone<br>pour accéder au menu et commander</div>
+        <button class="print-btn no-print" onclick="window.print()">🖨️ Imprimer le QR code</button>
+      </div>
+    </body>
+    </html>
+  `;
+  
+  res.setHeader('Content-Type', 'text/html');
+  res.send(html);
 });
 
 app.get('/api/commandes/:restoId', async (req, res) => {
@@ -374,37 +456,6 @@ app.delete('/api/tables/:id', checkRole(['gerant']), async (req, res) => {
   res.json({ success: true });
 });
 
-app.get('/api/generate-qr/:restoId/:tableId', checkRole(['gerant']), async (req, res) => {
-  const { restoId, tableId } = req.params;
-  const url = `${PUBLIC_URL}/menu.html?resto=${restoId}&table=${tableId}`;
-  const qrImage = await QRCode.toDataURL(url, { width: 300, margin: 2 });
-  
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head><meta charset="UTF-8"><title>QR Code Table ${tableId}</title>
-    <style>
-      body { font-family: Arial; text-align: center; padding: 50px; }
-      img { width: 250px; height: 250px; }
-      .resto-name { font-size: 24px; font-weight: bold; margin-bottom: 20px; color: #1A1A2E; }
-      .table-number { font-size: 48px; color: #C6A43F; margin: 20px 0; font-weight: bold; }
-      .instruction { color: #666; margin-top: 30px; }
-    </style>
-    </head>
-    <body>
-      <div class="resto-name">🍽️ RESTAURANT ÉLITE</div>
-      <div class="table-number">TABLE ${tableId}</div>
-      <img src="${qrImage}">
-      <div class="instruction">📱 Scannez ce code pour accéder au menu</div>
-      <div class="instruction" style="font-size: 10px; margin-top: 10px;">${url}</div>
-    </body>
-    </html>
-  `;
-  
-  res.setHeader('Content-Type', 'text/html');
-  res.send(html);
-});
-
 // ===== ROUTES PHOTOS (réservées au gérant) =====
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -454,7 +505,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// ===== SUIVI COMMANDE POUR CLIENT =====
+// ===== SUIVI COMMANDE POUR CLIENT (public) =====
 app.get('/api/commande/suivi/:id', async (req, res) => {
   const { id } = req.params;
   
