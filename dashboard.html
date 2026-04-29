@@ -1,21 +1,11 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Resto Élite">
-    <meta name="theme-color" content="#C6A43F">
-    <link rel="manifest" href="/manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Dashboard | Restaurant Élite</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <div style="display: flex; gap: 10px; justify-content: center; margin: 20px 0; flex-wrap: wrap;">
-    <a href="/dashboard.html" class="nav-btn" style="background: #C6A43F; color: white; padding: 10px 20px; border-radius: 40px; text-decoration: none;">📊 Dashboard</a>
-    <a href="/admin.html" class="nav-btn" style="background: #1A1A2E; color: white; padding: 10px 20px; border-radius: 40px; text-decoration: none;">🍽️ Gestion des plats</a>
-    <a href="/resto.html" class="nav-btn" style="background: #1A1A2E; color: white; padding: 10px 20px; border-radius: 40px; text-decoration: none;">👨‍🍳 Cuisine/Commandes</a>
-    </div>
     <style>
         .dashboard-container {
             max-width: 1400px;
@@ -76,33 +66,81 @@
             margin-bottom: 20px;
             color: #1A1A2E;
         }
-        .top-plats-list {
-            list-style: none;
-            padding: 0;
-        }
-        .top-plats-list li {
+        .nav-bar {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #eee;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
         }
-        .plat-rank {
+        .nav-btn {
+            padding: 10px 20px;
+            border-radius: 40px;
+            text-decoration: none;
+            background: #1A1A2E;
+            color: white;
+        }
+        .nav-btn:hover {
+            background: #C6A43F;
+            color: #1A1A2E;
+        }
+        .tables-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .table-card {
+            background: #f8f8f8;
+            padding: 15px;
+            border-radius: 16px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .table-card:hover {
+            background: #e8e8e8;
+        }
+        .table-number-display {
+            font-size: 24px;
             font-weight: bold;
+            margin-bottom: 10px;
             color: #C6A43F;
-            width: 30px;
         }
-        .plat-name {
-            flex: 1;
-            margin-left: 10px;
-        }
-        .plat-quantity {
-            font-weight: bold;
-            margin-right: 15px;
-        }
-        .plat-revenue {
-            color: #6C6C7A;
+        .btn-small {
+            padding: 5px 12px;
             font-size: 12px;
+            margin: 3px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .btn-premium-small {
+            background: #C6A43F;
+            color: #1A1A2E;
+        }
+        .btn-danger-small {
+            background: #E74C3C;
+            color: white;
+        }
+        .add-table-form {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .add-table-form input {
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            width: 120px;
         }
         .logout-btn {
             background: #E74C3C;
@@ -111,37 +149,38 @@
             padding: 8px 20px;
             border-radius: 40px;
             cursor: pointer;
-            font-weight: 500;
         }
-        .header-right {
+        .top-plats-list {
+            list-style: none;
+            padding: 0;
+        }
+        .top-plats-list li {
             display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        .restaurant-name {
-            font-weight: bold;
-            color: #C6A43F;
-        }
-        canvas {
-            max-height: 300px;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
         }
         @media (max-width: 768px) {
-            .stats-grid { grid-template-columns: 1fr; }
             .charts-grid { grid-template-columns: 1fr; }
-            .dashboard-container { padding: 15px; }
         }
     </style>
 </head>
 <body>
     <header class="header-premium">
-        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; padding: 15px 30px;">
             <div class="logo">📊 TABLEAU DE BORD</div>
-            <div class="header-right">
-                <span class="restaurant-name" id="resto-name">Restaurant</span>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span id="resto-name" style="color: #C6A43F;">Restaurant</span>
                 <button class="logout-btn" id="logout-btn">🚪 Déconnexion</button>
             </div>
         </div>
     </header>
+
+    <div class="nav-bar">
+        <a href="/dashboard.html" class="nav-btn" style="background: #C6A43F;">📊 Dashboard</a>
+        <a href="/admin.html" class="nav-btn">🍽️ Gestion plats</a>
+        <a href="/resto.html" class="nav-btn">👨‍🍳 Cuisine</a>
+    </div>
 
     <div class="dashboard-container">
         <div class="period-selector">
@@ -171,19 +210,20 @@
                 <canvas id="evolution-chart" width="400" height="250"></canvas>
             </div>
             <div class="chart-card">
-                <h3>🏆 Top 10 des plats</h3>
+                <h3>🏆 Top 5 des plats</h3>
                 <div id="top-plats-container"></div>
             </div>
         </div>
 
-        <div class="charts-grid">
-            <div class="chart-card">
-                <h3>🥧 Répartition par catégorie</h3>
-                <canvas id="category-chart" width="400" height="250"></canvas>
+        <!-- SECTION GESTION DES TABLES ET QR CODES -->
+        <div class="tables-section">
+            <h2>🏷️ Gestion des tables et QR codes</h2>
+            <div class="tables-grid" id="tables-grid">
+                <div>Chargement des tables...</div>
             </div>
-            <div class="chart-card">
-                <h3>📊 Résumé</h3>
-                <div id="resume-stats"></div>
+            <div class="add-table-form">
+                <input type="number" id="new-table-number" placeholder="Numéro de table" min="1">
+                <button class="btn-premium" id="add-table-btn">➕ Ajouter une table</button>
             </div>
         </div>
     </div>
@@ -191,7 +231,7 @@
     <script>
         let currentPeriod = 'day';
         let currentResto = 1;
-        let evolutionChart, categoryChart;
+        let evolutionChart;
         
         // Vérifier l'authentification
         const token = localStorage.getItem('resto_token');
@@ -199,7 +239,6 @@
             window.location.href = '/login.html';
         }
         
-        // Afficher le nom du restaurant
         const user = JSON.parse(localStorage.getItem('resto_user') || '{}');
         if (user.restaurant_name) {
             document.getElementById('resto-name').innerText = user.restaurant_name;
@@ -210,7 +249,24 @@
                 const res = await fetch(`/api/stats/${currentResto}?periode=${currentPeriod}`);
                 if (res.ok) {
                     const stats = await res.json();
-                    afficherStats(stats);
+                    document.getElementById('ca-total').innerHTML = (stats.caTotal || 0).toLocaleString() + ' FCFA';
+                    document.getElementById('nb-commandes').innerHTML = stats.nbCommandes || 0;
+                    document.getElementById('panier-moyen').innerHTML = Math.round(stats.panierMoyen || 0).toLocaleString() + ' FCFA';
+                    
+                    if (stats.topPlats && stats.topPlats.length) {
+                        const container = document.getElementById('top-plats-container');
+                        container.innerHTML = `
+                            <ul class="top-plats-list">
+                                ${stats.topPlats.slice(0,5).map(plat => `
+                                    <li><span>🍽️ ${plat.nom}</span><span>${plat.quantite} vendus</span></li>
+                                `).join('')}
+                            </ul>
+                        `;
+                    }
+                    
+                    if (stats.evolution && stats.evolution.length) {
+                        updateEvolutionChart(stats.evolution);
+                    }
                 } else if (res.status === 401) {
                     localStorage.removeItem('resto_token');
                     window.location.href = '/login.html';
@@ -218,114 +274,82 @@
             } catch(e) { console.error(e); }
         }
         
-        function afficherStats(stats) {
-            // Chiffres clés
-            document.getElementById('ca-total').innerText = (stats.caTotal || 0).toLocaleString() + ' FCFA';
-            document.getElementById('nb-commandes').innerText = stats.nbCommandes || 0;
-            document.getElementById('panier-moyen').innerText = Math.round(stats.panierMoyen || 0).toLocaleString() + ' FCFA';
-            
-            // Top 10 des plats
-            const topContainer = document.getElementById('top-plats-container');
-            if (stats.topPlats && stats.topPlats.length) {
-                topContainer.innerHTML = `
-                    <ul class="top-plats-list">
-                        ${stats.topPlats.map(plat => `
-                            <li>
-                                <span class="plat-rank">#${plat.rank}</span>
-                                <span class="plat-name">${plat.nom}</span>
-                                <span class="plat-quantity">${plat.quantite} vendus</span>
-                                <span class="plat-revenue">${plat.chiffre.toLocaleString()} FCFA</span>
-                            </li>
-                        `).join('')}
-                    </ul>
-                `;
-            } else {
-                topContainer.innerHTML = '<p style="color:gray;">Aucune donnée pour cette période</p>';
-            }
-            
-            // Graphique d'évolution
-            if (stats.evolution && stats.evolution.length) {
-                updateEvolutionChart(stats.evolution);
-            }
-            
-            // Graphique des catégories
-            if (stats.repartitionParCategorie && Object.keys(stats.repartitionParCategorie).length) {
-                updateCategoryChart(stats.repartitionParCategorie);
-            }
-            
-            // Résumé
-            const resumeDiv = document.getElementById('resume-stats');
-            resumeDiv.innerHTML = `
-                <div style="margin-bottom: 15px;">
-                    <strong>📊 Période :</strong> ${getPeriodText(currentPeriod)}
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <strong>💰 Chiffre d'affaires :</strong> ${(stats.caTotal || 0).toLocaleString()} FCFA
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <strong>📋 Nombre de commandes :</strong> ${stats.nbCommandes || 0}
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <strong>🛒 Panier moyen :</strong> ${Math.round(stats.panierMoyen || 0).toLocaleString()} FCFA
-                </div>
-                <div>
-                    <strong>🏆 Plat le plus vendu :</strong> ${stats.topPlats && stats.topPlats[0] ? stats.topPlats[0].nom : 'Aucun'}
-                </div>
-            `;
-        }
-        
         function updateEvolutionChart(evolution) {
             const ctx = document.getElementById('evolution-chart').getContext('2d');
             if (evolutionChart) evolutionChart.destroy();
-            
             evolutionChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: evolution.map(e => e.date),
                     datasets: [{
-                        label: 'Chiffre d\'affaires (FCFA)',
+                        label: 'CA (FCFA)',
                         data: evolution.map(e => e.total),
                         borderColor: '#C6A43F',
-                        backgroundColor: 'rgba(198, 164, 63, 0.1)',
-                        fill: true,
-                        tension: 0.3
+                        fill: true
                     }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: { legend: { position: 'top' } }
                 }
             });
         }
         
-        function updateCategoryChart(categories) {
-            const ctx = document.getElementById('category-chart').getContext('2d');
-            if (categoryChart) categoryChart.destroy();
+        async function chargerTables() {
+            try {
+                const res = await fetch(`/api/tables/${currentResto}`);
+                if (res.ok) {
+                    const tables = await res.json();
+                    afficherTables(tables);
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        function afficherTables(tables) {
+            const container = document.getElementById('tables-grid');
+            if (!tables.length) {
+                container.innerHTML = '<p style="color:gray;">Aucune table. Ajoutez-en une !</p>';
+                return;
+            }
             
-            categoryChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(categories),
-                    datasets: [{
-                        data: Object.values(categories),
-                        backgroundColor: ['#C6A43F', '#27AE60', '#3498DB', '#E74C3C', '#9B59B6']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: { legend: { position: 'bottom' } }
+            container.innerHTML = tables.map(table => `
+                <div class="table-card">
+                    <div class="table-number-display">🍽️ Table ${table.numero_table}</div>
+                    <button class="btn-small btn-premium-small" onclick="genererQR(${table.numero_table})">📱 QR Code</button>
+                    <button class="btn-small btn-danger-small" onclick="supprimerTable(${table.id})">🗑️ Supprimer</button>
+                </div>
+            `).join('');
+        }
+        
+        function genererQR(tableId) {
+            window.open(`/api/generate-qr/${currentResto}/${tableId}`, '_blank');
+        }
+        
+        async function ajouterTable() {
+            const numeroTable = document.getElementById('new-table-number').value;
+            if (!numeroTable) {
+                alert('Entrez un numéro de table');
+                return;
+            }
+            try {
+                const res = await fetch('/api/tables', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ restoId: currentResto, numeroTable: parseInt(numeroTable) })
+                });
+                if (res.ok) {
+                    document.getElementById('new-table-number').value = '';
+                    chargerTables();
+                } else {
+                    alert('Erreur lors de l\'ajout');
                 }
-            });
+            } catch(e) { console.error(e); }
         }
         
-        function getPeriodText(period) {
-            const map = { day: 'Aujourd\'hui', week: 'Cette semaine', month: 'Ce mois' };
-            return map[period] || period;
+        async function supprimerTable(id) {
+            if (!confirm('Supprimer cette table ?')) return;
+            try {
+                const res = await fetch(`/api/tables/${id}`, { method: 'DELETE' });
+                if (res.ok) chargerTables();
+            } catch(e) { console.error(e); }
         }
         
-        // Changement de période
         document.querySelectorAll('.period-btn').forEach(btn => {
             btn.onclick = () => {
                 document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
@@ -335,14 +359,18 @@
             };
         });
         
-        // Déconnexion
+        document.getElementById('add-table-btn').onclick = ajouterTable;
         document.getElementById('logout-btn').onclick = () => {
             localStorage.removeItem('resto_token');
             localStorage.removeItem('resto_user');
             window.location.href = '/login.html';
         };
         
+        window.genererQR = genererQR;
+        window.supprimerTable = supprimerTable;
+        
         chargerStats();
+        chargerTables();
         setInterval(chargerStats, 30000);
     </script>
 </body>
