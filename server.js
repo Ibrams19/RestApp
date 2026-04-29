@@ -535,6 +535,20 @@ app.get('/api/commande/suivi/:id', async (req, res) => {
   });
 });
 
+// Route pour l'admin - récupère TOUS les plats (même indisponibles)
+app.get('/api/admin/menu/:restoId', checkRole(['gerant']), async (req, res) => {
+  const { restoId } = req.params;
+  
+  const { data, error } = await supabase
+    .from('menus')
+    .select('*')
+    .eq('resto_id', restoId)
+    .order('id', { ascending: true });
+  
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
 // ===== LANCEMENT =====
 server.listen(3001, '0.0.0.0', () => {
   console.log('🚀 Serveur sur http://localhost:3001');

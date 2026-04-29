@@ -269,17 +269,19 @@
         
         async function chargerPlats() {
             try {
-                const res = await fetch(`/api/menu/${currentResto}`);
-                if (res.ok) {
-                    tousLesPlats = await res.json();
-                    afficherPlats();
-                    mettreAJourStats();
-                } else if (res.status === 401) {
-                    localStorage.clear();
-                    window.location.href = '/login.html';
-                }
-            } catch(e) { console.error(e); }
-        }
+                const res = await fetch(`/api/admin/menu/${currentResto}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                tousLesPlats = await res.json();
+                afficherPlats();
+                mettreAJourStats();
+            } else if (res.status === 401) {
+                localStorage.clear();
+                window.location.href = '/login.html';
+            }
+        } catch(e) { console.error(e); }
+    }
         
         function mettreAJourStats() {
             const total = tousLesPlats.length;
