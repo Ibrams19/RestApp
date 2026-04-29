@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Resto Élite">
+    <meta name="theme-color" content="#C6A43F">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Cuisine | Restaurant</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .tabs-premium {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: white;
+            margin: 20px;
+            border-radius: 60px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .tab-btn {
+            padding: 10px 25px;
+            border-radius: 40px;
+            border: none;
+            background: var(--light);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            background: var(--gold);
+            color: var(--dark);
+        }
+        .stats-premium {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+        .stat-card-premium {
+            background: white;
+            padding: 15px 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .stat-number-premium {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--gold);
+        }
+        .btn-action {
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-action-primary { background: var(--info); color: white; }
+        .btn-action-success { background: var(--success); color: white; }
+        .btn-action-warning { background: var(--warning); color: white; }
+        .btn-action-dark { background: var(--dark); color: white; }
+    </style>
+</head>
+<body>
+    <header class="header-premium">
+        <div class="container">
+            <div class="logo">👨‍🍳 ESPACE CUISINE</div>
+            <div>
+                <select id="resto-select" class="btn-outline" style="padding: 8px 20px;">
+                    <option value="1">Restaurant Test Dakar</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <div class="stats-premium">
+        <div class="stat-card-premium">
+            <div>⏳ En attente</div>
+            <div class="stat-number-premium" id="count-attente">0</div>
+        </div>
+        <div class="stat-card-premium">
+            <div>👨‍🍳 En cuisine</div>
+            <div class="stat-number-premium" id="count-cuisine">0</div>
+        </div>
+        <div class="stat-card-premium">
+            <div>✅ Prêtes</div>
+            <div class="stat-number-premium" id="count-pret">0</div>
+        </div>
+    </div>
+
+    <div class="tabs-premium">
+        <button class="tab-btn active" data-status="all">📋 Toutes</button>
+        <button class="tab-btn" data-status="en_attente">⏳ En attente</button>
+        <button class="tab-btn" data-status="cuisine">🍳 En cuisine</button>
+        <button class="tab-btn" data-status="pret">✅ Prêtes</button>
+        <button class="tab-btn" data-status="servi">🍽️ Servies</button>
+        <button class="tab-btn" data-status="paye">💰 Payées</button>
+    </div>
+
+    <div class="commandes-grid" id="commandes-grid"></div>
+
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <script>
+        let currentResto = 1;
+        let currentFilter = 'all';
+        let allCommandes = [];
+        const socket = io();
+        
+        socket.emit('join_resto', currentResto);
+        
+        async function chargerCommandes() {
+            try {
+                const res = await fetch(`/api/commandes/${currentResto}`);
+                if (res.ok) {
+                    allCommandes = await res.json();
+                    afficherCommandes();
+                    mettreAJourStats();
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        socket.on('nouvelle_commande', () => chargerCommandes());
+        socket.on('statut_change', () => chargerCommandes());
+        
+        function mettreAJourStats() {
+            document.getElementById('count-attente').innerText = allCommandes.filter(c => c.statut === 'en_attente').length;
+            document.getElementById('count-cuisine').innerText = allCommandes.filter(c => c.statut === 'cuisine').length;
+            document.getElementById('count-pret').innerText = allCommandes.filter(c => c.statut === 'pret').length;
+        }
+        
+        function afficherCommandes() {
+            let filtered = allCommandes;
+            if (currentFilter !== 'all') {
+                filtered = allCommandes.filter(c => c.statut === currentFilter);
+            }
+            
+            const container = document.getElementById('commandes-grid');
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:gray; padding:50px;">📭 Aucune commande</div>';
+                return;
+            }
+            
+            container.innerHTML = filtered.map(cmd => `
+                <div class="commande-card-premium fade-in">
+                    <div class="commande-header">
+                        <span class="table-number">Table ${cmd.table_numero || cmd.table_id}</span>
+                        <span class="statut-badge statut-${cmd.statut}">${getStatutText(cmd.statut)}</span>
+                    </div>
+                    <div style="padding: 20px;">
+                        ${cmd.details ? cmd.details.map(d => `
+                            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
+                                <span><strong>${d.quantite}x</strong> ${d.nom_plat}</span>
+                                <span>${(d.prix_unitaire * d.quantite).toLocaleString()} FCFA</span>
+                            </div>
+                        `).join('') : ''}
+                        <div style="display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 2px solid var(--gold); font-weight: bold;">
+                            <span>Total</span>
+                            <span>${cmd.total.toLocaleString()} FCFA</span>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+                            ${cmd.statut === 'en_attente' ? `<button class="btn-action btn-action-primary" onclick="changerStatut(${cmd.id}, 'cuisine')">👨‍🍳 Passer en cuisine</button>` : ''}
+                            ${cmd.statut === 'cuisine' ? `<button class="btn-action btn-action-success" onclick="changerStatut(${cmd.id}, 'pret')">✅ Plat prêt</button>` : ''}
+                            ${cmd.statut === 'pret' ? `<button class="btn-action btn-action-warning" onclick="changerStatut(${cmd.id}, 'servi')">🍽️ Servir</button>` : ''}
+                            ${cmd.statut === 'servi' ? `<button class="btn-action btn-action-dark" onclick="changerStatut(${cmd.id}, 'paye')">💰 Payer</button>` : ''}
+                        </div>
+                        ${cmd.date_commande ? `<div style="margin-top: 15px; font-size: 12px; color: gray;">🕐 ${new Date(cmd.date_commande).toLocaleString()}</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function changerStatut(commandeId, nouveauStatut) {
+            try {
+                const res = await fetch(`/api/commande/${commandeId}/statut`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ statut: nouveauStatut, restoId: currentResto })
+                });
+                if (res.ok) chargerCommandes();
+            } catch(e) { console.error(e); }
+        }
+        
+        function getStatutText(statut) {
+            const map = {
+                'en_attente': '⏳ En attente',
+                'cuisine': '🍳 En cuisine',
+                'pret': '✅ Prête',
+                'servi': '🍽️ Servie',
+                'paye': '💰 Payée'
+            };
+            return map[statut] || statut;
+        }
+        
+        document.getElementById('resto-select').onchange = (e) => {
+            currentResto = parseInt(e.target.value);
+            socket.emit('join_resto', currentResto);
+            chargerCommandes();
+        };
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.status;
+                afficherCommandes();
+            };
+        });
+        
+        chargerCommandes();
+        setInterval(chargerCommandes, 5000);
+    </script>
+</body>
+</html>

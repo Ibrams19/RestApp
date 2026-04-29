@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Resto Élite">
+    <meta name="theme-color" content="#C6A43F">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Digital | Restaurant</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .cart-icon {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            z-index: 99;
+            transition: all 0.3s ease;
+        }
+        .cart-icon:hover {
+            transform: scale(1.1);
+        }
+        .cart-icon span {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .close-cart {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+        }
+        .btn-quantite {
+            background: var(--gold-light);
+            color: var(--dark);
+        }
+        .btn-quantite:hover {
+            background: var(--gold);
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            z-index: 1001;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .category-filter {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: white;
+            margin: 20px;
+            border-radius: 60px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .category-btn {
+            padding: 8px 20px;
+            border-radius: 40px;
+            border: none;
+            background: var(--light);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .category-btn.active {
+            background: var(--gold);
+            color: var(--dark);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <header class="header-premium">
+        <div class="container">
+            <div class="logo">🍽️ RESTAURANT <span style="color: var(--gold);">ÉLITE</span></div>
+            <div>
+                <span>Table <strong id="table-number">1</strong></span>
+            </div>
+        </div>
+    </header>
+
+    <div class="category-filter" id="category-filter"></div>
+    <div class="menu-grid" id="menu-grid"></div>
+
+    <div class="cart-icon" id="cart-icon">
+        🛒
+        <span id="cart-badge">0</span>
+    </div>
+
+    <div class="cart-sidebar" id="cart-sidebar">
+        <div class="cart-header">
+            <h3>🛒 Votre commande</h3>
+            <button class="close-cart" id="close-cart">✕</button>
+        </div>
+        <div class="cart-items" id="cart-items"></div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total</span>
+                <span id="cart-total">0 FCFA</span>
+            </div>
+            <button class="btn-premium" id="validate-order" style="width: 100%;">✅ Valider la commande</button>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const RESTO_ID = urlParams.get('resto') || 1;
+        const TABLE_ID = urlParams.get('table') || 1;
+        
+        document.getElementById('table-number').innerText = TABLE_ID;
+        
+        let menu = [];
+        let panier = [];
+        let selectedCategory = 'all';
+        
+        async function chargerMenu() {
+            try {
+                const res = await fetch(`/api/menu/${RESTO_ID}`);
+                if (!res.ok) throw new Error('Erreur serveur');
+                menu = await res.json();
+                afficherCategories();
+                afficherMenu();
+            } catch (error) {
+                document.getElementById('menu-grid').innerHTML = '<p style="text-align:center; color:red;">❌ Impossible de charger le menu</p>';
+            }
+        }
+        
+        function afficherCategories() {
+            const categories = ['all', ...new Set(menu.map(p => p.categorie).filter(c => c))];
+            const container = document.getElementById('category-filter');
+            container.innerHTML = categories.map(cat => `
+                <button class="category-btn ${cat === selectedCategory ? 'active' : ''}" data-category="${cat}">
+                    ${cat === 'all' ? '🍽️ Tous' : cat}
+                </button>
+            `).join('');
+            
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.onclick = () => {
+                    selectedCategory = btn.dataset.category;
+                    afficherCategories();
+                    afficherMenu();
+                };
+            });
+        }
+        
+        function afficherMenu() {
+            const container = document.getElementById('menu-grid');
+            let filtered = menu;
+            if (selectedCategory !== 'all') {
+                filtered = menu.filter(p => p.categorie === selectedCategory);
+            }
+            
+            container.innerHTML = filtered.map(plat => `
+            <div class="menu-card fade-in">
+                <div class="menu-card-image">
+                    ${plat.photo_url ? 
+                        `<img src="${plat.photo_url}" style="width:100%;height:100%;object-fit:cover;">` : 
+                        getIcon(plat.categorie)
+                    }
+                </div>
+                <div class="menu-card-content">
+                    <h3 class="menu-card-title">${plat.nom_plat}</h3>
+                    <p class="menu-card-description">${plat.description || 'Un délice à découvrir...'}</p>
+                    <div class="menu-card-footer">
+                        <div class="price">${plat.prix.toLocaleString()} <small>FCFA</small></div>
+                        <button class="btn-premium" onclick="ajouterAuPanier(${plat.id}, '${plat.nom_plat}', ${plat.prix})">➕ Ajouter</button>
+                    </div>
+                </div>
+             </div>
+            `).join('');
+        }
+        
+        function getIcon(categorie) {
+            const icons = {
+                'Entrée': '🍜',
+                'Plat': '🍛',
+                'Dessert': '🍰',
+                'Boisson': '🍷'
+            };
+            return icons[categorie] || '🍽️';
+        }
+        
+        function ajouterAuPanier(id, nom, prix) {
+            const existant = panier.find(p => p.id === id);
+            if (existant) {
+                existant.quantite++;
+            } else {
+                panier.push({ id, nom, prix, quantite: 1 });
+            }
+            updatePanier();
+            showNotification(`✅ ${nom} ajouté au panier`);
+        }
+        
+        function updatePanier() {
+            const count = panier.reduce((s, p) => s + p.quantite, 0);
+            const total = panier.reduce((s, p) => s + (p.prix * p.quantite), 0);
+            document.getElementById('cart-badge').innerText = count;
+            document.getElementById('cart-total').innerText = total.toLocaleString() + ' FCFA';
+            
+            const cartItems = document.getElementById('cart-items');
+            if (panier.length === 0) {
+                cartItems.innerHTML = '<p style="text-align:center; color:gray;">Votre panier est vide</p>';
+                return;
+            }
+            
+            cartItems.innerHTML = panier.map(p => `
+                <div class="cart-item">
+                    <div class="cart-item-info">
+                        <h4>${p.nom}</h4>
+                        <div class="cart-item-price">${p.prix.toLocaleString()} FCFA</div>
+                    </div>
+                    <div class="cart-item-actions">
+                        <button class="btn-quantite" onclick="modifierQuantite(${p.id}, -1)">-</button>
+                        <span style="width: 30px; text-align: center;">${p.quantite}</span>
+                        <button class="btn-quantite" onclick="modifierQuantite(${p.id}, 1)">+</button>
+                        <button onclick="supprimerDuPanier(${p.id})" style="background: var(--danger); color:white;">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function modifierQuantite(id, delta) {
+            const item = panier.find(p => p.id === id);
+            if (item) {
+                item.quantite += delta;
+                if (item.quantite <= 0) {
+                    panier = panier.filter(p => p.id !== id);
+                }
+                updatePanier();
+            }
+        }
+        
+        function supprimerDuPanier(id) {
+            panier = panier.filter(p => p.id !== id);
+            updatePanier();
+        }
+        
+        async function validerCommande() {
+            if (panier.length === 0) return showNotification('🛒 Panier vide', 'error');
+            
+            const items = panier.map(p => ({
+                menuId: p.id,
+                quantite: p.quantite,
+                prix: p.prix,
+                nom: p.nom
+            }));
+            const total = panier.reduce((s, p) => s + (p.prix * p.quantite), 0);
+            
+            try {
+                const res = await fetch('/api/commande', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        restoId: parseInt(RESTO_ID),
+                        tableId: parseInt(TABLE_ID),
+                        items: items,
+                        total: total
+                    })
+                });
+                
+                if (res.ok) {
+                    showNotification('✅ Commande envoyée avec succès !');
+                    panier = [];
+                    updatePanier();
+                    document.getElementById('cart-sidebar').classList.remove('open');
+                } else {
+                    showNotification('❌ Erreur lors de la commande', 'error');
+                }
+            } catch (error) {
+                showNotification('❌ Erreur réseau', 'error');
+            }
+        }
+        
+        function showNotification(message, type = 'success') {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.style.background = type === 'error' ? 'var(--danger)' : 'var(--success)';
+            notif.innerText = message;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 3000);
+        }
+        
+        document.getElementById('cart-icon').onclick = () => {
+            document.getElementById('cart-sidebar').classList.add('open');
+        };
+        document.getElementById('close-cart').onclick = () => {
+            document.getElementById('cart-sidebar').classList.remove('open');
+        };
+        document.getElementById('validate-order').onclick = validerCommande;
+        
+        chargerMenu();
+    </script>
+</body>
+</html>

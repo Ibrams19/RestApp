@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Resto Élite">
+    <meta name="theme-color" content="#C6A43F">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Restaurant</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-family: inherit;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .plats-table {
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+        .plats-table th, .plats-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .plats-table th {
+            background: var(--dark);
+            color: white;
+        }
+        .plat-photo {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+        .btn-small {
+            padding: 5px 12px;
+            font-size: 12px;
+            margin: 3px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .photo-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-top: 10px;
+        }
+        .upload-btn {
+            background: var(--gold);
+            color: var(--dark);
+            padding: 8px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 12px;
+            border: none;
+        }
+        .search-bar {
+            margin-bottom: 20px;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <header class="header-premium">
+        <div class="container">
+            <div class="logo">👑 ADMIN DASHBOARD</div>
+            <div>
+                <select id="resto-select" class="btn-outline" style="padding: 8px 20px;">
+                    <option value="1">Restaurant Test Dakar</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <div class="form-card">
+            <h2>📝 Ajouter un plat</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nom du plat</label>
+                    <input type="text" id="plat-nom" placeholder="Ex: Yassa Poulet">
+                </div>
+                <div class="form-group">
+                    <label>Prix (FCFA)</label>
+                    <input type="number" id="plat-prix" placeholder="2500">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Catégorie</label>
+                    <select id="plat-categorie">
+                        <option value="Entrée">Entrée</option>
+                        <option value="Plat">Plat</option>
+                        <option value="Dessert">Dessert</option>
+                        <option value="Boisson">Boisson</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Disponible</label>
+                    <select id="plat-disponible">
+                        <option value="true">✅ Disponible</option>
+                        <option value="false">❌ Indisponible</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Description (optionnel)</label>
+                <textarea id="plat-description" rows="2" placeholder="Une description appétissante..."></textarea>
+            </div>
+            <button class="btn-premium" id="ajouter-plat">➕ Ajouter le plat</button>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" id="search-plat" placeholder="🔍 Rechercher un plat...">
+        </div>
+
+        <table class="plats-table">
+            <thead>
+                <tr><th>Photo</th><th>Nom</th><th>Prix</th><th>Catégorie</th><th>Statut</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="plats-list"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let currentResto = 1;
+        let tousLesPlats = [];
+        
+        async function chargerPlats() {
+            try {
+                const res = await fetch(`/api/menu/${currentResto}`);
+                if (res.ok) {
+                    tousLesPlats = await res.json();
+                    afficherPlats();
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        function afficherPlats() {
+            const searchTerm = document.getElementById('search-plat').value.toLowerCase();
+            const filtered = tousLesPlats.filter(p => p.nom_plat.toLowerCase().includes(searchTerm));
+            
+            const tbody = document.getElementById('plats-list');
+            tbody.innerHTML = filtered.map(plat => `
+                <tr>
+                    <td>
+                        ${plat.photo_url ? 
+                            `<img src="${plat.photo_url}" class="plat-photo" alt="${plat.nom_plat}">` : 
+                            `<div class="plat-photo" style="display:flex;align-items:center;justify-content:center;background:#f0f0f0;">📷</div>`
+                        }
+                        <div style="margin-top:5px;">
+                            <button class="btn-small upload-btn" onclick="uploadPhoto(${plat.id})">📷 Ajouter photo</button>
+                        </div>
+                    </td>
+                    <td><strong>${plat.nom_plat}</strong><br><small style="color:gray;">${plat.description || ''}</small></td>
+                    <td>${plat.prix.toLocaleString()} FCFA</td>
+                    <td>${plat.categorie || '-'}</td>
+                    <td>${plat.disponible ? '✅ Disponible' : '❌ Indisponible'}</td>
+                    <td>
+                        <button class="btn-small btn-warning" onclick="toggleDisponibilite(${plat.id}, ${!plat.disponible})">
+                            ${plat.disponible ? '🔴 Désactiver' : '🟢 Activer'}
+                        </button>
+                        ${plat.photo_url ? `<button class="btn-small" style="background:#6b7280;color:white;" onclick="supprimerPhoto(${plat.id})">🗑️ Supprimer photo</button>` : ''}
+                        <button class="btn-small btn-danger" onclick="supprimerPlat(${plat.id})">🗑️ Supprimer plat</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        async function ajouterPlat() {
+            const nom = document.getElementById('plat-nom').value;
+            const prix = document.getElementById('plat-prix').value;
+            const categorie = document.getElementById('plat-categorie').value;
+            const disponible = document.getElementById('plat-disponible').value === 'true';
+            const description = document.getElementById('plat-description').value;
+            
+            if (!nom || !prix) {
+                alert('❌ Veuillez remplir le nom et le prix');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/admin/plat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        restoId: currentResto,
+                        nom_plat: nom,
+                        prix: parseInt(prix),
+                        categorie: categorie,
+                        disponible: disponible,
+                        description: description
+                    })
+                });
+                
+                if (res.ok) {
+                    alert('✅ Plat ajouté avec succès !');
+                    document.getElementById('plat-nom').value = '';
+                    document.getElementById('plat-prix').value = '';
+                    document.getElementById('plat-description').value = '';
+                    chargerPlats();
+                } else {
+                    alert('❌ Erreur lors de l\'ajout');
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        function uploadPhoto(platId) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/jpeg,image/png,image/webp';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const formData = new FormData();
+                formData.append('photo', file);
+                
+                try {
+                    const res = await fetch(`/api/upload-plat-photo/${platId}`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (res.ok) {
+                        alert('✅ Photo ajoutée avec succès !');
+                        chargerPlats();
+                    } else {
+                        alert('❌ Erreur lors de l\'upload');
+                    }
+                } catch(e) { console.error(e); }
+            };
+            input.click();
+        }
+        
+        async function supprimerPhoto(platId) {
+            if (!confirm('Supprimer cette photo ?')) return;
+            try {
+                const res = await fetch(`/api/delete-photo/${platId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('✅ Photo supprimée');
+                    chargerPlats();
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        async function toggleDisponibilite(id, nouveauStatut) {
+            try {
+                const res = await fetch(`/api/admin/plat/${id}/disponible`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ disponible: nouveauStatut })
+                });
+                if (res.ok) chargerPlats();
+            } catch(e) { console.error(e); }
+        }
+        
+        async function supprimerPlat(id) {
+            if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce plat ?')) return;
+            try {
+                const res = await fetch(`/api/admin/plat/${id}`, { method: 'DELETE' });
+                if (res.ok) chargerPlats();
+            } catch(e) { console.error(e); }
+        }
+        
+        document.getElementById('ajouter-plat').onclick = ajouterPlat;
+        document.getElementById('search-plat').oninput = () => afficherPlats();
+        document.getElementById('resto-select').onchange = (e) => {
+            currentResto = parseInt(e.target.value);
+            chargerPlats();
+        };
+        
+        chargerPlats();
+    </script>
+</body>
+</html>

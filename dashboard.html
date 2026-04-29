@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Resto Élite">
+    <meta name="theme-color" content="#C6A43F">
+    <link rel="manifest" href="/manifest.json">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Dashboard | Restaurant Élite</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #C6A43F;
+            margin: 10px 0;
+        }
+        .period-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .period-btn {
+            padding: 10px 25px;
+            border-radius: 40px;
+            border: none;
+            background: #f0f0f0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .period-btn.active {
+            background: #C6A43F;
+            color: white;
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .chart-card {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .chart-card h3 {
+            margin-bottom: 20px;
+            color: #1A1A2E;
+        }
+        .top-plats-list {
+            list-style: none;
+            padding: 0;
+        }
+        .top-plats-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .plat-rank {
+            font-weight: bold;
+            color: #C6A43F;
+            width: 30px;
+        }
+        .plat-name {
+            flex: 1;
+            margin-left: 10px;
+        }
+        .plat-quantity {
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        .plat-revenue {
+            color: #6C6C7A;
+            font-size: 12px;
+        }
+        .logout-btn {
+            background: #E74C3C;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .restaurant-name {
+            font-weight: bold;
+            color: #C6A43F;
+        }
+        canvas {
+            max-height: 300px;
+        }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .charts-grid { grid-template-columns: 1fr; }
+            .dashboard-container { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header-premium">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <div class="logo">📊 TABLEAU DE BORD</div>
+            <div class="header-right">
+                <span class="restaurant-name" id="resto-name">Restaurant</span>
+                <button class="logout-btn" id="logout-btn">🚪 Déconnexion</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <div class="period-selector">
+            <button class="period-btn active" data-period="day">📅 Aujourd'hui</button>
+            <button class="period-btn" data-period="week">📆 Cette semaine</button>
+            <button class="period-btn" data-period="month">📅 Ce mois</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div>💰 Chiffre d'affaires</div>
+                <div class="stat-value" id="ca-total">0 FCFA</div>
+            </div>
+            <div class="stat-card">
+                <div>📋 Commandes servies</div>
+                <div class="stat-value" id="nb-commandes">0</div>
+            </div>
+            <div class="stat-card">
+                <div>🛒 Panier moyen</div>
+                <div class="stat-value" id="panier-moyen">0 FCFA</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>📈 Évolution des ventes</h3>
+                <canvas id="evolution-chart" width="400" height="250"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>🏆 Top 10 des plats</h3>
+                <div id="top-plats-container"></div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>🥧 Répartition par catégorie</h3>
+                <canvas id="category-chart" width="400" height="250"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>📊 Résumé</h3>
+                <div id="resume-stats"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPeriod = 'day';
+        let currentResto = 1;
+        let evolutionChart, categoryChart;
+        
+        // Vérifier l'authentification
+        const token = localStorage.getItem('resto_token');
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+        
+        // Afficher le nom du restaurant
+        const user = JSON.parse(localStorage.getItem('resto_user') || '{}');
+        if (user.restaurant_name) {
+            document.getElementById('resto-name').innerText = user.restaurant_name;
+        }
+        
+        async function chargerStats() {
+            try {
+                const res = await fetch(`/api/stats/${currentResto}?periode=${currentPeriod}`);
+                if (res.ok) {
+                    const stats = await res.json();
+                    afficherStats(stats);
+                } else if (res.status === 401) {
+                    localStorage.removeItem('resto_token');
+                    window.location.href = '/login.html';
+                }
+            } catch(e) { console.error(e); }
+        }
+        
+        function afficherStats(stats) {
+            // Chiffres clés
+            document.getElementById('ca-total').innerText = (stats.caTotal || 0).toLocaleString() + ' FCFA';
+            document.getElementById('nb-commandes').innerText = stats.nbCommandes || 0;
+            document.getElementById('panier-moyen').innerText = Math.round(stats.panierMoyen || 0).toLocaleString() + ' FCFA';
+            
+            // Top 10 des plats
+            const topContainer = document.getElementById('top-plats-container');
+            if (stats.topPlats && stats.topPlats.length) {
+                topContainer.innerHTML = `
+                    <ul class="top-plats-list">
+                        ${stats.topPlats.map(plat => `
+                            <li>
+                                <span class="plat-rank">#${plat.rank}</span>
+                                <span class="plat-name">${plat.nom}</span>
+                                <span class="plat-quantity">${plat.quantite} vendus</span>
+                                <span class="plat-revenue">${plat.chiffre.toLocaleString()} FCFA</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+            } else {
+                topContainer.innerHTML = '<p style="color:gray;">Aucune donnée pour cette période</p>';
+            }
+            
+            // Graphique d'évolution
+            if (stats.evolution && stats.evolution.length) {
+                updateEvolutionChart(stats.evolution);
+            }
+            
+            // Graphique des catégories
+            if (stats.repartitionParCategorie && Object.keys(stats.repartitionParCategorie).length) {
+                updateCategoryChart(stats.repartitionParCategorie);
+            }
+            
+            // Résumé
+            const resumeDiv = document.getElementById('resume-stats');
+            resumeDiv.innerHTML = `
+                <div style="margin-bottom: 15px;">
+                    <strong>📊 Période :</strong> ${getPeriodText(currentPeriod)}
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>💰 Chiffre d'affaires :</strong> ${(stats.caTotal || 0).toLocaleString()} FCFA
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>📋 Nombre de commandes :</strong> ${stats.nbCommandes || 0}
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>🛒 Panier moyen :</strong> ${Math.round(stats.panierMoyen || 0).toLocaleString()} FCFA
+                </div>
+                <div>
+                    <strong>🏆 Plat le plus vendu :</strong> ${stats.topPlats && stats.topPlats[0] ? stats.topPlats[0].nom : 'Aucun'}
+                </div>
+            `;
+        }
+        
+        function updateEvolutionChart(evolution) {
+            const ctx = document.getElementById('evolution-chart').getContext('2d');
+            if (evolutionChart) evolutionChart.destroy();
+            
+            evolutionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: evolution.map(e => e.date),
+                    datasets: [{
+                        label: 'Chiffre d\'affaires (FCFA)',
+                        data: evolution.map(e => e.total),
+                        borderColor: '#C6A43F',
+                        backgroundColor: 'rgba(198, 164, 63, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { position: 'top' } }
+                }
+            });
+        }
+        
+        function updateCategoryChart(categories) {
+            const ctx = document.getElementById('category-chart').getContext('2d');
+            if (categoryChart) categoryChart.destroy();
+            
+            categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categories),
+                    datasets: [{
+                        data: Object.values(categories),
+                        backgroundColor: ['#C6A43F', '#27AE60', '#3498DB', '#E74C3C', '#9B59B6']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+        
+        function getPeriodText(period) {
+            const map = { day: 'Aujourd\'hui', week: 'Cette semaine', month: 'Ce mois' };
+            return map[period] || period;
+        }
+        
+        // Changement de période
+        document.querySelectorAll('.period-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentPeriod = btn.dataset.period;
+                chargerStats();
+            };
+        });
+        
+        // Déconnexion
+        document.getElementById('logout-btn').onclick = () => {
+            localStorage.removeItem('resto_token');
+            localStorage.removeItem('resto_user');
+            window.location.href = '/login.html';
+        };
+        
+        chargerStats();
+        setInterval(chargerStats, 30000);
+    </script>
+</body>
+</html>

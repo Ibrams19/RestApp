@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: resto-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: SUPABASE_URL
+        value: https://hgteqscrpglafdjmhnuc.supabase.co
+      - key: SUPABASE_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhndGVxc2NycGdsYWZkam1obnVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0MTE3MjEsImV4cCI6MjA5Mjk4NzcyMX0.CjLEEFyk91yc3-QSmzYoyRNvGfsbeQtC6kO5sCe2NPQ
+      - key: JWT_SECRET
+        value: resto-secret-key-2024
