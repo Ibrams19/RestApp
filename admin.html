@@ -93,13 +93,32 @@
             border: none;
         }
         .search-bar {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .search-bar input {
             width: 100%;
             padding: 12px 20px;
             border-radius: 50px;
             border: 1px solid #ddd;
+        }
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 8px 20px;
+            border-radius: 40px;
+            border: none;
+            background: #f0f0f0;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .filter-btn.active {
+            background: #C6A43F;
+            color: white;
         }
         .nav-bar {
             display: flex;
@@ -119,6 +138,17 @@
         .nav-btn:hover {
             background: #C6A43F;
             color: #1A1A2E;
+        }
+        .stats-info {
+            background: #f8f8f8;
+            padding: 10px 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         @media (max-width: 768px) {
             .admin-container { padding: 15px; }
@@ -187,7 +217,17 @@
         </div>
 
         <div class="search-bar">
-            <input type="text" id="search-plat" placeholder="🔍 Rechercher un plat...">
+            <input type="text" id="search-plat" placeholder="🔍 Rechercher un plat par nom...">
+        </div>
+
+        <div class="filter-bar">
+            <button class="filter-btn active" id="filter-all">📋 Tous les plats</button>
+            <button class="filter-btn" id="filter-available">✅ Disponibles</button>
+            <button class="filter-btn" id="filter-unavailable">❌ Indisponibles</button>
+        </div>
+
+        <div class="stats-info" id="stats-info">
+            <span>📊 Chargement...</span>
         </div>
 
         <div style="overflow-x: auto;">
@@ -225,6 +265,7 @@
         
         let currentResto = 1;
         let tousLesPlats = [];
+        let currentFilter = 'all'; // 'all', 'available', 'unavailable'
         
         async function chargerPlats() {
             try {
@@ -232,6 +273,7 @@
                 if (res.ok) {
                     tousLesPlats = await res.json();
                     afficherPlats();
+                    mettreAJourStats();
                 } else if (res.status === 401) {
                     localStorage.clear();
                     window.location.href = '/login.html';
@@ -239,13 +281,35 @@
             } catch(e) { console.error(e); }
         }
         
+        function mettreAJourStats() {
+            const total = tousLesPlats.length;
+            const disponibles = tousLesPlats.filter(p => p.disponible === true).length;
+            const indisponibles = tousLesPlats.filter(p => p.disponible === false).length;
+            const statsDiv = document.getElementById('stats-info');
+            statsDiv.innerHTML = `
+                <span>📋 Total: ${total} plats</span>
+                <span>✅ Disponibles: ${disponibles}</span>
+                <span>❌ Indisponibles: ${indisponibles}</span>
+            `;
+        }
+        
         function afficherPlats() {
             const searchTerm = document.getElementById('search-plat')?.value.toLowerCase() || '';
-            const filtered = tousLesPlats.filter(p => p.nom_plat.toLowerCase().includes(searchTerm));
+            let filtered = tousLesPlats.filter(p => p.nom_plat.toLowerCase().includes(searchTerm));
+            
+            // Appliquer le filtre de disponibilité
+            if (currentFilter === 'available') {
+                filtered = filtered.filter(p => p.disponible === true);
+            } else if (currentFilter === 'unavailable') {
+                filtered = filtered.filter(p => p.disponible === false);
+            }
             
             const tbody = document.getElementById('plats-list');
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Aucun plat trouvé</td></tr>';
+                let message = 'Aucun plat trouvé';
+                if (currentFilter === 'available') message = 'Aucun plat disponible';
+                if (currentFilter === 'unavailable') message = 'Aucun plat indisponible';
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">${message}</td></tr>`;
                 return;
             }
             
@@ -263,7 +327,7 @@
                     <td><strong>${escapeHtml(plat.nom_plat)}</strong><br><small style="color:gray;">${escapeHtml(plat.description || '')}</small></td>
                     <td>${plat.prix.toLocaleString()} FCFA</td>
                     <td>${plat.categorie || '-'}</td>
-                    <td>${plat.disponible ? '✅ Disponible' : '❌ Indisponible'}</td>
+                    <td>${plat.disponible ? '<span style="color:#27AE60;">✅ Disponible</span>' : '<span style="color:#E74C3C;">❌ Indisponible</span>'}</td>
                     <td>
                         <button class="btn-small btn-warning" onclick="toggleDisponibilite(${plat.id}, ${!plat.disponible})">
                             ${plat.disponible ? '🔴 Désactiver' : '🟢 Activer'}
@@ -282,6 +346,19 @@
                 if (m === '<') return '&lt;';
                 if (m === '>') return '&gt;';
                 return m;
+            });
+        }
+        
+        function updateFilterButtons(activeId) {
+            ['filter-all', 'filter-available', 'filter-unavailable'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    if (id === activeId) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                }
             });
         }
         
@@ -408,6 +485,23 @@
                 }
             } catch(e) { console.error(e); }
         }
+        
+        // Gestion des filtres
+        document.getElementById('filter-all').onclick = () => {
+            currentFilter = 'all';
+            updateFilterButtons('filter-all');
+            afficherPlats();
+        };
+        document.getElementById('filter-available').onclick = () => {
+            currentFilter = 'available';
+            updateFilterButtons('filter-available');
+            afficherPlats();
+        };
+        document.getElementById('filter-unavailable').onclick = () => {
+            currentFilter = 'unavailable';
+            updateFilterButtons('filter-unavailable');
+            afficherPlats();
+        };
         
         // Déconnexion
         document.getElementById('logout-btn').onclick = () => {
