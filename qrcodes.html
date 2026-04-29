@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Codes | Restaurant</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        .qr-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .qr-card img {
+            width: 150px;
+            height: 150px;
+            margin: 10px auto;
+        }
+        .table-num {
+            font-size: 24px;
+            font-weight: bold;
+            color: #C6A43F;
+        }
+        .nav-bar {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            padding: 10px 20px;
+            border-radius: 40px;
+            text-decoration: none;
+            background: #1A1A2E;
+            color: white;
+        }
+        .nav-btn.active {
+            background: #C6A43F;
+            color: #1A1A2E;
+        }
+    </style>
+</head>
+<body>
+    <header class="header-premium">
+        <div class="container">
+            <div class="logo">📱 GÉNÉRATION QR CODES</div>
+        </div>
+    </header>
+
+    <div class="nav-bar">
+        <a href="/dashboard.html" class="nav-btn">📊 Dashboard</a>
+        <a href="/admin.html" class="nav-btn">🍽️ Plats</a>
+        <a href="/resto.html" class="nav-btn">👨‍🍳 Cuisine</a>
+        <a href="/qrcodes.html" class="nav-btn active">📱 QR Codes</a>
+    </div>
+
+    <div class="qr-grid" id="qr-grid">
+        <div style="text-align: center; grid-column: span all;">Chargement des tables...</div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('resto_token');
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+
+        async function chargerTables() {
+            try {
+                const res = await fetch('/api/tables/1');
+                if (res.ok) {
+                    const tables = await res.json();
+                    afficherQRCodes(tables);
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function afficherQRCodes(tables) {
+            const container = document.getElementById('qr-grid');
+            
+            for (const table of tables) {
+                const qrRes = await fetch(`/api/generate-qr/1/${table.numero_table}`);
+                const qrHtml = await qrRes.text();
+                
+                // Extraire l'URL du QR code
+                const urlMatch = qrHtml.match(/img src="([^"]+)"/);
+                const qrImage = urlMatch ? urlMatch[1] : '';
+                
+                container.innerHTML += `
+                    <div class="qr-card">
+                        <div class="table-num">🍽️ TABLE ${table.numero_table}</div>
+                        <img src="${qrImage}" alt="QR Code Table ${table.numero_table}">
+                        <div style="margin-top: 15px;">
+                            <button class="btn-premium" onclick="imprimerQR(${table.numero_table})">🖨️ Imprimer</button>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 11px; color: gray; word-break: break-all;">
+                            URL: https://restapp-a8ac.onrender.com/menu.html?resto=1&table=${table.numero_table}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function imprimerQR(tableId) {
+            const url = `https://restapp-a8ac.onrender.com/api/generate-qr/1/${tableId}`;
+            window.open(url, '_blank');
+        }
+
+        chargerTables();
+    </script>
+</body>
+</html>
