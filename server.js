@@ -170,7 +170,7 @@ app.post('/api/payer', async (req, res) => {
 // 5. QR Code
 app.get('/api/qrcode/:restoId/:tableId', async (req, res) => {
   const { restoId, tableId } = req.params;
-  const url = `http://localhost:3001/menu.html?resto=${restoId}&table=${tableId}`;
+  const url = `https://restapp-a8ac.onrender.com/menu.html?resto=${restoId}&table=${tableId}`;
   const qrImage = await QRCode.toDataURL(url);
   res.json({ qr: qrImage, url });
 });
@@ -418,7 +418,7 @@ app.delete('/api/tables/:id', async (req, res) => {
 
 app.get('/api/generate-qr/:restoId/:tableId', async (req, res) => {
   const { restoId, tableId } = req.params;
-  const url = `http://localhost:3001/menu.html?resto=${restoId}&table=${tableId}`;
+  const url = `https://restapp-a8ac.onrender.com/menu.html?resto=${restoId}&table=${tableId}`;
   const qrImage = await QRCode.toDataURL(url, { width: 300, margin: 2 });
   
   const html = `
