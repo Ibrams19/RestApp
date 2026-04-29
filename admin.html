@@ -8,14 +8,9 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Admin Dashboard | Restaurant</title>
     <link rel="stylesheet" href="styles.css">
-    <div style="display: flex; gap: 10px; justify-content: center; margin: 20px 0; flex-wrap: wrap;">
-    <a href="/dashboard.html" class="nav-btn" style="background: #C6A43F; color: white; padding: 10px 20px; border-radius: 40px; text-decoration: none;">📊 Dashboard</a>
-    <a href="/admin.html" class="nav-btn" style="background: #1A1A2E; color: white; padding: 10px 20px; border-radius: 40px; text-decoration: none;">🍽️ Gestion des plats</a>
-    <a href="/resto.html" class="nav-btn" style="background: #1A1A2E; color: white; padding: 10px 20px; border-radius: 40px; text-decoration: none;">👨‍🍳 Cuisine/Commandes</a>
-    </div>
     <style>
         .admin-container {
             max-width: 1200px;
@@ -53,7 +48,7 @@
             width: 100%;
             background: white;
             border-radius: 20px;
-            overflow: hidden;
+            overflow-x: auto;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
         }
         .plats-table th, .plats-table td {
@@ -62,7 +57,7 @@
             border-bottom: 1px solid #eee;
         }
         .plats-table th {
-            background: var(--dark);
+            background: #1A1A2E;
             color: white;
         }
         .plat-photo {
@@ -73,11 +68,11 @@
             background: #f0f0f0;
         }
         .btn-danger {
-            background: var(--danger);
+            background: #E74C3C;
             color: white;
         }
         .btn-warning {
-            background: var(--warning);
+            background: #F39C12;
             color: white;
         }
         .btn-small {
@@ -88,16 +83,9 @@
             border-radius: 20px;
             cursor: pointer;
         }
-        .photo-preview {
-            width: 80px;
-            height: 80px;
-            border-radius: 12px;
-            object-fit: cover;
-            margin-top: 10px;
-        }
         .upload-btn {
-            background: var(--gold);
-            color: var(--dark);
+            background: #C6A43F;
+            color: #1A1A2E;
             padding: 8px 16px;
             border-radius: 40px;
             cursor: pointer;
@@ -113,19 +101,52 @@
             border-radius: 50px;
             border: 1px solid #ddd;
         }
+        .nav-bar {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            padding: 10px 20px;
+            border-radius: 40px;
+            text-decoration: none;
+            background: #1A1A2E;
+            color: white;
+            transition: all 0.3s;
+        }
+        .nav-btn:hover {
+            background: #C6A43F;
+            color: #1A1A2E;
+        }
+        @media (max-width: 768px) {
+            .admin-container { padding: 15px; }
+            .plats-table { font-size: 12px; }
+            .plats-table th, .plats-table td { padding: 8px; }
+        }
     </style>
 </head>
 <body>
     <header class="header-premium">
-        <div class="container">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; padding: 15px 30px;">
             <div class="logo">👑 ADMIN DASHBOARD</div>
-            <div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span id="user-role" style="background: #C6A43F; padding: 5px 12px; border-radius: 20px; font-size: 12px;">Gérant</span>
                 <select id="resto-select" class="btn-outline" style="padding: 8px 20px;">
                     <option value="1">Restaurant Test Dakar</option>
                 </select>
+                <button class="logout-btn" id="logout-btn" style="background: #E74C3C; color: white; border: none; padding: 8px 20px; border-radius: 40px; cursor: pointer;">🚪 Déconnexion</button>
             </div>
         </div>
     </header>
+
+    <div class="nav-bar">
+        <a href="/dashboard.html" class="nav-btn">📊 Dashboard</a>
+        <a href="/admin.html" class="nav-btn" style="background: #C6A43F;">🍽️ Gestion plats</a>
+        <a href="/resto.html" class="nav-btn">👨‍🍳 Cuisine</a>
+        <a href="/qrcodes.html" class="nav-btn">📱 QR Codes</a>
+    </div>
 
     <div class="admin-container">
         <div class="form-card">
@@ -169,15 +190,39 @@
             <input type="text" id="search-plat" placeholder="🔍 Rechercher un plat...">
         </div>
 
-        <table class="plats-table">
-            <thead>
-                <tr><th>Photo</th><th>Nom</th><th>Prix</th><th>Catégorie</th><th>Statut</th><th>Actions</th></tr>
-            </thead>
-            <tbody id="plats-list"></tbody>
-        </table>
+        <div style="overflow-x: auto;">
+            <table class="plats-table">
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>Nom</th>
+                        <th>Prix</th>
+                        <th>Catégorie</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="plats-list">
+                    <tr><td colspan="6" style="text-align:center;">Chargement...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
+        // VÉRIFICATION DE L'AUTHENTIFICATION ET DU RÔLE
+        const token = localStorage.getItem('resto_token');
+        const userRole = localStorage.getItem('resto_role');
+        
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+        
+        if (userRole !== 'gerant') {
+            alert('Accès réservé aux gérants');
+            window.location.href = '/resto.html';
+        }
+        
         let currentResto = 1;
         let tousLesPlats = [];
         
@@ -187,27 +232,35 @@
                 if (res.ok) {
                     tousLesPlats = await res.json();
                     afficherPlats();
+                } else if (res.status === 401) {
+                    localStorage.clear();
+                    window.location.href = '/login.html';
                 }
             } catch(e) { console.error(e); }
         }
         
         function afficherPlats() {
-            const searchTerm = document.getElementById('search-plat').value.toLowerCase();
+            const searchTerm = document.getElementById('search-plat')?.value.toLowerCase() || '';
             const filtered = tousLesPlats.filter(p => p.nom_plat.toLowerCase().includes(searchTerm));
             
             const tbody = document.getElementById('plats-list');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Aucun plat trouvé</td></tr>';
+                return;
+            }
+            
             tbody.innerHTML = filtered.map(plat => `
                 <tr>
-                    <td>
+                    <td style="text-align:center;">
                         ${plat.photo_url ? 
-                            `<img src="${plat.photo_url}" class="plat-photo" alt="${plat.nom_plat}">` : 
-                            `<div class="plat-photo" style="display:flex;align-items:center;justify-content:center;background:#f0f0f0;">📷</div>`
+                            `<img src="${plat.photo_url}" class="plat-photo" alt="${plat.nom_plat}" style="width:50px;height:50px;object-fit:cover;border-radius:10px;">` : 
+                            `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;background:#f0f0f0;border-radius:10px;">📷</div>`
                         }
                         <div style="margin-top:5px;">
-                            <button class="btn-small upload-btn" onclick="uploadPhoto(${plat.id})">📷 Ajouter photo</button>
+                            <button class="btn-small upload-btn" onclick="uploadPhoto(${plat.id})">📷 Ajouter</button>
                         </div>
                     </td>
-                    <td><strong>${plat.nom_plat}</strong><br><small style="color:gray;">${plat.description || ''}</small></td>
+                    <td><strong>${escapeHtml(plat.nom_plat)}</strong><br><small style="color:gray;">${escapeHtml(plat.description || '')}</small></td>
                     <td>${plat.prix.toLocaleString()} FCFA</td>
                     <td>${plat.categorie || '-'}</td>
                     <td>${plat.disponible ? '✅ Disponible' : '❌ Indisponible'}</td>
@@ -215,11 +268,21 @@
                         <button class="btn-small btn-warning" onclick="toggleDisponibilite(${plat.id}, ${!plat.disponible})">
                             ${plat.disponible ? '🔴 Désactiver' : '🟢 Activer'}
                         </button>
-                        ${plat.photo_url ? `<button class="btn-small" style="background:#6b7280;color:white;" onclick="supprimerPhoto(${plat.id})">🗑️ Supprimer photo</button>` : ''}
-                        <button class="btn-small btn-danger" onclick="supprimerPlat(${plat.id})">🗑️ Supprimer plat</button>
+                        ${plat.photo_url ? `<button class="btn-small" style="background:#6b7280;color:white;" onclick="supprimerPhoto(${plat.id})">🗑️ Photo</button>` : ''}
+                        <button class="btn-small btn-danger" onclick="supprimerPlat(${plat.id})">🗑️ Plat</button>
                     </td>
                 </tr>
             `).join('');
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
         }
         
         async function ajouterPlat() {
@@ -237,7 +300,10 @@
             try {
                 const res = await fetch('/api/admin/plat', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({
                         restoId: currentResto,
                         nom_plat: nom,
@@ -255,7 +321,8 @@
                     document.getElementById('plat-description').value = '';
                     chargerPlats();
                 } else {
-                    alert('❌ Erreur lors de l\'ajout');
+                    const error = await res.json();
+                    alert('❌ Erreur: ' + (error.error || 'Non autorisé'));
                 }
             } catch(e) { console.error(e); }
         }
@@ -274,6 +341,7 @@
                 try {
                     const res = await fetch(`/api/upload-plat-photo/${platId}`, {
                         method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
                         body: formData
                     });
                     
@@ -281,7 +349,8 @@
                         alert('✅ Photo ajoutée avec succès !');
                         chargerPlats();
                     } else {
-                        alert('❌ Erreur lors de l\'upload');
+                        const error = await res.json();
+                        alert('❌ Erreur: ' + (error.error || 'Upload échoué'));
                     }
                 } catch(e) { console.error(e); }
             };
@@ -291,10 +360,15 @@
         async function supprimerPhoto(platId) {
             if (!confirm('Supprimer cette photo ?')) return;
             try {
-                const res = await fetch(`/api/delete-photo/${platId}`, { method: 'DELETE' });
+                const res = await fetch(`/api/delete-photo/${platId}`, { 
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 if (res.ok) {
                     alert('✅ Photo supprimée');
                     chargerPlats();
+                } else {
+                    alert('❌ Erreur lors de la suppression');
                 }
             } catch(e) { console.error(e); }
         }
@@ -303,20 +377,43 @@
             try {
                 const res = await fetch(`/api/admin/plat/${id}/disponible`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({ disponible: nouveauStatut })
                 });
-                if (res.ok) chargerPlats();
+                if (res.ok) {
+                    chargerPlats();
+                } else {
+                    const error = await res.json();
+                    alert('Erreur: ' + (error.error || 'Action non autorisée'));
+                }
             } catch(e) { console.error(e); }
         }
         
         async function supprimerPlat(id) {
-            if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce plat ?')) return;
+            if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce plat définitivement ?')) return;
             try {
-                const res = await fetch(`/api/admin/plat/${id}`, { method: 'DELETE' });
-                if (res.ok) chargerPlats();
+                const res = await fetch(`/api/admin/plat/${id}`, { 
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    alert('✅ Plat supprimé');
+                    chargerPlats();
+                } else {
+                    const error = await res.json();
+                    alert('Erreur: ' + (error.error || 'Non autorisé'));
+                }
             } catch(e) { console.error(e); }
         }
+        
+        // Déconnexion
+        document.getElementById('logout-btn').onclick = () => {
+            localStorage.clear();
+            window.location.href = '/login.html';
+        };
         
         document.getElementById('ajouter-plat').onclick = ajouterPlat;
         document.getElementById('search-plat').oninput = () => afficherPlats();
@@ -324,6 +421,12 @@
             currentResto = parseInt(e.target.value);
             chargerPlats();
         };
+        
+        // Rendre les fonctions globales pour les onclick
+        window.uploadPhoto = uploadPhoto;
+        window.supprimerPhoto = supprimerPhoto;
+        window.toggleDisponibilite = toggleDisponibilite;
+        window.supprimerPlat = supprimerPlat;
         
         chargerPlats();
     </script>
