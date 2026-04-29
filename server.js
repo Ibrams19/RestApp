@@ -5,7 +5,7 @@ const QRCode = require('qrcode');
 const { Server } = require('socket.io');
 const http = require('http');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+const multer = require('multer');
 
 const app = express();
 const server = http.createServer(app);
@@ -21,53 +21,9 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const JWT_SECRET = 'resto-secret-key-2024';
+const PUBLIC_URL = 'https://restapp-a8ac.onrender.com';
 
-// ===== AUTHENTIFICATION =====
-
-// Inscription / Connexion simplifiée (sans mot de passe - code par email)
-
-app.post('/api/auth/login', async (req, res) => {
-  const { email } = req.body;
-  
-  console.log('Tentative de connexion avec:', email);
-  
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('email', email)
-    .single();
-  
-  console.log('Résultat:', profile, error);
-  
-  if (error || !profile) {
-    return res.status(401).json({ error: 'Email non reconnu' });
-  }
-  
-  const token = jwt.sign(
-    { id: profile.id, email: profile.email, restaurant_name: profile.restaurant_name },
-    JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-  
-  res.json({ success: true, token, user: profile });
-});
-
-// Vérifier le token
-app.post('/api/auth/verify', async (req, res) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  
-  if (!token) return res.status(401).json({ error: 'Non autorisé' });
-  
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    res.json({ success: true, user: decoded });
-  } catch (error) {
-    res.status(401).json({ error: 'Token invalide' });
-  }
-});
-
-// ===== ROUTES PROTÉGÉES (exemple) =====
-// Middleware pour protéger les routes admin
+// ===== MIDDLEWARE =====
 function authMiddleware(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Non autorisé' });
@@ -81,16 +37,60 @@ function authMiddleware(req, res, next) {
   }
 }
 
-// Protéger la route admin
-app.get('/api/admin/restaurants', authMiddleware, async (req, res) => {
-  const { data, error } = await supabase.from('restaurants').select('*');
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+function checkRole(allowedRoles) {
+  return (req, res, next) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Non autorisé' });
+    
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      if (!allowedRoles.includes(decoded.role)) {
+        return res.status(403).json({ error: 'Accès interdit. Vous n\'avez pas les droits nécessaires.' });
+      }
+      req.user = decoded;
+      next();
+    } catch (error) {
+      res.status(401).json({ error: 'Token invalide' });
+    }
+  };
+}
+
+// ===== AUTHENTIFICATION =====
+app.post('/api/auth/login', async (req, res) => {
+  const { email, role } = req.body;
+  
+  console.log('Tentative de connexion:', email, 'rôle demandé:', role);
+  
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('email', email)
+    .single();
+  
+  console.log('Résultat:', profile, error);
+  
+  if (error || !profile) {
+    return res.status(401).json({ error: 'Email non reconnu' });
+  }
+  
+  if (role && profile.role !== role) {
+    return res.status(401).json({ error: `Accès non autorisé. Vous êtes ${profile.role}, pas ${role}.` });
+  }
+  
+  const token = jwt.sign(
+    { id: profile.id, email: profile.email, restaurant_name: profile.restaurant_name, role: profile.role || 'gerant' },
+    JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+  
+  res.json({ success: true, token, user: profile });
 });
 
-// ===== ROUTES EXISTANTES (garder toutes tes routes) =====
+app.post('/api/auth/verify', authMiddleware, async (req, res) => {
+  res.json({ success: true, user: req.user });
+});
 
-// 1. Récupérer le menu
+// ===== ROUTES CLIENT (publiques) =====
 app.get('/api/menu/:restoId', async (req, res) => {
   const { restoId } = req.params;
   
@@ -104,7 +104,6 @@ app.get('/api/menu/:restoId', async (req, res) => {
   res.json(data);
 });
 
-// 2. Passer commande
 app.post('/api/commande', async (req, res) => {
   const { restoId, tableId, items, total } = req.body;
   
@@ -136,7 +135,6 @@ app.post('/api/commande', async (req, res) => {
   res.json({ success: true, commande_id: commande.id });
 });
 
-// 3. Changer statut
 app.put('/api/commande/:id/statut', async (req, res) => {
   const { id } = req.params;
   const { statut, restoId } = req.body;
@@ -152,7 +150,6 @@ app.put('/api/commande/:id/statut', async (req, res) => {
   res.json({ success: true });
 });
 
-// 4. Valider paiement
 app.post('/api/payer', async (req, res) => {
   const { commande_id, restoId } = req.body;
   
@@ -167,15 +164,13 @@ app.post('/api/payer', async (req, res) => {
   res.json({ success: true });
 });
 
-// 5. QR Code
 app.get('/api/qrcode/:restoId/:tableId', async (req, res) => {
   const { restoId, tableId } = req.params;
-  const url = `https://restapp-a8ac.onrender.com/menu.html?resto=${restoId}&table=${tableId}`;
+  const url = `${PUBLIC_URL}/menu.html?resto=${restoId}&table=${tableId}`;
   const qrImage = await QRCode.toDataURL(url);
   res.json({ qr: qrImage, url });
 });
 
-// 6. Récupérer commandes
 app.get('/api/commandes/:restoId', async (req, res) => {
   const { restoId } = req.params;
   
@@ -204,9 +199,8 @@ app.get('/api/commandes/:restoId', async (req, res) => {
   res.json(result);
 });
 
-// ===== ROUTES ADMIN =====
-
-app.post('/api/admin/plat', async (req, res) => {
+// ===== ROUTES ADMIN (réservées au gérant) =====
+app.post('/api/admin/plat', checkRole(['gerant']), async (req, res) => {
   const { restoId, nom_plat, prix, categorie, disponible, description } = req.body;
   
   const { data, error } = await supabase
@@ -218,7 +212,7 @@ app.post('/api/admin/plat', async (req, res) => {
   res.json({ success: true, data });
 });
 
-app.put('/api/admin/plat/:id/disponible', async (req, res) => {
+app.put('/api/admin/plat/:id/disponible', checkRole(['gerant']), async (req, res) => {
   const { id } = req.params;
   const { disponible } = req.body;
   
@@ -231,7 +225,7 @@ app.put('/api/admin/plat/:id/disponible', async (req, res) => {
   res.json({ success: true });
 });
 
-app.delete('/api/admin/plat/:id', async (req, res) => {
+app.delete('/api/admin/plat/:id', checkRole(['gerant']), async (req, res) => {
   const { id } = req.params;
   
   const { error } = await supabase
@@ -243,13 +237,11 @@ app.delete('/api/admin/plat/:id', async (req, res) => {
   res.json({ success: true });
 });
 
-// ===== STATISTIQUES COMPLÈTES =====
-
-app.get('/api/stats/:restoId', async (req, res) => {
+// ===== ROUTES STATISTIQUES (réservées au gérant) =====
+app.get('/api/stats/:restoId', checkRole(['gerant']), async (req, res) => {
   const { restoId } = req.params;
   const { periode } = req.query;
   
-  // Calculer la date de début selon la période
   let startDate = null;
   const now = new Date();
   
@@ -261,7 +253,6 @@ app.get('/api/stats/:restoId', async (req, res) => {
     startDate = new Date(now.setMonth(now.getMonth() - 1));
   }
   
-  // 1. Récupérer les commandes payées du restaurant
   let query = supabase
     .from('commandes')
     .select('id, total, date_commande')
@@ -273,113 +264,53 @@ app.get('/api/stats/:restoId', async (req, res) => {
   }
   
   const { data: commandes, error: commandesError } = await query;
+  if (commandesError) return res.status(500).json({ error: commandesError.message });
   
-  if (commandesError) {
-    return res.status(500).json({ error: commandesError.message });
-  }
-  
-  // Calcul du CA total
   const caTotal = commandes.reduce((sum, cmd) => sum + (cmd.total || 0), 0);
   const nbCommandes = commandes.length;
   const panierMoyen = nbCommandes > 0 ? caTotal / nbCommandes : 0;
   
-  // 2. Récupérer les détails des commandes (les plats vendus)
   if (commandes.length === 0) {
-    return res.json({
-      caTotal: 0,
-      nbCommandes: 0,
-      panierMoyen: 0,
-      topPlats: [],
-      repartitionParCategorie: {},
-      evolutionParJour: []
-    });
+    return res.json({ caTotal: 0, nbCommandes: 0, panierMoyen: 0, topPlats: [], evolution: [] });
   }
   
   const commandeIds = commandes.map(c => c.id);
-  
-  const { data: details, error: detailsError } = await supabase
+  const { data: details } = await supabase
     .from('commande_details')
-    .select('nom_plat, quantite, prix_unitaire, commande_id')
+    .select('nom_plat, quantite, prix_unitaire')
     .in('commande_id', commandeIds);
   
-  if (detailsError) {
-    return res.status(500).json({ error: detailsError.message });
-  }
-  
-  // 3. Compter les ventes par plat
   const ventesParPlat = {};
-  details.forEach(detail => {
-    if (ventesParPlat[detail.nom_plat]) {
-      ventesParPlat[detail.nom_plat] += detail.quantite;
-    } else {
-      ventesParPlat[detail.nom_plat] = detail.quantite;
-    }
-  });
+  if (details) {
+    details.forEach(detail => {
+      if (ventesParPlat[detail.nom_plat]) {
+        ventesParPlat[detail.nom_plat] += detail.quantite;
+      } else {
+        ventesParPlat[detail.nom_plat] = detail.quantite;
+      }
+    });
+  }
   
   const topPlats = Object.entries(ventesParPlat)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 10)
-    .map(([nom, quantite], index) => ({ 
-      rank: index + 1, 
-      nom, 
-      quantite,
-      chiffre: details
-        .filter(d => d.nom_plat === nom)
-        .reduce((sum, d) => sum + (d.prix_unitaire * d.quantite), 0)
-    }));
+    .map(([nom, quantite]) => ({ nom, quantite }));
   
-  // 4. Répartition par catégorie (besoin des catégories depuis la table menus)
-  const { data: menus } = await supabase
-    .from('menus')
-    .select('nom_plat, categorie')
-    .eq('resto_id', restoId);
-  
-  const categorieParPlat = {};
-  if (menus) {
-    menus.forEach(m => {
-      categorieParPlat[m.nom_plat] = m.categorie || 'Autre';
-    });
-  }
-  
-  const repartitionParCategorie = {};
-  details.forEach(detail => {
-    const cat = categorieParPlat[detail.nom_plat] || 'Autre';
-    if (repartitionParCategorie[cat]) {
-      repartitionParCategorie[cat] += detail.quantite;
-    } else {
-      repartitionParCategorie[cat] = detail.quantite;
-    }
-  });
-  
-  // 5. Évolution par jour (pour le graphique)
   const evolutionParJour = {};
   commandes.forEach(cmd => {
     const date = new Date(cmd.date_commande).toLocaleDateString('fr-FR');
-    if (evolutionParJour[date]) {
-      evolutionParJour[date] += cmd.total;
-    } else {
-      evolutionParJour[date] = cmd.total;
-    }
+    evolutionParJour[date] = (evolutionParJour[date] || 0) + cmd.total;
   });
   
   const evolution = Object.entries(evolutionParJour)
     .sort((a, b) => new Date(a[0]) - new Date(b[0]))
     .map(([date, total]) => ({ date, total }));
   
-  res.json({
-    caTotal,
-    nbCommandes,
-    panierMoyen,
-    topPlats,
-    repartitionParCategorie,
-    evolution,
-    periode
-  });
+  res.json({ caTotal, nbCommandes, panierMoyen, topPlats, evolution, periode });
 });
 
-// ===== GESTION TABLES =====
-
-app.get('/api/tables/:restoId', async (req, res) => {
+// ===== ROUTES TABLES (réservées au gérant) =====
+app.get('/api/tables/:restoId', checkRole(['gerant']), async (req, res) => {
   const { restoId } = req.params;
   
   const { data, error } = await supabase
@@ -392,7 +323,7 @@ app.get('/api/tables/:restoId', async (req, res) => {
   res.json(data);
 });
 
-app.post('/api/tables', async (req, res) => {
+app.post('/api/tables', checkRole(['gerant']), async (req, res) => {
   const { restoId, numeroTable } = req.body;
   
   const { data, error } = await supabase
@@ -404,7 +335,7 @@ app.post('/api/tables', async (req, res) => {
   res.json({ success: true, data });
 });
 
-app.delete('/api/tables/:id', async (req, res) => {
+app.delete('/api/tables/:id', checkRole(['gerant']), async (req, res) => {
   const { id } = req.params;
   
   const { error } = await supabase
@@ -416,9 +347,9 @@ app.delete('/api/tables/:id', async (req, res) => {
   res.json({ success: true });
 });
 
-app.get('/api/generate-qr/:restoId/:tableId', async (req, res) => {
+app.get('/api/generate-qr/:restoId/:tableId', checkRole(['gerant']), async (req, res) => {
   const { restoId, tableId } = req.params;
-  const url = `https://restapp-a8ac.onrender.com/menu.html?resto=${restoId}&table=${tableId}`;
+  const url = `${PUBLIC_URL}/menu.html?resto=${restoId}&table=${tableId}`;
   const qrImage = await QRCode.toDataURL(url, { width: 300, margin: 2 });
   
   const html = `
@@ -446,12 +377,10 @@ app.get('/api/generate-qr/:restoId/:tableId', async (req, res) => {
   res.send(html);
 });
 
-// ===== PHOTOS =====
-
-const multer = require('multer');
+// ===== ROUTES PHOTOS (réservées au gérant) =====
 const upload = multer({ storage: multer.memoryStorage() });
 
-app.post('/api/upload-plat-photo/:platId', upload.single('photo'), async (req, res) => {
+app.post('/api/upload-plat-photo/:platId', checkRole(['gerant']), upload.single('photo'), async (req, res) => {
   const { platId } = req.params;
   const file = req.file;
   
@@ -475,7 +404,7 @@ app.post('/api/upload-plat-photo/:platId', upload.single('photo'), async (req, r
   res.json({ success: true, photoUrl: urlData.publicUrl });
 });
 
-app.delete('/api/delete-photo/:platId', async (req, res) => {
+app.delete('/api/delete-photo/:platId', checkRole(['gerant']), async (req, res) => {
   const { platId } = req.params;
   
   const { data: plat } = await supabase.from('menus').select('photo_url').eq('id', platId).single();
@@ -489,7 +418,7 @@ app.delete('/api/delete-photo/:platId', async (req, res) => {
   res.json({ success: true });
 });
 
-// WebSockets
+// ===== WEBSOCKETS =====
 io.on('connection', (socket) => {
   console.log('🟢 Client connecté');
   socket.on('join_resto', (restoId) => {
@@ -497,6 +426,7 @@ io.on('connection', (socket) => {
   });
 });
 
+// ===== LANCEMENT =====
 server.listen(3001, '0.0.0.0', () => {
   console.log('🚀 Serveur sur http://localhost:3001');
 });

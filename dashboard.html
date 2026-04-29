@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Resto Élite">
+    <meta name="theme-color" content="#C6A43F">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <title>Dashboard | Restaurant Élite</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -79,6 +85,7 @@
             text-decoration: none;
             background: #1A1A2E;
             color: white;
+            transition: all 0.3s;
         }
         .nav-btn:hover {
             background: #C6A43F;
@@ -171,6 +178,7 @@
             <div class="logo">📊 TABLEAU DE BORD</div>
             <div style="display: flex; align-items: center; gap: 15px;">
                 <span id="resto-name" style="color: #C6A43F;">Restaurant</span>
+                <span id="user-role" style="background: #C6A43F; padding: 5px 12px; border-radius: 20px; font-size: 12px;">Gérant</span>
                 <button class="logout-btn" id="logout-btn">🚪 Déconnexion</button>
             </div>
         </div>
@@ -180,6 +188,7 @@
         <a href="/dashboard.html" class="nav-btn" style="background: #C6A43F;">📊 Dashboard</a>
         <a href="/admin.html" class="nav-btn">🍽️ Gestion plats</a>
         <a href="/resto.html" class="nav-btn">👨‍🍳 Cuisine</a>
+        <a href="/qrcodes.html" class="nav-btn">📱 QR Codes</a>
     </div>
 
     <div class="dashboard-container">
@@ -210,12 +219,11 @@
                 <canvas id="evolution-chart" width="400" height="250"></canvas>
             </div>
             <div class="chart-card">
-                <h3>🏆 Top 5 des plats</h3>
+                <h3>🏆 Top 10 des plats</h3>
                 <div id="top-plats-container"></div>
             </div>
         </div>
 
-        <!-- SECTION GESTION DES TABLES ET QR CODES -->
         <div class="tables-section">
             <h2>🏷️ Gestion des tables et QR codes</h2>
             <div class="tables-grid" id="tables-grid">
@@ -229,15 +237,30 @@
     </div>
 
     <script>
-        let currentPeriod = 'day';
-        let currentResto = 1;
-        let evolutionChart;
-        
-        // Vérifier l'authentification
+        // VÉRIFICATION DU RÔLE - Dashboard accessible uniquement au gérant
         const token = localStorage.getItem('resto_token');
+        const userRole = localStorage.getItem('resto_role');
+        
         if (!token) {
             window.location.href = '/login.html';
         }
+        
+        if (userRole !== 'gerant') {
+            // Si ce n'est pas un gérant, rediriger vers resto.html
+            window.location.href = '/resto.html';
+        }
+        
+        // Afficher le rôle
+        const roleSpan = document.getElementById('user-role');
+        if (roleSpan) {
+            if (userRole === 'gerant') roleSpan.textContent = '👑 Gérant';
+            else if (userRole === 'cuisinier') roleSpan.textContent = '👨‍🍳 Cuisinier';
+            else if (userRole === 'serveur') roleSpan.textContent = '🍽️ Serveur';
+        }
+        
+        let currentPeriod = 'day';
+        let currentResto = 1;
+        let evolutionChart;
         
         const user = JSON.parse(localStorage.getItem('resto_user') || '{}');
         if (user.restaurant_name) {
@@ -246,7 +269,9 @@
         
         async function chargerStats() {
             try {
-                const res = await fetch(`/api/stats/${currentResto}?periode=${currentPeriod}`);
+                const res = await fetch(`/api/stats/${currentResto}?periode=${currentPeriod}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 if (res.ok) {
                     const stats = await res.json();
                     document.getElementById('ca-total').innerHTML = (stats.caTotal || 0).toLocaleString() + ' FCFA';
@@ -257,18 +282,20 @@
                         const container = document.getElementById('top-plats-container');
                         container.innerHTML = `
                             <ul class="top-plats-list">
-                                ${stats.topPlats.slice(0,5).map(plat => `
-                                    <li><span>🍽️ ${plat.nom}</span><span>${plat.quantite} vendus</span></li>
+                                ${stats.topPlats.slice(0,10).map((plat, index) => `
+                                    <li><span>${index + 1}. 🍽️ ${plat.nom}</span><span>${plat.quantite} vendus</span></li>
                                 `).join('')}
                             </ul>
                         `;
+                    } else {
+                        document.getElementById('top-plats-container').innerHTML = '<p>Aucune vente pour cette période</p>';
                     }
                     
                     if (stats.evolution && stats.evolution.length) {
                         updateEvolutionChart(stats.evolution);
                     }
-                } else if (res.status === 401) {
-                    localStorage.removeItem('resto_token');
+                } else if (res.status === 401 || res.status === 403) {
+                    localStorage.clear();
                     window.location.href = '/login.html';
                 }
             } catch(e) { console.error(e); }
@@ -285,15 +312,23 @@
                         label: 'CA (FCFA)',
                         data: evolution.map(e => e.total),
                         borderColor: '#C6A43F',
-                        fill: true
+                        backgroundColor: 'rgba(198,164,63,0.1)',
+                        fill: true,
+                        tension: 0.3
                     }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true
                 }
             });
         }
         
         async function chargerTables() {
             try {
-                const res = await fetch(`/api/tables/${currentResto}`);
+                const res = await fetch(`/api/tables/${currentResto}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 if (res.ok) {
                     const tables = await res.json();
                     afficherTables(tables);
@@ -330,7 +365,10 @@
             try {
                 const res = await fetch('/api/tables', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({ restoId: currentResto, numeroTable: parseInt(numeroTable) })
                 });
                 if (res.ok) {
@@ -345,7 +383,10 @@
         async function supprimerTable(id) {
             if (!confirm('Supprimer cette table ?')) return;
             try {
-                const res = await fetch(`/api/tables/${id}`, { method: 'DELETE' });
+                const res = await fetch(`/api/tables/${id}`, { 
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 if (res.ok) chargerTables();
             } catch(e) { console.error(e); }
         }
@@ -361,8 +402,7 @@
         
         document.getElementById('add-table-btn').onclick = ajouterTable;
         document.getElementById('logout-btn').onclick = () => {
-            localStorage.removeItem('resto_token');
-            localStorage.removeItem('resto_user');
+            localStorage.clear();
             window.location.href = '/login.html';
         };
         

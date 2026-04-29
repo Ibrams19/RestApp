@@ -35,39 +35,21 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .logo {
-            font-size: 48px;
-            margin-bottom: 20px;
-        }
-        h1 {
-            font-size: 28px;
-            color: #1A1A2E;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            color: #6C6C7A;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-        .input-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #1A1A2E;
-        }
-        .input-group input {
+        .logo { font-size: 48px; margin-bottom: 20px; }
+        h1 { font-size: 28px; color: #1A1A2E; margin-bottom: 10px; }
+        .subtitle { color: #6C6C7A; margin-bottom: 30px; font-size: 14px; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #1A1A2E; }
+        .input-group input, .input-group select {
             width: 100%;
             padding: 14px 16px;
             border: 1px solid #E0E0E0;
             border-radius: 16px;
             font-size: 16px;
             transition: all 0.3s;
+            font-family: inherit;
         }
-        .input-group input:focus {
+        .input-group input:focus, .input-group select:focus {
             outline: none;
             border-color: #C6A43F;
             box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
@@ -89,23 +71,30 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(198,164,63,0.3);
         }
-        .error-message {
-            color: #E74C3C;
-            font-size: 14px;
-            margin-top: 15px;
-        }
-        .demo-email {
+        .error-message { color: #E74C3C; font-size: 14px; margin-top: 15px; }
+        .demo-emails {
             margin-top: 25px;
             padding-top: 20px;
             border-top: 1px solid #E0E0E0;
             font-size: 13px;
             color: #6C6C7A;
         }
-        .demo-email span {
+        .demo-emails p { margin-bottom: 8px; font-weight: 500; }
+        .demo-emails span {
             background: #F5F5F5;
             padding: 5px 12px;
             border-radius: 20px;
             font-family: monospace;
+            display: inline-block;
+            margin: 3px;
+        }
+        .info-role {
+            background: #F0F0F0;
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #666;
         }
     </style>
 </head>
@@ -113,29 +102,50 @@
     <div class="login-card">
         <div class="logo">🍽️</div>
         <h1>Espace Pro</h1>
-        <div class="subtitle">Connectez-vous pour gérer votre restaurant</div>
+        <div class="subtitle">Connectez-vous à votre espace</div>
         
         <div class="input-group">
             <label>📧 Email professionnel</label>
             <input type="email" id="email" placeholder="ex: admin@resto.com" autocomplete="off">
         </div>
         
+        <div class="input-group">
+            <label>👤 Votre rôle</label>
+            <select id="role">
+                <option value="gerant">📊 Gérant (accès total)</option>
+                <option value="cuisinier">👨‍🍳 Cuisinier (commandes uniquement)</option>
+                <option value="serveur">🍽️ Serveur (service uniquement)</option>
+            </select>
+        </div>
+        
         <button class="btn-login" id="login-btn">🔐 Se connecter</button>
         
         <div class="error-message" id="error-message"></div>
         
-        <div class="demo-email">
-            🔑 Compte de démo : <span>admin@resto.com</span>
+        <div class="demo-emails">
+            <p>🔑 Comptes de démo :</p>
+            <span>admin@resto.com</span>
+            <span>cuisine@resto.com</span>
+            <span>serveur@resto.com</span>
+        </div>
+        
+        <div class="info-role">
+            💡 <strong>Selon votre rôle :</strong><br>
+            • 📊 Gérant : accès aux statistiques, gestion des plats, tables et QR codes<br>
+            • 👨‍🍳 Cuisinier : voit et gère les commandes en cuisine<br>
+            • 🍽️ Serveur : voit les commandes et gère le service à table
         </div>
     </div>
 
     <script>
         const loginBtn = document.getElementById('login-btn');
         const emailInput = document.getElementById('email');
+        const roleSelect = document.getElementById('role');
         const errorDiv = document.getElementById('error-message');
 
         async function login() {
             const email = emailInput.value.trim();
+            const selectedRole = roleSelect.value;
             
             if (!email) {
                 errorDiv.textContent = 'Veuillez entrer votre email';
@@ -149,7 +159,7 @@
                 const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
+                    body: JSON.stringify({ email, role: selectedRole })
                 });
                 
                 const data = await res.json();
@@ -157,12 +167,19 @@
                 if (res.ok && data.success) {
                     localStorage.setItem('resto_token', data.token);
                     localStorage.setItem('resto_user', JSON.stringify(data.user));
-                    window.location.href = '/dashboard.html';
+                    localStorage.setItem('resto_role', data.user.role);
+                    
+                    if (data.user.role === 'gerant') {
+                        window.location.href = '/dashboard.html';
+                    } else {
+                        window.location.href = '/resto.html';
+                    }
                 } else {
-                    errorDiv.textContent = data.error || 'Email non reconnu';
+                    errorDiv.textContent = data.error || 'Email ou rôle non reconnu';
                 }
             } catch (error) {
                 errorDiv.textContent = 'Erreur de connexion au serveur';
+                console.error(error);
             } finally {
                 loginBtn.disabled = false;
                 loginBtn.textContent = '🔐 Se connecter';
@@ -174,10 +191,17 @@
             if (e.key === 'Enter') login();
         });
         
-        // Vérifier si déjà connecté
         const token = localStorage.getItem('resto_token');
+        const userRole = localStorage.getItem('resto_role');
+        
         if (token) {
-            window.location.href = '/dashboard.html';
+            if (userRole === 'gerant') {
+                window.location.href = '/dashboard.html';
+            } else if (userRole === 'cuisinier' || userRole === 'serveur') {
+                window.location.href = '/resto.html';
+            } else {
+                localStorage.clear();
+            }
         }
     </script>
 </body>

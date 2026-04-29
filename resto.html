@@ -1,22 +1,36 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Resto Élite">
     <meta name="theme-color" content="#C6A43F">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Espace Cuisine | Restaurant</title>
     <link rel="stylesheet" href="styles.css">
-    <div style="display: flex; gap: 10px; justify-content: center; margin: 20px 0; flex-wrap: wrap;">
-    <a href="/dashboard.html" class="nav-btn" style="background: #C6A43F; color: white; padding: 10px 20px; border-radius: 40px; text-decoration: none;">📊 Dashboard</a>
-    <a href="/admin.html" class="nav-btn" style="background: #1A1A2E; color: white; padding: 10px 20px; border-radius: 40px; text-decoration: none;">🍽️ Gestion des plats</a>
-    <a href="/resto.html" class="nav-btn" style="background: #1A1A2E; color: white; padding: 10px 20px; border-radius: 40px; text-decoration: none;">👨‍🍳 Cuisine/Commandes</a>
-    </div>
     <style>
+        * { box-sizing: border-box; }
+        body { font-family: system-ui, sans-serif; background: #f5f5f5; margin: 0; }
+        .header-premium {
+            background: linear-gradient(135deg, #1A1A2E 0%, #242440 100%);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .logo { font-size: 24px; font-weight: bold; color: white; }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #C6A43F;
+            color: #C6A43F;
+            padding: 8px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+        }
         .tabs-premium {
             display: flex;
             gap: 10px;
@@ -32,14 +46,14 @@
             padding: 10px 25px;
             border-radius: 40px;
             border: none;
-            background: var(--light);
+            background: #f0f0f0;
             cursor: pointer;
             font-weight: 500;
             transition: all 0.3s;
         }
         .tab-btn.active {
-            background: var(--gold);
-            color: var(--dark);
+            background: #C6A43F;
+            color: white;
         }
         .stats-premium {
             display: flex;
@@ -58,7 +72,7 @@
         .stat-number-premium {
             font-size: 32px;
             font-weight: 700;
-            color: var(--gold);
+            color: #C6A43F;
         }
         .btn-action {
             padding: 8px 16px;
@@ -68,23 +82,93 @@
             font-weight: 500;
             transition: all 0.3s;
         }
-        .btn-action-primary { background: var(--info); color: white; }
-        .btn-action-success { background: var(--success); color: white; }
-        .btn-action-warning { background: var(--warning); color: white; }
-        .btn-action-dark { background: var(--dark); color: white; }
+        .btn-action-primary { background: #3498DB; color: white; }
+        .btn-action-success { background: #27AE60; color: white; }
+        .btn-action-warning { background: #F39C12; color: white; }
+        .btn-action-dark { background: #1A1A2E; color: white; }
+        .commandes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 25px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .commande-card-premium {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border-left: 5px solid #C6A43F;
+        }
+        .commande-header {
+            background: #1A1A2E;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .table-number { font-size: 18px; font-weight: 600; }
+        .table-number::before { content: "🍽️ "; }
+        .statut-badge {
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .statut-en_attente { background: #F39C12; color: #1A1A2E; }
+        .statut-cuisine { background: #3498DB; color: white; }
+        .statut-pret { background: #27AE60; color: white; }
+        .statut-servi { background: #C6A43F; color: #1A1A2E; }
+        .statut-paye { background: #6C6C7A; color: white; }
+        .nav-bar {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px;
+            flex-wrap: wrap;
+        }
+        .nav-btn {
+            padding: 10px 20px;
+            border-radius: 40px;
+            text-decoration: none;
+            background: #1A1A2E;
+            color: white;
+            transition: all 0.3s;
+        }
+        .nav-btn:hover {
+            background: #C6A43F;
+            color: #1A1A2E;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 768px) {
+            .commandes-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
     <header class="header-premium">
-        <div class="container">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; width: 100%;">
             <div class="logo">👨‍🍳 ESPACE CUISINE</div>
-            <div>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <span id="user-role-badge" style="background: #C6A43F; padding: 5px 12px; border-radius: 20px; font-size: 12px; color: #1A1A2E;">Chargement...</span>
                 <select id="resto-select" class="btn-outline" style="padding: 8px 20px;">
                     <option value="1">Restaurant Test Dakar</option>
                 </select>
+                <button class="btn-outline" id="logout-btn" style="background: #E74C3C; border-color: #E74C3C; color: white;">🚪 Quitter</button>
             </div>
         </div>
     </header>
+
+    <!-- Barre de navigation adaptée au rôle -->
+    <div class="nav-bar" id="nav-bar"></div>
 
     <div class="stats-premium">
         <div class="stat-card-premium">
@@ -114,6 +198,37 @@
 
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <script>
+        // Vérification de l'authentification
+        const token = localStorage.getItem('resto_token');
+        const userRole = localStorage.getItem('resto_role');
+        const userName = localStorage.getItem('resto_user');
+        
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+        
+        // Afficher le rôle
+        const roleBadge = document.getElementById('user-role-badge');
+        if (userRole === 'gerant') roleBadge.textContent = '👑 Gérant';
+        else if (userRole === 'cuisinier') roleBadge.textContent = '👨‍🍳 Cuisinier';
+        else if (userRole === 'serveur') roleBadge.textContent = '🍽️ Serveur';
+        else roleBadge.textContent = '📋 Staff';
+        
+        // Barre de navigation adaptée au rôle
+        const navBar = document.getElementById('nav-bar');
+        if (userRole === 'gerant') {
+            navBar.innerHTML = `
+                <a href="/dashboard.html" class="nav-btn">📊 Dashboard</a>
+                <a href="/admin.html" class="nav-btn">🍽️ Gestion plats</a>
+                <a href="/resto.html" class="nav-btn" style="background: #C6A43F;">👨‍🍳 Cuisine</a>
+                <a href="/qrcodes.html" class="nav-btn">📱 QR Codes</a>
+            `;
+        } else {
+            navBar.innerHTML = `
+                <a href="/resto.html" class="nav-btn" style="background: #C6A43F;">👨‍🍳 Commandes</a>
+            `;
+        }
+        
         let currentResto = 1;
         let currentFilter = 'all';
         let allCommandes = [];
@@ -128,6 +243,9 @@
                     allCommandes = await res.json();
                     afficherCommandes();
                     mettreAJourStats();
+                } else if (res.status === 401) {
+                    localStorage.clear();
+                    window.location.href = '/login.html';
                 }
             } catch(e) { console.error(e); }
         }
@@ -160,23 +278,24 @@
                         <span class="statut-badge statut-${cmd.statut}">${getStatutText(cmd.statut)}</span>
                     </div>
                     <div style="padding: 20px;">
-                        ${cmd.details ? cmd.details.map(d => `
+                        ${cmd.details && cmd.details.length ? cmd.details.map(d => `
                             <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
                                 <span><strong>${d.quantite}x</strong> ${d.nom_plat}</span>
                                 <span>${(d.prix_unitaire * d.quantite).toLocaleString()} FCFA</span>
                             </div>
-                        `).join('') : ''}
-                        <div style="display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 2px solid var(--gold); font-weight: bold;">
+                        `).join('') : '<div>Aucun détail</div>'}
+                        <div style="display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 2px solid #C6A43F; font-weight: bold;">
                             <span>Total</span>
-                            <span>${cmd.total.toLocaleString()} FCFA</span>
+                            <span>${(cmd.total || 0).toLocaleString()} FCFA</span>
                         </div>
                         <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
                             ${cmd.statut === 'en_attente' ? `<button class="btn-action btn-action-primary" onclick="changerStatut(${cmd.id}, 'cuisine')">👨‍🍳 Passer en cuisine</button>` : ''}
                             ${cmd.statut === 'cuisine' ? `<button class="btn-action btn-action-success" onclick="changerStatut(${cmd.id}, 'pret')">✅ Plat prêt</button>` : ''}
                             ${cmd.statut === 'pret' ? `<button class="btn-action btn-action-warning" onclick="changerStatut(${cmd.id}, 'servi')">🍽️ Servir</button>` : ''}
-                            ${cmd.statut === 'servi' ? `<button class="btn-action btn-action-dark" onclick="changerStatut(${cmd.id}, 'paye')">💰 Payer</button>` : ''}
+                            ${cmd.statut === 'servi' && userRole === 'gerant' ? `<button class="btn-action btn-action-dark" onclick="changerStatut(${cmd.id}, 'paye')">💰 Payer</button>` : ''}
+                            ${cmd.statut === 'servi' && userRole !== 'gerant' ? '<span style="color:gray;">💰 En attente du paiement</span>' : ''}
                         </div>
-                        ${cmd.date_commande ? `<div style="margin-top: 15px; font-size: 12px; color: gray;">🕐 ${new Date(cmd.date_commande).toLocaleString()}</div>` : ''}
+                        ${cmd.date_commande ? `<div style="margin-top: 15px; font-size: 11px; color: gray;">🕐 ${new Date(cmd.date_commande).toLocaleString()}</div>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -208,6 +327,11 @@
             currentResto = parseInt(e.target.value);
             socket.emit('join_resto', currentResto);
             chargerCommandes();
+        };
+        
+        document.getElementById('logout-btn').onclick = () => {
+            localStorage.clear();
+            window.location.href = '/login.html';
         };
         
         document.querySelectorAll('.tab-btn').forEach(btn => {
