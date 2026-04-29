@@ -8,7 +8,7 @@
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Menu Digital | Restaurant</title>
     <link rel="stylesheet" href="styles.css">
     <style>
@@ -71,6 +71,12 @@
             z-index: 1001;
             animation: slideIn 0.3s ease;
         }
+        .notification-error {
+            background: var(--danger);
+        }
+        .notification-info {
+            background: var(--info);
+        }
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
@@ -99,11 +105,35 @@
             color: var(--dark);
             font-weight: 600;
         }
+        .suivi-link {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            background: #1A1A2E;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 40px;
+            font-size: 12px;
+            text-decoration: none;
+            z-index: 98;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .suivi-link:hover {
+            background: #C6A43F;
+            color: #1A1A2E;
+        }
+        @media (max-width: 768px) {
+            .suivi-link { bottom: 100px; right: 15px; font-size: 10px; padding: 8px 12px; }
+            .cart-icon { bottom: 20px; right: 20px; width: 50px; height: 50px; }
+        }
     </style>
 </head>
 <body>
     <header class="header-premium">
-        <div class="container">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
             <div class="logo">🍽️ RESTAURANT <span style="color: var(--gold);">ÉLITE</span></div>
             <div>
                 <span>Table <strong id="table-number">1</strong></span>
@@ -113,6 +143,10 @@
 
     <div class="category-filter" id="category-filter"></div>
     <div class="menu-grid" id="menu-grid"></div>
+
+    <a href="#" class="suivi-link" id="suivi-link" style="display: none;">
+        📍 Suivre ma commande
+    </a>
 
     <div class="cart-icon" id="cart-icon">
         🛒
@@ -144,6 +178,14 @@
         let menu = [];
         let panier = [];
         let selectedCategory = 'all';
+        let derniereCommandeId = localStorage.getItem('derniere_commande_id');
+        
+        // Afficher le lien de suivi si une commande récente existe
+        if (derniereCommandeId) {
+            const suiviLink = document.getElementById('suivi-link');
+            suiviLink.href = `/suivi.html?id=${derniereCommandeId}`;
+            suiviLink.style.display = 'flex';
+        }
         
         async function chargerMenu() {
             try {
@@ -182,12 +224,17 @@
                 filtered = menu.filter(p => p.categorie === selectedCategory);
             }
             
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:gray; padding:50px;">Aucun plat dans cette catégorie</p>';
+                return;
+            }
+            
             container.innerHTML = filtered.map(plat => `
             <div class="menu-card fade-in">
                 <div class="menu-card-image">
                     ${plat.photo_url ? 
                         `<img src="${plat.photo_url}" style="width:100%;height:100%;object-fit:cover;">` : 
-                        getIcon(plat.categorie)
+                        `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:48px;">${getIcon(plat.categorie)}</div>`
                     }
                 </div>
                 <div class="menu-card-content">
@@ -195,7 +242,7 @@
                     <p class="menu-card-description">${plat.description || 'Un délice à découvrir...'}</p>
                     <div class="menu-card-footer">
                         <div class="price">${plat.prix.toLocaleString()} <small>FCFA</small></div>
-                        <button class="btn-premium" onclick="ajouterAuPanier(${plat.id}, '${plat.nom_plat}', ${plat.prix})">➕ Ajouter</button>
+                        <button class="btn-premium" onclick="ajouterAuPanier(${plat.id}, '${plat.nom_plat.replace(/'/g, "\\'")}', ${plat.prix})">➕ Ajouter</button>
                     </div>
                 </div>
              </div>
@@ -220,7 +267,7 @@
                 panier.push({ id, nom, prix, quantite: 1 });
             }
             updatePanier();
-            showNotification(`✅ ${nom} ajouté au panier`);
+            showNotification(`✅ ${nom} ajouté au panier`, 'success');
         }
         
         function updatePanier() {
@@ -245,7 +292,7 @@
                         <button class="btn-quantite" onclick="modifierQuantite(${p.id}, -1)">-</button>
                         <span style="width: 30px; text-align: center;">${p.quantite}</span>
                         <button class="btn-quantite" onclick="modifierQuantite(${p.id}, 1)">+</button>
-                        <button onclick="supprimerDuPanier(${p.id})" style="background: var(--danger); color:white;">🗑️</button>
+                        <button onclick="supprimerDuPanier(${p.id})" style="background: var(--danger); color:white; border:none; width:30px; height:30px; border-radius:50%; cursor:pointer;">🗑️</button>
                     </div>
                 </div>
             `).join('');
@@ -291,25 +338,40 @@
                 });
                 
                 if (res.ok) {
-                    showNotification('✅ Commande envoyée avec succès !');
+                    const data = await res.json();
+                    const commandeId = data.commande_id;
+                    
+                    // Sauvegarder l'ID de commande pour le suivi
+                    localStorage.setItem('derniere_commande_id', commandeId);
+                    
+                    // Afficher le lien de suivi
+                    const suiviLink = document.getElementById('suivi-link');
+                    suiviLink.href = `/suivi.html?id=${commandeId}`;
+                    suiviLink.style.display = 'flex';
+                    
+                    // Notification avec rappel du numéro
+                    showNotification(`✅ Commande #${commandeId} envoyée ! Suivez son avancement`, 'success');
+                    
                     panier = [];
                     updatePanier();
                     document.getElementById('cart-sidebar').classList.remove('open');
                 } else {
-                    showNotification('❌ Erreur lors de la commande', 'error');
+                    const error = await res.json();
+                    showNotification(error.error || '❌ Erreur lors de la commande', 'error');
                 }
             } catch (error) {
-                showNotification('❌ Erreur réseau', 'error');
+                console.error(error);
+                showNotification('❌ Erreur réseau. Vérifiez votre connexion.', 'error');
             }
         }
         
         function showNotification(message, type = 'success') {
             const notif = document.createElement('div');
-            notif.className = 'notification';
-            notif.style.background = type === 'error' ? 'var(--danger)' : 'var(--success)';
+            notif.className = `notification ${type === 'error' ? 'notification-error' : ''}`;
+            notif.style.background = type === 'error' ? '#E74C3C' : (type === 'info' ? '#3498DB' : '#27AE60');
             notif.innerText = message;
             document.body.appendChild(notif);
-            setTimeout(() => notif.remove(), 3000);
+            setTimeout(() => notif.remove(), 4000);
         }
         
         document.getElementById('cart-icon').onclick = () => {

@@ -426,6 +426,38 @@ io.on('connection', (socket) => {
   });
 });
 
+// ===== SUIVI COMMANDE POUR CLIENT =====
+app.get('/api/commande/suivi/:id', async (req, res) => {
+  const { id } = req.params;
+  
+  // Récupérer la commande
+  const { data: commande, error: cmdError } = await supabase
+    .from('commandes')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (cmdError || !commande) {
+    return res.status(404).json({ error: 'Commande non trouvée' });
+  }
+  
+  // Récupérer les détails
+  const { data: details, error: detError } = await supabase
+    .from('commande_details')
+    .select('nom_plat, quantite, prix_unitaire')
+    .eq('commande_id', id);
+  
+  if (detError) return res.status(500).json({ error: detError.message });
+  
+  res.json({
+    id: commande.id,
+    statut: commande.statut,
+    total: commande.total,
+    date_commande: commande.date_commande,
+    details: details || []
+  });
+});
+
 // ===== LANCEMENT =====
 server.listen(3001, '0.0.0.0', () => {
   console.log('🚀 Serveur sur http://localhost:3001');

@@ -9,8 +9,7 @@
     <meta name="theme-color" content="#C6A43F">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
-    <title>Espace Cuisine | Restaurant</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Espace Cuisine & Service | Restaurant</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: system-ui, sans-serif; background: #f5f5f5; margin: 0; }
@@ -23,6 +22,7 @@
             flex-wrap: wrap;
         }
         .logo { font-size: 24px; font-weight: bold; color: white; }
+        .logo span { color: #C6A43F; }
         .btn-outline {
             background: transparent;
             border: 2px solid #C6A43F;
@@ -30,6 +30,19 @@
             padding: 8px 16px;
             border-radius: 40px;
             cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-outline:hover {
+            background: #C6A43F;
+            color: #1A1A2E;
+        }
+        .btn-danger-outline {
+            border-color: #E74C3C;
+            color: #E74C3C;
+        }
+        .btn-danger-outline:hover {
+            background: #E74C3C;
+            color: white;
         }
         .tabs-premium {
             display: flex;
@@ -86,6 +99,7 @@
         .btn-action-success { background: #27AE60; color: white; }
         .btn-action-warning { background: #F39C12; color: white; }
         .btn-action-dark { background: #1A1A2E; color: white; }
+        .btn-action-disabled { background: #bdc3c7; color: #7f8c8d; cursor: not-allowed; }
         .commandes-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
@@ -100,6 +114,10 @@
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             border-left: 5px solid #C6A43F;
+            transition: transform 0.3s;
+        }
+        .commande-card-premium:hover {
+            transform: translateY(-3px);
         }
         .commande-header {
             background: #1A1A2E;
@@ -108,6 +126,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         .table-number { font-size: 18px; font-weight: 600; }
         .table-number::before { content: "🍽️ "; }
@@ -141,6 +161,14 @@
             background: #C6A43F;
             color: #1A1A2E;
         }
+        .role-badge {
+            background: #C6A43F;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #1A1A2E;
+            font-weight: bold;
+        }
         .fade-in {
             animation: fadeIn 0.5s ease;
         }
@@ -150,20 +178,34 @@
         }
         @media (max-width: 768px) {
             .commandes-grid { grid-template-columns: 1fr; }
+            .header-premium { flex-direction: column; gap: 15px; text-align: center; }
+        }
+        .notification-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #27AE60;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 40px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
     </style>
 </head>
 <body>
     <header class="header-premium">
-        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; width: 100%;">
-            <div class="logo">👨‍🍳 ESPACE CUISINE</div>
-            <div style="display: flex; gap: 15px; align-items: center;">
-                <span id="user-role-badge" style="background: #C6A43F; padding: 5px 12px; border-radius: 20px; font-size: 12px; color: #1A1A2E;">Chargement...</span>
-                <select id="resto-select" class="btn-outline" style="padding: 8px 20px;">
-                    <option value="1">Restaurant Test Dakar</option>
-                </select>
-                <button class="btn-outline" id="logout-btn" style="background: #E74C3C; border-color: #E74C3C; color: white;">🚪 Quitter</button>
-            </div>
+        <div class="logo">👨‍🍳 <span>ESPACE STAFF</span></div>
+        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+            <span class="role-badge" id="user-role-badge">Chargement...</span>
+            <select id="resto-select" class="btn-outline" style="padding: 8px 20px;">
+                <option value="1">Restaurant Test Dakar</option>
+            </select>
+            <button class="btn-outline btn-danger-outline" id="logout-btn">🚪 Quitter</button>
         </div>
     </header>
 
@@ -174,6 +216,7 @@
         <div class="stat-card-premium">
             <div>⏳ En attente</div>
             <div class="stat-number-premium" id="count-attente">0</div>
+            <div style="font-size: 12px; color: #666;">(Cuisine)</div>
         </div>
         <div class="stat-card-premium">
             <div>👨‍🍳 En cuisine</div>
@@ -182,6 +225,10 @@
         <div class="stat-card-premium">
             <div>✅ Prêtes</div>
             <div class="stat-number-premium" id="count-pret">0</div>
+        </div>
+        <div class="stat-card-premium">
+            <div>🍽️ Servies</div>
+            <div class="stat-number-premium" id="count-servi">0</div>
         </div>
     </div>
 
@@ -201,18 +248,22 @@
         // Vérification de l'authentification
         const token = localStorage.getItem('resto_token');
         const userRole = localStorage.getItem('resto_role');
-        const userName = localStorage.getItem('resto_user');
         
         if (!token) {
             window.location.href = '/login.html';
         }
         
-        // Afficher le rôle
+        // Afficher le rôle avec icône
         const roleBadge = document.getElementById('user-role-badge');
-        if (userRole === 'gerant') roleBadge.textContent = '👑 Gérant';
-        else if (userRole === 'cuisinier') roleBadge.textContent = '👨‍🍳 Cuisinier';
-        else if (userRole === 'serveur') roleBadge.textContent = '🍽️ Serveur';
-        else roleBadge.textContent = '📋 Staff';
+        if (userRole === 'gerant') {
+            roleBadge.innerHTML = '👑 Gérant (accès total)';
+        } else if (userRole === 'cuisinier') {
+            roleBadge.innerHTML = '👨‍🍳 Cuisinier - Prépare les plats';
+        } else if (userRole === 'serveur') {
+            roleBadge.innerHTML = '🍽️ Serveur - Sert et encaisse';
+        } else {
+            roleBadge.innerHTML = '📋 Staff';
+        }
         
         // Barre de navigation adaptée au rôle
         const navBar = document.getElementById('nav-bar');
@@ -220,12 +271,18 @@
             navBar.innerHTML = `
                 <a href="/dashboard.html" class="nav-btn">📊 Dashboard</a>
                 <a href="/admin.html" class="nav-btn">🍽️ Gestion plats</a>
-                <a href="/resto.html" class="nav-btn" style="background: #C6A43F;">👨‍🍳 Cuisine</a>
+                <a href="/resto.html" class="nav-btn" style="background: #C6A43F;">👨‍🍳 Cuisine & Service</a>
                 <a href="/qrcodes.html" class="nav-btn">📱 QR Codes</a>
             `;
-        } else {
+        } else if (userRole === 'cuisinier') {
             navBar.innerHTML = `
-                <a href="/resto.html" class="nav-btn" style="background: #C6A43F;">👨‍🍳 Commandes</a>
+                <a href="/resto.html" class="nav-btn" style="background: #C6A43F;">👨‍🍳 Ma cuisine</a>
+                <span style="color: gray; padding: 10px;">👨‍🍳 Rôle: Cuisinier - Vous préparez les plats</span>
+            `;
+        } else if (userRole === 'serveur') {
+            navBar.innerHTML = `
+                <a href="/resto.html" class="nav-btn" style="background: #C6A43F;">🍽️ Mon service</a>
+                <span style="color: gray; padding: 10px;">🍽️ Rôle: Serveur - Vous servez et encaissez</span>
             `;
         }
         
@@ -235,6 +292,15 @@
         const socket = io();
         
         socket.emit('join_resto', currentResto);
+        
+        function showNotification(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = 'notification-toast';
+            toast.style.background = type === 'error' ? '#E74C3C' : '#27AE60';
+            toast.innerHTML = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
         
         async function chargerCommandes() {
             try {
@@ -250,14 +316,106 @@
             } catch(e) { console.error(e); }
         }
         
-        socket.on('nouvelle_commande', () => chargerCommandes());
+        socket.on('nouvelle_commande', () => {
+            chargerCommandes();
+            showNotification('📣 Nouvelle commande reçue !', 'success');
+        });
+
+        socket.on('statut_change', (data) => {
+            chargerCommandes();
+            if (data.statut === 'pret') {
+                showNotification('✅ Un plat est prêt à être servi !', 'success');
+            }
+        });
+
         socket.on('statut_change', () => chargerCommandes());
         
         function mettreAJourStats() {
             document.getElementById('count-attente').innerText = allCommandes.filter(c => c.statut === 'en_attente').length;
             document.getElementById('count-cuisine').innerText = allCommandes.filter(c => c.statut === 'cuisine').length;
             document.getElementById('count-pret').innerText = allCommandes.filter(c => c.statut === 'pret').length;
+            document.getElementById('count-servi').innerText = allCommandes.filter(c => c.statut === 'servi').length;
         }
+        
+        function getStatutText(statut) {
+            const map = {
+                'en_attente': '⏳ En attente cuisine',
+                'cuisine': '🍳 En préparation',
+                'pret': '✅ Prête à servir',
+                'servi': '🍽️ Servie',
+                'paye': '💰 Payée'
+            };
+            return map[statut] || statut;
+        }
+        
+        // Définition des actions selon le rôle et le statut
+        function getActionsForCommand(cmd, role) {
+            const statut = cmd.statut;
+            const actions = [];
+            
+            if (role === 'cuisinier') {
+                // Actions pour le cuisinier
+                if (statut === 'en_attente') {
+                    actions.push({ label: '👨‍🍳 Cuisiner', action: 'cuisine', class: 'btn-action-primary' });
+                }
+                if (statut === 'cuisine') {
+                    actions.push({ label: '✅ Plat prêt', action: 'pret', class: 'btn-action-success' });
+                }
+            }
+            
+            if (role === 'serveur') {
+                // Actions pour le serveur
+                if (statut === 'pret') {
+                    actions.push({ label: '🍽️ Servir à table', action: 'servi', class: 'btn-action-warning' });
+                }
+                if (statut === 'servi') {
+                    actions.push({ label: '💰 Paiement (caisse)', action: 'paye', class: 'btn-action-dark' });
+                }
+            }
+            
+            if (role === 'gerant') {
+                // Gérant a toutes les actions
+                if (statut === 'en_attente') {
+                    actions.push({ label: '👨‍🍳 Cuisiner', action: 'cuisine', class: 'btn-action-primary' });
+                }
+                if (statut === 'cuisine') {
+                    actions.push({ label: '✅ Plat prêt', action: 'pret', class: 'btn-action-success' });
+                }
+                if (statut === 'pret') {
+                    actions.push({ label: '🍽️ Servir', action: 'servi', class: 'btn-action-warning' });
+                }
+                if (statut === 'servi') {
+                    actions.push({ label: '💰 Payer', action: 'paye', class: 'btn-action-dark' });
+                }
+            }
+            
+            return actions;
+        }
+        
+       async function changerStatut(commandeId, nouveauStatut) {
+        try {
+        const res = await fetch(`/api/commande/${commandeId}/statut`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ statut: nouveauStatut, restoId: currentResto })
+        });
+        if (res.ok) {
+            chargerCommandes();
+            const messages = {
+                'cuisine': '🔪 Commande passée en cuisine',
+                'pret': '✅ Plat prêt à être servi ! Le serveur est notifié.',
+                'servi': '🍽️ Plat servi à table',
+                'paye': '💰 Paiement validé'
+            };
+            showNotification(messages[nouveauStatut] || 'Statut mis à jour');
+            
+            // Notification spéciale pour le serveur
+            if (nouveauStatut === 'pret') {
+                showNotification('🔔 Plat prêt à être servi !', 'success');
+            }
+        }
+            } catch(e) { console.error(e); }
+        }   
         
         function afficherCommandes() {
             let filtered = allCommandes;
@@ -271,7 +429,10 @@
                 return;
             }
             
-            container.innerHTML = filtered.map(cmd => `
+            container.innerHTML = filtered.map(cmd => {
+                const actions = getActionsForCommand(cmd, userRole);
+                
+                return `
                 <div class="commande-card-premium fade-in">
                     <div class="commande-header">
                         <span class="table-number">Table ${cmd.table_numero || cmd.table_id}</span>
@@ -289,38 +450,20 @@
                             <span>${(cmd.total || 0).toLocaleString()} FCFA</span>
                         </div>
                         <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
-                            ${cmd.statut === 'en_attente' ? `<button class="btn-action btn-action-primary" onclick="changerStatut(${cmd.id}, 'cuisine')">👨‍🍳 Passer en cuisine</button>` : ''}
-                            ${cmd.statut === 'cuisine' ? `<button class="btn-action btn-action-success" onclick="changerStatut(${cmd.id}, 'pret')">✅ Plat prêt</button>` : ''}
-                            ${cmd.statut === 'pret' ? `<button class="btn-action btn-action-warning" onclick="changerStatut(${cmd.id}, 'servi')">🍽️ Servir</button>` : ''}
-                            ${cmd.statut === 'servi' && userRole === 'gerant' ? `<button class="btn-action btn-action-dark" onclick="changerStatut(${cmd.id}, 'paye')">💰 Payer</button>` : ''}
-                            ${cmd.statut === 'servi' && userRole !== 'gerant' ? '<span style="color:gray;">💰 En attente du paiement</span>' : ''}
+                            ${actions.map(action => `
+                                <button class="btn-action ${action.class}" onclick="changerStatut(${cmd.id}, '${action.action}')">${action.label}</button>
+                            `).join('')}
+                            ${actions.length === 0 && cmd.statut !== 'paye' ? `
+                                <span style="color: gray; font-size: 12px;">⏳ En attente de l'autre équipe...</span>
+                            ` : ''}
+                            ${cmd.statut === 'paye' ? `
+                                <span style="color: green; font-size: 12px;">✓ Commande finalisée</span>
+                            ` : ''}
                         </div>
                         ${cmd.date_commande ? `<div style="margin-top: 15px; font-size: 11px; color: gray;">🕐 ${new Date(cmd.date_commande).toLocaleString()}</div>` : ''}
                     </div>
                 </div>
-            `).join('');
-        }
-        
-        async function changerStatut(commandeId, nouveauStatut) {
-            try {
-                const res = await fetch(`/api/commande/${commandeId}/statut`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ statut: nouveauStatut, restoId: currentResto })
-                });
-                if (res.ok) chargerCommandes();
-            } catch(e) { console.error(e); }
-        }
-        
-        function getStatutText(statut) {
-            const map = {
-                'en_attente': '⏳ En attente',
-                'cuisine': '🍳 En cuisine',
-                'pret': '✅ Prête',
-                'servi': '🍽️ Servie',
-                'paye': '💰 Payée'
-            };
-            return map[statut] || statut;
+            `}).join('');
         }
         
         document.getElementById('resto-select').onchange = (e) => {
@@ -342,6 +485,9 @@
                 afficherCommandes();
             };
         });
+        
+        // Rendre la fonction globale pour les onclick
+        window.changerStatut = changerStatut;
         
         chargerCommandes();
         setInterval(chargerCommandes, 5000);

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Suivi de commande | Restaurant Élite</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1A1A2E 0%, #242440 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .card {
+            background: white;
+            border-radius: 32px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .logo {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #1A1A2E;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #6C6C7A;
+            margin-bottom: 30px;
+        }
+        .order-id {
+            background: #F5F5F5;
+            padding: 15px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .order-id span {
+            font-family: monospace;
+            font-size: 20px;
+            font-weight: bold;
+            color: #C6A43F;
+        }
+        .timeline {
+            margin: 30px 0;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            position: relative;
+        }
+        .step:not(:last-child)::before {
+            content: '';
+            position: absolute;
+            left: 24px;
+            top: 50px;
+            width: 2px;
+            height: 40px;
+            background: #E0E0E0;
+        }
+        .step-icon {
+            width: 48px;
+            height: 48px;
+            background: #F5F5F5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 20px;
+            z-index: 1;
+            transition: all 0.3s;
+        }
+        .step.active .step-icon {
+            background: #C6A43F;
+            box-shadow: 0 0 0 4px rgba(198,164,63,0.3);
+        }
+        .step.completed .step-icon {
+            background: #27AE60;
+        }
+        .step-content {
+            flex: 1;
+        }
+        .step-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        .step-time {
+            font-size: 12px;
+            color: #6C6C7A;
+        }
+        .step.active .step-title {
+            color: #C6A43F;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .status-en_attente { background: #F39C12; color: white; }
+        .status-cuisine { background: #3498DB; color: white; }
+        .status-pret { background: #27AE60; color: white; }
+        .status-servi { background: #C6A43F; color: #1A1A2E; }
+        .status-paye { background: #6C6C7A; color: white; }
+        .items-list {
+            background: #F9F9F9;
+            border-radius: 20px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #E0E0E0;
+        }
+        .item:last-child {
+            border-bottom: none;
+        }
+        .btn-refresh {
+            width: 100%;
+            padding: 14px;
+            background: #C6A43F;
+            border: none;
+            border-radius: 40px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .error-message {
+            text-align: center;
+            color: #E74C3C;
+            padding: 20px;
+        }
+        @media (max-width: 480px) {
+            .card { padding: 20px; }
+            .step-icon { width: 40px; height: 40px; font-size: 20px; margin-right: 15px; }
+            .step:not(:last-child)::before { left: 19px; top: 45px; height: 35px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card" id="suivi-card">
+            <div class="logo">🍽️</div>
+            <h1>Suivi de votre commande</h1>
+            <div class="subtitle">Restaurant Élite</div>
+            
+            <div id="content">
+                <div class="order-id">
+                    🔢 Commande #<span id="commande-id">---</span>
+                </div>
+                <div id="timeline"></div>
+                <div id="items"></div>
+                <button class="btn-refresh" onclick="chargerSuivi()">🔄 Actualiser</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Récupérer l'ID de commande depuis l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const commandeId = urlParams.get('id');
+        
+        if (!commandeId) {
+            document.getElementById('content').innerHTML = '<div class="error-message">❌ Commande non trouvée.<br>Scannez le QR code sur votre ticket.</div>';
+        }
+        
+        async function chargerSuivi() {
+            try {
+                const res = await fetch(`/api/commande/suivi/${commandeId}`);
+                if (res.ok) {
+                    const cmd = await res.json();
+                    afficherSuivi(cmd);
+                } else {
+                    document.getElementById('content').innerHTML = '<div class="error-message">❌ Commande introuvable. Vérifiez le numéro.</div>';
+                }
+            } catch(e) {
+                console.error(e);
+                document.getElementById('content').innerHTML = '<div class="error-message">❌ Erreur de connexion</div>';
+            }
+        }
+        
+        function afficherSuivi(cmd) {
+            document.getElementById('commande-id').innerText = cmd.id;
+            
+            // Timeline des étapes
+            const steps = [
+                { key: 'en_attente', icon: '📝', label: 'Commande reçue', description: 'Le chef a pris votre commande' },
+                { key: 'cuisine', icon: '👨‍🍳', label: 'En préparation', description: 'Votre plat est en cours de cuisson' },
+                { key: 'pret', icon: '✅', label: 'Prêt à servir', description: 'Votre plat est prêt !' },
+                { key: 'servi', icon: '🍽️', label: 'Servi', description: 'Bon appétit !' },
+                { key: 'paye', icon: '💰', label: 'Payé', description: 'Merci et à bientôt !' }
+            ];
+            
+            const currentStepIndex = steps.findIndex(s => s.key === cmd.statut);
+            
+            const timelineHtml = `
+                <div class="timeline">
+                    ${steps.map((step, index) => {
+                        let status = '';
+                        if (index < currentStepIndex) status = 'completed';
+                        else if (index === currentStepIndex) status = 'active';
+                        
+                        return `
+                            <div class="step ${status}">
+                                <div class="step-icon">${step.icon}</div>
+                                <div class="step-content">
+                                    <div class="step-title">${step.label}</div>
+                                    <div class="step-time">${step.description}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            
+            // Statut actuel
+            const statusText = {
+                'en_attente': '⏳ En attente de préparation',
+                'cuisine': '🍳 En cours de préparation',
+                'pret': '✅ Votre plat est prêt !',
+                'servi': '🍽️ Bon appétit !',
+                'paye': '💰 Commande terminée'
+            };
+            
+            const statusHtml = `
+                <div class="status-badge status-${cmd.statut}" style="text-align: center; display: block;">
+                    ${statusText[cmd.statut] || cmd.statut}
+                </div>
+            `;
+            
+            // Liste des plats
+            const itemsHtml = `
+                <div class="items-list">
+                    <strong>🛒 Votre commande :</strong>
+                    ${cmd.details ? cmd.details.map(d => `
+                        <div class="item">
+                            <span>${d.quantite}x ${d.nom_plat}</span>
+                            <span>${(d.prix_unitaire * d.quantite).toLocaleString()} FCFA</span>
+                        </div>
+                    `).join('') : ''}
+                    <div class="item" style="font-weight: bold;">
+                        <span>Total</span>
+                        <span>${(cmd.total || 0).toLocaleString()} FCFA</span>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('timeline').innerHTML = timelineHtml;
+            document.getElementById('items').innerHTML = statusHtml + itemsHtml;
+        }
+        
+        chargerSuivi();
+        // Rafraîchir toutes les 5 secondes
+        setInterval(chargerSuivi, 5000);
+    </script>
+</body>
+</html>
