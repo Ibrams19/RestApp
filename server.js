@@ -164,11 +164,38 @@ app.post('/api/payer', async (req, res) => {
   res.json({ success: true });
 });
 
+// Route API QR Code (retourne JSON avec l'image)
 app.get('/api/qrcode/:restoId/:tableId', async (req, res) => {
   const { restoId, tableId } = req.params;
   const url = `${PUBLIC_URL}/menu.html?resto=${restoId}&table=${tableId}`;
-  const qrImage = await QRCode.toDataURL(url);
-  res.json({ qr: qrImage, url });
+  
+  try {
+    const qrImage = await QRCode.toDataURL(url, { width: 200, margin: 1 });
+    res.json({ success: true, qr: qrImage, url });
+  } catch (error) {
+    console.error('Erreur QR Code:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Route IMAGE QR Code (pour <img src="">)
+app.get('/api/qrcode-image/:restoId/:tableId', async (req, res) => {
+  const { restoId, tableId } = req.params;
+  const url = `${PUBLIC_URL}/menu.html?resto=${restoId}&table=${tableId}`;
+  
+  try {
+    const qrImage = await QRCode.toDataURL(url, { width: 200, margin: 1 });
+    // Extraire le base64
+    const base64 = qrImage.replace(/^data:image\/png;base64,/, '');
+    const imgBuffer = Buffer.from(base64, 'base64');
+    
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.send(imgBuffer);
+  } catch (error) {
+    console.error('Erreur QR Code Image:', error);
+    res.status(500).send('Erreur génération QR code');
+  }
 });
 
 app.get('/api/commandes/:restoId', async (req, res) => {
@@ -369,6 +396,7 @@ app.get('/api/generate-qr/:restoId/:tableId', checkRole(['gerant']), async (req,
       <div class="table-number">TABLE ${tableId}</div>
       <img src="${qrImage}">
       <div class="instruction">📱 Scannez ce code pour accéder au menu</div>
+      <div class="instruction" style="font-size: 10px; margin-top: 10px;">${url}</div>
     </body>
     </html>
   `;
@@ -430,7 +458,6 @@ io.on('connection', (socket) => {
 app.get('/api/commande/suivi/:id', async (req, res) => {
   const { id } = req.params;
   
-  // Récupérer la commande
   const { data: commande, error: cmdError } = await supabase
     .from('commandes')
     .select('*')
@@ -441,7 +468,6 @@ app.get('/api/commande/suivi/:id', async (req, res) => {
     return res.status(404).json({ error: 'Commande non trouvée' });
   }
   
-  // Récupérer les détails
   const { data: details, error: detError } = await supabase
     .from('commande_details')
     .select('nom_plat, quantite, prix_unitaire')
