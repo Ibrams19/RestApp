@@ -643,28 +643,46 @@ app.put('/api/admin/employe/:id/role', checkRole(['gerant', 'superadmin']), asyn
   res.json({ success: true });
 });
 
-// Supprimer un employé
+// Supprimer un employé (DELETE)
 app.delete('/api/admin/employe/:id', checkRole(['gerant', 'superadmin']), async (req, res) => {
   const { id } = req.params;
   const restoId = req.user.resto_id;
   
-  // Vérifier que l'employé appartient bien au resto
-  const { data: employe } = await supabase
+  console.log('Tentative suppression employé - ID:', id, 'Resto ID:', restoId);
+  
+  // Vérifier que l'employé existe et appartient au restaurant
+  const { data: employe, error: checkError } = await supabase
     .from('profiles')
     .select('id, resto_id')
     .eq('id', id)
     .single();
   
-  if (!employe || employe.resto_id !== restoId) {
+  if (checkError) {
+    console.error('Erreur recherche employé:', checkError);
+    return res.status(404).json({ error: 'Employé non trouvé' });
+  }
+  
+  if (!employe) {
+    return res.status(404).json({ error: 'Employé non trouvé' });
+  }
+  
+  if (employe.resto_id !== restoId) {
+    console.error('Non autorisé - resto_id ne correspond pas');
     return res.status(403).json({ error: 'Non autorisé' });
   }
   
+  // Supprimer l'employé
   const { error } = await supabase
     .from('profiles')
     .delete()
     .eq('id', id);
   
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    console.error('Erreur suppression:', error);
+    return res.status(500).json({ error: error.message });
+  }
+  
+  console.log('Employé supprimé avec succès, ID:', id);
   res.json({ success: true });
 });
 
