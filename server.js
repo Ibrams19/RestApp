@@ -686,6 +686,31 @@ app.delete('/api/admin/employe/:id', checkRole(['gerant', 'superadmin']), async 
   res.json({ success: true });
 });
 
+// ===== ROUTE POUR RÉCUPÉRER LES INFOS D'ABONNEMENT =====
+app.get('/api/restaurant/subscription', authMiddleware, async (req, res) => {
+  const restoId = req.user.resto_id;
+  
+  const { data: restaurant, error } = await supabase
+    .from('restaurants')
+    .select('subscription_status, trial_ends_at, subscription_ends_at')
+    .eq('id', restoId)
+    .single();
+  
+  if (error) return res.status(500).json({ error: error.message });
+  
+  let response = { status: restaurant.subscription_status };
+  
+  if (restaurant.subscription_status === 'trial') {
+    const daysLeft = Math.ceil((new Date(restaurant.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24));
+    response.days_left = Math.max(0, daysLeft);
+    response.ends_at = restaurant.trial_ends_at;
+  } else if (restaurant.subscription_status === 'active') {
+    response.ends_at = restaurant.subscription_ends_at;
+  }
+  
+  res.json(response);
+});
+
 // ===== ROUTES GESTION DES EMPLOYÉS =====
 
 // Lister les employés (GET)
@@ -711,12 +736,17 @@ app.get('/api/admin/employes', checkRole(['gerant', 'superadmin']), async (req, 
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
-// ===== INSCRIPTION AVEC MOT DE PASSE =====
+// ===== INSCRIPTION NOUVEAU RESTAURANT AVEC ABONNEMENT =====
 app.post('/api/register', async (req, res) => {
   const { email, motDePasse, nomRestaurant, telephone, adresse } = req.body;
   
+  // Validation
   if (!email || !motDePasse || !nomRestaurant) {
     return res.status(400).json({ error: 'Email, mot de passe et nom du restaurant requis' });
+  }
+  
+  if (motDePasse.length < 6) {
+    return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 6 caractères' });
   }
   
   // Vérifier si l'email existe déjà
@@ -731,7 +761,7 @@ app.post('/api/register', async (req, res) => {
   }
   
   // Hasher le mot de passe
-  const hashedPassword = await bcrypt.hash(motDePasse, saltRounds);
+  const hashedPassword = await bcrypt.hash(motDePasse, 10);
   
   // Créer un slug unique
   const baseSlug = nomRestaurant.toLowerCase()
@@ -744,7 +774,12 @@ app.post('/api/register', async (req, res) => {
   const timestamp = Date.now();
   const slug = `${baseSlug}-${timestamp}`;
   
-  // Créer le restaurant
+  // Dates d'abonnement
+  const now = new Date();
+  const trialEndsAt = new Date();
+  trialEndsAt.setDate(trialEndsAt.getDate() + 14); // 14 jours d'essai
+  
+  // Créer le restaurant (avec abonnement)
   const { data: restaurant, error: restoError } = await supabase
     .from('restaurants')
     .insert({ 
@@ -752,13 +787,16 @@ app.post('/api/register', async (req, res) => {
       slug: slug, 
       telephone: telephone || null, 
       adresse: adresse || null, 
-      actif: true 
+      actif: true,
+      subscription_status: 'trial',
+      trial_ends_at: trialEndsAt.toISOString()
     })
     .select()
     .single();
   
   if (restoError) {
-    return res.status(500).json({ error: restoError.message });
+    console.error('Erreur création restaurant:', restoError);
+    return res.status(500).json({ error: 'Erreur lors de la création du restaurant' });
   }
   
   // Créer le profil gérant
@@ -775,11 +813,12 @@ app.post('/api/register', async (req, res) => {
     .single();
   
   if (profileError) {
+    console.error('Erreur création profil:', profileError);
     await supabase.from('restaurants').delete().eq('id', restaurant.id);
-    return res.status(500).json({ error: profileError.message });
+    return res.status(500).json({ error: 'Erreur lors de la création du compte' });
   }
   
-  // Créer les tables par défaut
+  // Créer les tables par défaut (1 à 10)
   const tables = [];
   for (let i = 1; i <= 10; i++) {
     tables.push({ resto_id: restaurant.id, numero_table: i });
@@ -796,13 +835,26 @@ app.post('/api/register', async (req, res) => {
   ];
   await supabase.from('menus').insert(platsParDefaut);
   
+  // Générer le token
   const token = jwt.sign(
-    { id: profile.id, email: email, resto_id: restaurant.id, restaurant_name: restaurant.nom, role: 'gerant' },
+    { 
+      id: profile.id, 
+      email: email, 
+      resto_id: restaurant.id, 
+      restaurant_name: restaurant.nom, 
+      role: 'gerant' 
+    },
     JWT_SECRET,
     { expiresIn: '7d' }
   );
   
-  res.json({ success: true, token, user: profile, restaurant });
+  res.json({ 
+    success: true, 
+    token, 
+    user: profile, 
+    restaurant,
+    trial_days: 14
+  });
 });
 
 // ===== CONNEXION SÉCURISÉE =====
@@ -975,6 +1027,104 @@ app.put('/api/admin/employe/:id/role', checkRole(['gerant', 'superadmin']), asyn
   
   res.json({ success: true });
 });
+
+// ===== MIDDLEWARE VÉRIFICATION ABONNEMENT =====
+async function checkSubscription(req, res, next) {
+  // Le super admin n'est pas concerné
+  if (req.user?.role === 'superadmin') {
+    return next();
+  }
+  
+  const restoId = req.user?.resto_id;
+  
+  if (!restoId) {
+    return next();
+  }
+  
+  try {
+    const { data: restaurant, error } = await supabase
+      .from('restaurants')
+      .select('subscription_status, trial_ends_at, subscription_ends_at')
+      .eq('id', restoId)
+      .single();
+    
+    if (error || !restaurant) {
+      return next();
+    }
+    
+    const now = new Date();
+    
+    // Vérifier l'essai gratuit
+    if (restaurant.subscription_status === 'trial') {
+      const trialEnd = new Date(restaurant.trial_ends_at);
+      if (now > trialEnd) {
+        // Mettre à jour le statut
+        await supabase
+          .from('restaurants')
+          .update({ subscription_status: 'expired' })
+          .eq('id', restoId);
+        
+        return res.status(403).json({ 
+          error: 'expired',
+          message: 'Votre période d\'essai de 14 jours est terminée. Veuillez souscrire un abonnement.',
+          trial_ended: true
+        });
+      }
+      
+      // Ajouter l'info dans la requête
+      req.subscription = {
+        status: 'trial',
+        days_left: Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24))
+      };
+    }
+    
+    // Vérifier l'abonnement payant
+    if (restaurant.subscription_status === 'active' && restaurant.subscription_ends_at) {
+      const subEnd = new Date(restaurant.subscription_ends_at);
+      if (now > subEnd) {
+        await supabase
+          .from('restaurants')
+          .update({ subscription_status: 'expired' })
+          .eq('id', restoId);
+        
+        return res.status(403).json({ 
+          error: 'expired',
+          message: 'Votre abonnement a expiré. Veuillez le renouveler.'
+        });
+      }
+      
+      req.subscription = {
+        status: 'active',
+        days_left: Math.ceil((subEnd - now) / (1000 * 60 * 60 * 24))
+      };
+    }
+    
+    // Bloquer si suspendu
+    if (restaurant.subscription_status === 'suspended') {
+      return res.status(403).json({ 
+        error: 'suspended',
+        message: 'Votre compte a été suspendu. Contactez le support.'
+      });
+    }
+    
+    if (restaurant.subscription_status === 'expired') {
+      return res.status(403).json({ 
+        error: 'expired',
+        message: 'Votre abonnement a expiré. Veuillez le renouveler.'
+      });
+    }
+    
+    next();
+  } catch (error) {
+    console.error('Erreur checkSubscription:', error);
+    next();
+  }
+}
+
+// Appliquer le middleware aux routes protégées
+app.use('/api/admin/*', authMiddleware, checkSubscription);
+app.use('/api/stats/*', authMiddleware, checkSubscription);
+app.use('/api/tables/*', authMiddleware, checkSubscription);
 
 // ===== CONNEXION MAGIQUE PAR LIEN UNIQUE =====
 app.get('/api/auth/magic/:token', async (req, res) => {

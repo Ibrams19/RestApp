@@ -272,6 +272,29 @@
     </div>
 
     <script>
+
+        async function checkSubscriptionStatus() {
+    try {
+        const res = await fetch('/api/restaurant/subscription', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            if (data.status === 'trial' && data.days_left <= 3) {
+                showNotification(`⚠️ Votre essai se termine dans ${data.days_left} jours. Souscrivez un abonnement !`, 'warning');
+            }
+        } else if (res.status === 403) {
+            const error = await res.json();
+            if (error.error === 'expired') {
+                window.location.href = '/subscription.html';
+            }
+        }
+    } catch(e) { console.error(e); }
+}
+
+checkSubscriptionStatus();
+
         // VÉRIFICATION DU RÔLE - Dashboard accessible uniquement au gérant
         const token = localStorage.getItem('resto_token');
         const userRole = localStorage.getItem('resto_role');
