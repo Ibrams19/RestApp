@@ -286,7 +286,7 @@
             `;
         }
         
-        let currentResto = 1;
+        let currentResto = localStorage.getItem('resto_id') || 1;
         let currentFilter = 'all';
         let allCommandes = [];
         const socket = io();

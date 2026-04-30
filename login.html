@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Resto Élite">
     <meta name="theme-color" content="#C6A43F">
     <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/icons/icon-192.png">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Connexion | Restaurant Élite</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -25,141 +24,112 @@
             background: white;
             border-radius: 32px;
             padding: 40px 30px;
-            max-width: 400px;
+            max-width: 450px;
             width: 100%;
-            text-align: center;
             box-shadow: 0 25px 50px rgba(0,0,0,0.2);
             animation: fadeIn 0.5s ease;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .logo { font-size: 48px; margin-bottom: 20px; }
-        h1 { font-size: 28px; color: #1A1A2E; margin-bottom: 10px; }
-        .subtitle { color: #6C6C7A; margin-bottom: 30px; font-size: 14px; }
-        .input-group { margin-bottom: 20px; text-align: left; }
-        .input-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #1A1A2E; }
-        .input-group input, .input-group select {
-            width: 100%;
-            padding: 14px 16px;
-            border: 1px solid #E0E0E0;
-            border-radius: 16px;
-            font-size: 16px;
-            transition: all 0.3s;
-            font-family: inherit;
-        }
-        .input-group input:focus, .input-group select:focus {
-            outline: none;
-            border-color: #C6A43F;
-            box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
-        }
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, #C6A43F 0%, #9E7E2E 100%);
-            border: none;
-            border-radius: 40px;
-            color: white;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: all 0.3s;
-        }
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(198,164,63,0.3);
-        }
-        .error-message { color: #E74C3C; font-size: 14px; margin-top: 15px; }
-        .demo-emails {
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid #E0E0E0;
-            font-size: 13px;
-            color: #6C6C7A;
-        }
-        .demo-emails p { margin-bottom: 8px; font-weight: 500; }
-        .demo-emails span {
-            background: #F5F5F5;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-family: monospace;
-            display: inline-block;
-            margin: 3px;
-        }
-        .info-role {
-            background: #F0F0F0;
-            border-radius: 12px;
-            padding: 12px;
-            margin-top: 15px;
-            font-size: 12px;
-            color: #666;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .logo { font-size: 48px; text-align: center; margin-bottom: 20px; }
+        h1 { font-size: 28px; color: #1A1A2E; text-align: center; margin-bottom: 10px; }
+        .subtitle { color: #6C6C7A; text-align: center; margin-bottom: 30px; font-size: 14px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 30px; }
+        .tab { flex: 1; text-align: center; padding: 12px; border-radius: 40px; cursor: pointer; background: #f0f0f0; transition: all 0.3s; }
+        .tab.active { background: #C6A43F; color: white; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #1A1A2E; }
+        .form-group input, .form-group select { width: 100%; padding: 14px 16px; border: 1px solid #E0E0E0; border-radius: 16px; font-size: 16px; }
+        .form-group input:focus { outline: none; border-color: #C6A43F; }
+        .btn-login { width: 100%; padding: 14px; background: linear-gradient(135deg, #C6A43F 0%, #9E7E2E 100%); border: none; border-radius: 40px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(198,164,63,0.3); }
+        .error-message { color: #E74C3C; font-size: 14px; margin-top: 15px; text-align: center; }
+        .info-text { font-size: 12px; color: #6C6C7A; text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #E0E0E0; }
     </style>
 </head>
 <body>
     <div class="login-card">
         <div class="logo">🍽️</div>
-        <h1>Espace Pro</h1>
-        <div class="subtitle">Connectez-vous à votre espace</div>
+        <h1>Restaurant Élite</h1>
+        <div class="subtitle">Solution de gestion professionnelle</div>
         
-        <div class="input-group">
-            <label>📧 Email professionnel</label>
-            <input type="email" id="email" placeholder="ex: admin@resto.com" autocomplete="off">
+        <div class="tabs">
+            <div class="tab active" data-tab="login">🔐 Connexion</div>
+            <div class="tab" data-tab="register">📝 Inscription</div>
         </div>
         
-        <div class="input-group">
-            <label>👤 Votre rôle</label>
-            <select id="role">
-                <option value="gerant">📊 Gérant (accès total)</option>
-                <option value="cuisinier">👨‍🍳 Cuisinier (commandes uniquement)</option>
-                <option value="serveur">🍽️ Serveur (service uniquement)</option>
-            </select>
+        <!-- Formulaire de connexion -->
+        <div id="login-form">
+            <div class="form-group">
+                <label>📧 Email</label>
+                <input type="email" id="login-email" placeholder="ex: gerant@monresto.com">
+            </div>
+            <div class="form-group">
+                <label>👤 Rôle</label>
+                <select id="login-role">
+                    <option value="gerant">📊 Gérant</option>
+                    <option value="cuisinier">👨‍🍳 Cuisinier</option>
+                    <option value="serveur">🍽️ Serveur</option>
+                </select>
+            </div>
+            <button class="btn-login" id="login-btn">🔐 Se connecter</button>
         </div>
         
-        <button class="btn-login" id="login-btn">🔐 Se connecter</button>
+        <!-- Formulaire d'inscription -->
+        <div id="register-form" style="display: none;">
+            <div class="form-group">
+                <label>🏠 Nom du restaurant</label>
+                <input type="text" id="register-nom" placeholder="Ex: Le Ndiollé">
+            </div>
+            <div class="form-group">
+                <label>📧 Email du gérant</label>
+                <input type="email" id="register-email" placeholder="ex: contact@monresto.com">
+            </div>
+            <div class="form-group">
+                <label>📞 Téléphone</label>
+                <input type="tel" id="register-tel" placeholder="+221 77 000 00 00">
+            </div>
+            <div class="form-group">
+                <label>📍 Adresse</label>
+                <input type="text" id="register-adresse" placeholder="Dakar, Sénégal">
+            </div>
+            <button class="btn-login" id="register-btn">🚀 Créer mon espace</button>
+        </div>
         
         <div class="error-message" id="error-message"></div>
-        
-        <div class="demo-emails">
-            <p>🔑 Comptes de démo :</p>
-            <span>admin@resto.com</span>
-            <span>cuisine@resto.com</span>
-            <span>serveur@resto.com</span>
-        </div>
-        
-        <div class="info-role">
-            💡 <strong>Selon votre rôle :</strong><br>
-            • 📊 Gérant : accès aux statistiques, gestion des plats, tables et QR codes<br>
-            • 👨‍🍳 Cuisinier : voit et gère les commandes en cuisine<br>
-            • 🍽️ Serveur : voit les commandes et gère le service à table
+        <div class="info-text">
+            💡 Vous n'avez pas encore de compte ? Inscrivez-vous gratuitement pour 14 jours.
         </div>
     </div>
 
     <script>
-        const loginBtn = document.getElementById('login-btn');
-        const emailInput = document.getElementById('email');
-        const roleSelect = document.getElementById('role');
-        const errorDiv = document.getElementById('error-message');
-
+        // Gestion des onglets
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.onclick = () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const isLogin = tab.dataset.tab === 'login';
+                document.getElementById('login-form').style.display = isLogin ? 'block' : 'none';
+                document.getElementById('register-form').style.display = isLogin ? 'none' : 'block';
+                document.getElementById('error-message').innerHTML = '';
+            };
+        });
+        
+        // Connexion
         async function login() {
-            const email = emailInput.value.trim();
-            const selectedRole = roleSelect.value;
+            const email = document.getElementById('login-email').value.trim();
+            const role = document.getElementById('login-role').value;
+            const errorDiv = document.getElementById('error-message');
             
             if (!email) {
-                errorDiv.textContent = 'Veuillez entrer votre email';
+                errorDiv.innerHTML = 'Veuillez entrer votre email';
                 return;
             }
-            
-            loginBtn.disabled = true;
-            loginBtn.textContent = '⏳ Connexion...';
             
             try {
                 const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, role: selectedRole })
+                    body: JSON.stringify({ email, role })
                 });
                 
                 const data = await res.json();
@@ -168,40 +138,67 @@
                     localStorage.setItem('resto_token', data.token);
                     localStorage.setItem('resto_user', JSON.stringify(data.user));
                     localStorage.setItem('resto_role', data.user.role);
+                    localStorage.setItem('resto_id', data.user.resto_id);
                     
-                    if (data.user.role === 'gerant') {
+                    if (data.user.role === 'gerant' || data.user.role === 'superadmin') {
                         window.location.href = '/dashboard.html';
                     } else {
                         window.location.href = '/resto.html';
                     }
                 } else {
-                    errorDiv.textContent = data.error || 'Email ou rôle non reconnu';
+                    errorDiv.innerHTML = data.error || 'Email ou rôle non reconnu';
                 }
             } catch (error) {
-                errorDiv.textContent = 'Erreur de connexion au serveur';
-                console.error(error);
-            } finally {
-                loginBtn.disabled = false;
-                loginBtn.textContent = '🔐 Se connecter';
+                errorDiv.innerHTML = 'Erreur de connexion au serveur';
             }
         }
         
-        loginBtn.onclick = login;
-        emailInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') login();
-        });
-        
-        const token = localStorage.getItem('resto_token');
-        const userRole = localStorage.getItem('resto_role');
-        
-        if (token) {
-            if (userRole === 'gerant') {
-                window.location.href = '/dashboard.html';
-            } else if (userRole === 'cuisinier' || userRole === 'serveur') {
-                window.location.href = '/resto.html';
-            } else {
-                localStorage.clear();
+        // Inscription
+        async function register() {
+            const nom = document.getElementById('register-nom').value.trim();
+            const email = document.getElementById('register-email').value.trim();
+            const telephone = document.getElementById('register-tel').value.trim();
+            const adresse = document.getElementById('register-adresse').value.trim();
+            const errorDiv = document.getElementById('error-message');
+            
+            if (!nom || !email) {
+                errorDiv.innerHTML = 'Veuillez remplir le nom du restaurant et votre email';
+                return;
             }
+            
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, nomRestaurant: nom, telephone, adresse })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok && data.success) {
+                    localStorage.setItem('resto_token', data.token);
+                    localStorage.setItem('resto_user', JSON.stringify(data.user));
+                    localStorage.setItem('resto_role', 'gerant');
+                    localStorage.setItem('resto_id', data.user.resto_id);
+                    alert('✅ Restaurant créé avec succès ! Bienvenue !');
+                    window.location.href = '/dashboard.html';
+                } else {
+                    errorDiv.innerHTML = data.error || 'Erreur lors de l\'inscription';
+                }
+            } catch (error) {
+                errorDiv.innerHTML = 'Erreur de connexion au serveur';
+            }
+        }
+        
+        document.getElementById('login-btn').onclick = login;
+        document.getElementById('register-btn').onclick = register;
+        
+        // Vérifier si déjà connecté
+        const token = localStorage.getItem('resto_token');
+        const role = localStorage.getItem('resto_role');
+        if (token) {
+            if (role === 'gerant' || role === 'superadmin') window.location.href = '/dashboard.html';
+            else window.location.href = '/resto.html';
         }
     </script>
 </body>

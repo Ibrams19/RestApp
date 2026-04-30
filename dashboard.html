@@ -295,7 +295,7 @@
         }
         
         let currentPeriod = 'day';
-        let currentResto = 1;
+        let currentResto = localStorage.getItem('resto_id') || 1;
         let evolutionChart;
         
         const user = JSON.parse(localStorage.getItem('resto_user') || '{}');

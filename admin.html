@@ -263,7 +263,7 @@
             window.location.href = '/resto.html';
         }
         
-        let currentResto = 1;
+        let currentResto = localStorage.getItem('resto_id') || 1;
         let tousLesPlats = [];
         let currentFilter = 'all'; // 'all', 'available', 'unavailable'
         
