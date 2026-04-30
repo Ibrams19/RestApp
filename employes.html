@@ -6,89 +6,37 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="Resto Élite">
     <meta name="theme-color" content="#C6A43F">
-    <link rel="manifest" href="/manifest.json">
     <title>Équipe | Restaurant Élite</title>
     <style>
-        /* ===== VARIABLES ===== */
-        :root {
-            --gold: #C6A43F;
-            --gold-dark: #9E7E2E;
-            --dark: #1A1A2E;
-            --dark-light: #242440;
-            --gray: #6C6C7A;
-            --light: #F8F9FA;
-            --success: #27AE60;
-            --danger: #E74C3C;
-            --info: #3498DB;
-            --warning: #F39C12;
-        }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             background: #F5F6FA;
-            color: var(--dark);
+            color: #1A1A2E;
         }
 
-        /* ===== HEADER PREMIUM ===== */
-        .header-premium {
-            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-light) 100%);
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1A1A2E 0%, #242440 100%);
             padding: 20px 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-premium .container {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            max-width: 1400px;
-            margin: 0 auto;
         }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 700;
-            color: white;
-        }
-
-        .logo span { color: var(--gold); }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--gold);
-            color: var(--gold);
-            padding: 8px 20px;
-            border-radius: 40px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-outline:hover {
-            background: var(--gold);
-            color: var(--dark);
-        }
-
-        .logout-btn {
-            background: var(--danger);
+        .logo { font-size: 24px; font-weight: bold; color: white; }
+        .logo span { color: #C6A43F; }
+        .btn-logout {
+            background: #E74C3C;
             color: white;
             border: none;
             padding: 8px 20px;
             border-radius: 40px;
             cursor: pointer;
-            transition: all 0.3s;
         }
 
-        .logout-btn:hover {
-            background: #c0392b;
-            transform: translateY(-2px);
-        }
-
-        /* ===== NAVIGATION ===== */
+        /* Navigation */
         .nav-bar {
             display: flex;
             gap: 12px;
@@ -96,31 +44,20 @@
             margin: 25px 20px;
             flex-wrap: wrap;
         }
-
         .nav-btn {
             padding: 10px 24px;
             border-radius: 40px;
             text-decoration: none;
-            background: var(--dark);
+            background: #1A1A2E;
             color: white;
-            transition: all 0.3s;
             font-weight: 500;
-            font-size: 14px;
         }
+        .nav-btn.active { background: #C6A43F; color: #1A1A2E; }
 
-        .nav-btn:hover {
-            background: var(--gold);
-            color: var(--dark);
-            transform: translateY(-2px);
-        }
+        /* Container */
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px 30px; }
 
-        /* ===== PAGE CONTAINER ===== */
-        .page-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px 30px;
-        }
-
+        /* Header actions */
         .header-actions {
             display: flex;
             justify-content: space-between;
@@ -129,55 +66,30 @@
             flex-wrap: wrap;
             gap: 20px;
         }
-
-        .header-actions h1 {
-            font-size: 32px;
-            color: var(--dark);
-        }
-
         .btn-add {
-            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
-            color: var(--dark);
+            background: linear-gradient(135deg, #C6A43F 0%, #9E7E2E 100%);
+            color: #1A1A2E;
             border: none;
-            padding: 14px 28px;
+            padding: 12px 24px;
             border-radius: 50px;
-            font-weight: 600;
+            font-weight: bold;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 10px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(198,164,63,0.3);
+            gap: 8px;
         }
 
-        .btn-add:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(198,164,63,0.4);
-        }
-
-        /* ===== RECHERCHE ===== */
-        .search-bar {
-            margin-bottom: 25px;
-        }
-
+        /* Search */
         .search-bar input {
             width: 100%;
             padding: 14px 24px;
             border-radius: 60px;
             border: 1px solid #E0E0E0;
-            font-size: 15px;
-            transition: all 0.3s;
-            background: white;
+            margin-bottom: 20px;
         }
 
-        .search-bar input:focus {
-            outline: none;
-            border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
-        }
-
-        /* ===== STATISTIQUES ===== */
-        .stats-info {
+        /* Stats */
+        .stats {
             background: white;
             padding: 15px 25px;
             border-radius: 20px;
@@ -186,99 +98,73 @@
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
-        .stats-info span {
-            font-size: 14px;
-            color: var(--gray);
-        }
-
-        .stats-info strong {
-            color: var(--gold);
-            font-size: 18px;
-        }
-
-        /* ===== GRILLE EMPLOYÉS ===== */
+        /* Grid */
         .employes-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 25px;
         }
 
+        /* Card */
         .employe-card {
             background: white;
             border-radius: 24px;
             padding: 24px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            transition: all 0.3s;
-            border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.3s;
         }
-
-        .employe-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
-        }
+        .employe-card:hover { transform: translateY(-5px); }
 
         .employe-avatar {
             width: 70px;
             height: 70px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-light) 100%);
+            background: linear-gradient(135deg, #1A1A2E 0%, #242440 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 32px;
             margin-bottom: 20px;
         }
-
-        .employe-nom {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: var(--dark);
-        }
-
+        .employe-nom { font-size: 20px; font-weight: bold; margin-bottom: 8px; }
         .employe-role {
             display: inline-block;
             padding: 6px 16px;
             border-radius: 40px;
             font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 20px;
+            font-weight: bold;
+            margin: 15px 0;
         }
-
         .role-cuisinier { background: #3498DB; color: white; }
         .role-serveur { background: #F39C12; color: white; }
 
         .employe-actions {
             display: flex;
             gap: 12px;
-            margin-top: 20px;
             flex-wrap: wrap;
         }
-
-        .btn-icon {
+        .btn-share {
+            background: #25D366;
+            color: white;
+            border: none;
             padding: 10px 18px;
             border-radius: 40px;
-            border: none;
             cursor: pointer;
-            font-size: 13px;
             font-weight: 500;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        }
+        .btn-delete {
+            background: #E74C3C;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
         }
 
-        .btn-share { background: #25D366; color: white; }
-        .btn-share:hover { transform: translateY(-2px); filter: brightness(1.05); }
-        .btn-link { background: var(--info); color: white; }
-        .btn-link:hover { transform: translateY(-2px); background: #2980b9; }
-        .btn-delete { background: var(--danger); color: white; }
-        .btn-delete:hover { transform: translateY(-2px); background: #c0392b; }
-
-        /* ===== MODAL ===== */
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -290,232 +176,124 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(4px);
         }
-
         .modal-content {
             background: white;
             border-radius: 32px;
             padding: 35px;
-            max-width: 480px;
+            max-width: 450px;
             width: 90%;
-            animation: fadeIn 0.3s ease;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
         }
-
-        .modal-content h3 {
-            margin-bottom: 25px;
-            color: var(--dark);
-            font-size: 28px;
-        }
-
-        .form-group {
-            margin-bottom: 22px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--dark);
-        }
-
+        .modal-content h3 { margin-bottom: 25px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
         .form-group input, .form-group select {
             width: 100%;
-            padding: 14px 16px;
-            border: 1px solid #E0E0E0;
-            border-radius: 16px;
-            font-size: 15px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
         }
-
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: var(--gold);
-        }
-
         .modal-buttons {
             display: flex;
             gap: 15px;
             justify-content: flex-end;
             margin-top: 25px;
         }
-
         .btn-confirm {
-            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
-            color: var(--dark);
+            background: #C6A43F;
             border: none;
-            padding: 12px 28px;
-            border-radius: 50px;
-            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: bold;
             cursor: pointer;
         }
-
         .btn-cancel {
-            background: #E0E0E0;
-            color: var(--gray);
+            background: #6C6C7A;
+            color: white;
             border: none;
-            padding: 12px 28px;
-            border-radius: 50px;
-            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: 40px;
             cursor: pointer;
         }
 
-        /* ===== MODALE LIEN ===== */
-        .lien-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .lien-modal-content {
-            background: white;
-            border-radius: 32px;
-            padding: 30px;
-            max-width: 90%;
-            width: 450px;
-            text-align: center;
-        }
-
-        .lien-modal-content h3 { margin-bottom: 15px; color: var(--dark); }
-        .lien-modal-content .lien-text {
-            background: #f5f5f5;
-            border-radius: 16px;
-            padding: 12px;
-            margin: 20px 0;
-            word-break: break-all;
-            font-size: 12px;
-            color: #666;
-        }
-        .lien-modal-content .btn-wa {
-            background: #25D366;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 50px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin: 5px;
-        }
-        .lien-modal-content .btn-test {
-            background: var(--gold);
-            color: var(--dark);
-            padding: 12px 20px;
-            border-radius: 50px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin: 5px;
-        }
-        .lien-modal-content .btn-close {
-            background: var(--gray);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 50px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-
-        .empty-state { text-align: center; padding: 80px 20px; color: var(--gray); }
-        .empty-state-icon { font-size: 64px; margin-bottom: 20px; }
+        /* Toast */
         .toast {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            background: var(--success);
+            background: #27AE60;
             color: white;
-            padding: 14px 28px;
-            border-radius: 60px;
+            padding: 12px 24px;
+            border-radius: 50px;
             z-index: 1100;
             animation: slideIn 0.3s ease;
         }
-        .toast-error { background: var(--danger); }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .toast-error { background: #E74C3C; }
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
 
         @media (max-width: 768px) {
-            .page-container { padding: 15px; }
+            .container { padding: 15px; }
             .employes-grid { grid-template-columns: 1fr; }
             .header-actions { flex-direction: column; align-items: stretch; }
-            .btn-add { justify-content: center; }
         }
     </style>
 </head>
 <body>
-    <header class="header-premium">
-        <div class="container">
-            <div class="logo">🍽️ <span>RESTAURANT ÉLITE</span></div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <span id="resto-name" style="color: var(--gold);">Restaurant</span>
-                <button class="logout-btn" id="logout-btn">🚪 Déconnexion</button>
-            </div>
-        </div>
+    <header class="header">
+        <div class="logo">🍽️ <span>RESTAURANT ÉLITE</span></div>
+        <button class="btn-logout" id="logout-btn">🚪 Déconnexion</button>
     </header>
 
     <div class="nav-bar">
         <a href="/dashboard.html" class="nav-btn">📊 Dashboard</a>
         <a href="/admin.html" class="nav-btn">🍽️ Gestion plats</a>
-        <a href="/employes.html" class="nav-btn" style="background: var(--gold); color: var(--dark);">👥 Équipe</a>
+        <a href="/employes.html" class="nav-btn active">👥 Équipe</a>
         <a href="/resto.html" class="nav-btn">👨‍🍳 Cuisine</a>
         <a href="/qrcodes.html" class="nav-btn">📱 QR Codes</a>
     </div>
 
-    <div class="page-container">
+    <div class="container">
         <div class="header-actions">
             <h1>👥 Mon équipe</h1>
-            <button class="btn-add" id="btn-add-employe">➕ Ajouter un employé</button>
+            <button class="btn-add" id="btn-add">➕ Ajouter un employé</button>
         </div>
 
         <div class="search-bar">
-            <input type="text" id="search-employe" placeholder="🔍 Rechercher par nom...">
+            <input type="text" id="search" placeholder="🔍 Rechercher par nom...">
         </div>
 
-        <div class="stats-info" id="stats-info">📊 Chargement...</div>
+        <div class="stats" id="stats">📊 Chargement...</div>
 
         <div class="employes-grid" id="employes-grid">
-            <div style="text-align: center; padding: 60px;">Chargement...</div>
+            <div style="text-align: center; padding: 40px;">Chargement...</div>
         </div>
     </div>
 
-    <!-- MODAL AJOUT -->
+    <!-- Modal Ajout -->
     <div id="modal-add" class="modal">
         <div class="modal-content">
             <h3>➕ Ajouter un employé</h3>
             <div class="form-group">
-                <label>👤 Prénom</label>
-                <input type="text" id="employe-prenom" placeholder="Ex: Modou">
+                <label>Prénom</label>
+                <input type="text" id="prenom" placeholder="Ex: Modou">
             </div>
             <div class="form-group">
-                <label>📛 Nom</label>
-                <input type="text" id="employe-nom" placeholder="Ex: Diop">
+                <label>Nom</label>
+                <input type="text" id="nom" placeholder="Ex: Diop">
             </div>
             <div class="form-group">
-                <label>👔 Rôle</label>
-                <select id="employe-role">
+                <label>Rôle</label>
+                <select id="role">
                     <option value="cuisinier">👨‍🍳 Cuisinier</option>
                     <option value="serveur">🍽️ Serveur</option>
                 </select>
             </div>
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal('modal-add')">Annuler</button>
-                <button class="btn-confirm" id="confirm-add">Ajouter</button>
+                <button class="btn-confirm" id="btn-confirm-add">Ajouter</button>
             </div>
         </div>
     </div>
@@ -528,36 +306,14 @@
             window.location.href = '/login.html';
         }
 
-        let currentEmployes = [];
+        let employes = [];
 
         function showToast(message, isError = false) {
             const toast = document.createElement('div');
             toast.className = `toast ${isError ? 'toast-error' : ''}`;
-            toast.innerHTML = `${isError ? '❌' : '✅'} ${message}`;
+            toast.textContent = message;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 4000);
-        }
-
-        function afficherModalLien(lien, nomEmploye) {
-            const modal = document.createElement('div');
-            modal.className = 'lien-modal';
-            modal.innerHTML = `
-                <div class="lien-modal-content">
-                    <div style="font-size:48px;margin-bottom:10px;">🔗</div>
-                    <h3>Lien magique</h3>
-                    <p style="margin-bottom:15px;color:#666;">Envoyez ce lien à <strong>${escapeHtml(nomEmploye)}</strong></p>
-                    <div class="lien-text">${lien}</div>
-                    <div>
-                        <a href="whatsapp://send?text=${encodeURIComponent('🔗 Voici votre lien magique pour rejoindre l\'équipe : ' + lien)}" 
-                           class="btn-wa">📤 WhatsApp</a>
-                        <a href="${lien}" target="_blank" class="btn-test">🔗 Tester le lien</a>
-                    </div>
-                    <div>
-                        <button class="btn-close" onclick="this.parentElement.parentElement.parentElement.remove()">Fermer</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
         }
 
         async function chargerEmployes() {
@@ -566,95 +322,92 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
-                    currentEmployes = await res.json();
+                    employes = await res.json();
                     afficherEmployes();
                 }
             } catch(e) { console.error(e); }
         }
 
         function afficherEmployes() {
-            const searchTerm = document.getElementById('search-employe').value.toLowerCase();
-            let filtered = currentEmployes;
-            if (searchTerm) {
-                filtered = currentEmployes.filter(e => 
-                    (e.nom && e.nom.toLowerCase().includes(searchTerm)) ||
-                    (e.prenom && e.prenom.toLowerCase().includes(searchTerm))
-                );
-            }
-            
-            const container = document.getElementById('employes-grid');
-            const total = currentEmployes.length;
-            const cuisiniers = currentEmployes.filter(e => e.role === 'cuisinier').length;
-            const serveurs = currentEmployes.filter(e => e.role === 'serveur').length;
-            
-            document.getElementById('stats-info').innerHTML = `
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const filtered = employes.filter(e => 
+                (e.nom && e.nom.toLowerCase().includes(searchTerm)) ||
+                (e.prenom && e.prenom.toLowerCase().includes(searchTerm))
+            );
+
+            const total = employes.length;
+            const cuisiniers = employes.filter(e => e.role === 'cuisinier').length;
+            const serveurs = employes.filter(e => e.role === 'serveur').length;
+            document.getElementById('stats').innerHTML = `
                 <span>📋 <strong>${total}</strong> employé(s)</span>
                 <span>👨‍🍳 <strong>${cuisiniers}</strong> cuisinier(s)</span>
                 <span>🍽️ <strong>${serveurs}</strong> serveur(s)</span>
             `;
-            
+
+            const container = document.getElementById('employes-grid');
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">👥</div><h3>Aucun employé</h3></div>`;
+                container.innerHTML = '<div style="text-align:center;padding:40px;">Aucun employé trouvé</div>';
                 return;
             }
-            
-            container.innerHTML = filtered.map(emp => `
+
+            container.innerHTML = filtered.map(e => `
                 <div class="employe-card">
-                    <div class="employe-avatar">${emp.role === 'cuisinier' ? '👨‍🍳' : '🍽️'}</div>
-                    <div class="employe-nom">${escapeHtml(emp.prenom ? emp.prenom + ' ' : '')}${escapeHtml(emp.nom)}</div>
-                    <div class="employe-role role-${emp.role}">${emp.role === 'cuisinier' ? '👨‍🍳 Cuisinier' : '🍽️ Serveur'}</div>
+                    <div class="employe-avatar">${e.role === 'cuisinier' ? '👨‍🍳' : '🍽️'}</div>
+                    <div class="employe-nom">${escapeHtml(e.prenom ? e.prenom + ' ' : '')}${escapeHtml(e.nom)}</div>
+                    <div class="employe-role role-${e.role}">${e.role === 'cuisinier' ? '👨‍🍳 Cuisinier' : '🍽️ Serveur'}</div>
                     <div class="employe-actions">
-                        <button class="btn-icon btn-share" onclick="partagerLien('${emp.lien_unique}', '${escapeHtml(emp.nom)}')">📤 Partager</button>
-                        <button class="btn-icon btn-delete" onclick="supprimerEmploye('${emp.id}')">🗑️ Supprimer</button>
+                        <button class="btn-share" onclick="partagerLien('${e.lien_unique}', '${escapeHtml(e.nom)}')">📤 Partager</button>
+                        <button class="btn-delete" onclick="supprimerEmploye('${e.id}')">🗑️ Supprimer</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        function partagerLien(lien, nom) {
-    if (!lien || lien === 'null' || lien === 'undefined') {
-        showToast('❌ Lien invalide. Veuillez réessayer.', true);
-        return;
-    }
-    
-    const modal = document.createElement('div');
-    modal.className = 'lien-modal';
-    modal.innerHTML = `
-        <div class="lien-modal-content">
-            <div style="font-size:48px;margin-bottom:10px;">🔗</div>
-            <h3>Lien magique</h3>
-            <p style="margin-bottom:15px;color:#666;">Envoyez ce lien à <strong>${escapeHtml(nom)}</strong></p>
-            <div class="lien-text" style="background:#f0f0f0;border-radius:12px;padding:12px;margin:15px 0;word-break:break-all;font-size:12px;">${lien}</div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
-                <a href="${lien}" target="_blank" class="btn-test" style="background:#C6A43F;color:#1A1A2E;padding:12px;border-radius:50px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">🔗 Tester le lien</a>
-                <button onclick="copierLienManuellement('${lien}')" class="btn-copy" style="background:#3498DB;color:white;padding:12px;border-radius:50px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">📋 Copier</button>
-            </div>
-            <div style="margin-top:15px;">
-                <button class="btn-close" onclick="this.parentElement.parentElement.parentElement.remove()" style="background:#6C6C7A;color:white;border:none;padding:10px 20px;border-radius:50px;cursor:pointer;">Fermer</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(modal);
-}
+        function afficherLienModal(lien, nom) {
+            const modal = document.createElement('div');
+            modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:2000;display:flex;align-items:center;justify-content:center;';
+            modal.innerHTML = `
+                <div style="background:white;border-radius:32px;padding:30px;width:90%;max-width:450px;text-align:center;">
+                    <div style="font-size:48px;margin-bottom:10px;">🔗</div>
+                    <h3>Lien magique</h3>
+                    <p>Envoyez ce lien à <strong>${escapeHtml(nom)}</strong></p>
+                    <div style="background:#f5f5f5;border-radius:12px;padding:12px;margin:20px 0;word-break:break-all;font-size:12px;">${lien}</div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+                        <button onclick="copierLien('${lien}')" style="background:#3498DB;color:white;padding:10px 20px;border-radius:50px;border:none;cursor:pointer;">📋 Copier</button>
+                        <button onclick="window.open('${lien}', '_blank')" style="background:#C6A43F;color:#1A1A2E;padding:10px 20px;border-radius:50px;border:none;cursor:pointer;">🔗 Tester</button>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background:#6C6C7A;color:white;margin-top:20px;padding:10px 20px;border-radius:50px;border:none;cursor:pointer;">Fermer</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
 
-function copierLienManuellement(lien) {
-    navigator.clipboard.writeText(lien).then(() => {
-        showToast('✅ Lien copié dans le presse-papier !');
-    }).catch(() => {
-        prompt('Copiez ce lien manuellement :', lien);
-    });
-}
+        function partagerLien(lien, nom) {
+            if (!lien || lien === 'null') {
+                showToast('Lien invalide, veuillez réessayer', true);
+                return;
+            }
+            afficherLienModal(lien, nom);
+        }
+
+        function copierLien(lien) {
+            navigator.clipboard.writeText(lien).then(() => {
+                showToast('✅ Lien copié !');
+            }).catch(() => {
+                prompt('Copiez le lien :', lien);
+            });
+        }
 
         async function ajouterEmploye() {
-            const prenom = document.getElementById('employe-prenom').value.trim();
-            const nom = document.getElementById('employe-nom').value.trim();
-            const role = document.getElementById('employe-role').value;
-            
+            const prenom = document.getElementById('prenon')?.value || document.getElementById('prenom').value;
+            const nom = document.getElementById('nom').value;
+            const role = document.getElementById('role').value;
+
             if (!nom) {
                 showToast('Veuillez entrer un nom', true);
                 return;
             }
-            
+
             try {
                 const res = await fetch('/api/admin/employe', {
                     method: 'POST',
@@ -662,36 +415,47 @@ function copierLienManuellement(lien) {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ nom, prenom, role })
+                    body: JSON.stringify({ nom, prenom: prenom || '', role })
                 });
-                
+
+                const data = await res.json();
+
                 if (res.ok) {
-                    const data = await res.json();
-                    showToast(`${data.infos.role} ajouté !`);
+                    showToast(`${data.role} ajouté avec succès !`);
                     closeModal('modal-add');
-                    document.getElementById('employe-prenom').value = '';
-                    document.getElementById('employe-nom').value = '';
+                    document.getElementById('prenom').value = '';
+                    document.getElementById('nom').value = '';
                     chargerEmployes();
-                    setTimeout(() => partagerLien(data.lien, data.infos.nom), 500);
+                    setTimeout(() => partagerLien(data.lien, data.nom), 500);
                 } else {
-                    const error = await res.json();
-                    showToast('Erreur: ' + (error.error || 'Réessayez'), true);
+                    showToast(data.error || 'Erreur lors de l\'ajout', true);
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) {
+                console.error(e);
+                showToast('Erreur réseau', true);
+            }
         }
 
         async function supprimerEmploye(id) {
-            if (!confirm('Supprimer cet employé ?')) return;
+            if (!confirm('Supprimer cet employé ? Cette action est irréversible.')) return;
+
             try {
                 const res = await fetch(`/api/admin/employe/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+
                 if (res.ok) {
                     showToast('Employé supprimé');
                     chargerEmployes();
+                } else {
+                    const data = await res.json();
+                    showToast(data.error || 'Erreur lors de la suppression', true);
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) {
+                console.error(e);
+                showToast('Erreur réseau', true);
+            }
         }
 
         function closeModal(modalId) {
@@ -708,10 +472,10 @@ function copierLienManuellement(lien) {
             });
         }
 
-        document.getElementById('btn-add-employe').onclick = () => document.getElementById('modal-add').style.display = 'flex';
-        document.getElementById('confirm-add').onclick = ajouterEmploye;
+        document.getElementById('btn-add').onclick = () => document.getElementById('modal-add').style.display = 'flex';
+        document.getElementById('btn-confirm-add').onclick = ajouterEmploye;
         document.getElementById('logout-btn').onclick = () => { localStorage.clear(); window.location.href = '/login.html'; };
-        document.getElementById('search-employe').oninput = () => afficherEmployes();
+        document.getElementById('search').oninput = () => afficherEmployes();
 
         window.onclick = (e) => {
             if (e.target.classList.contains('modal')) e.target.style.display = 'none';
@@ -719,12 +483,15 @@ function copierLienManuellement(lien) {
 
         window.partagerLien = partagerLien;
         window.supprimerEmploye = supprimerEmploye;
+        window.copierLien = copierLien;
         window.closeModal = closeModal;
 
-        const user = JSON.parse(localStorage.getItem('resto_user') || '{}');
-        if (user.restaurant_name) document.getElementById('resto-name').innerText = user.restaurant_name;
-
         chargerEmployes();
+
+        const user = JSON.parse(localStorage.getItem('resto_user') || '{}');
+        if (user.restaurant_name) {
+            document.querySelector('.logo').innerHTML = `🍽️ <span>${user.restaurant_name}</span>`;
+        }
     </script>
 </body>
 </html>

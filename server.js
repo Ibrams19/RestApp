@@ -670,7 +670,7 @@ app.delete('/api/admin/employe/:id', checkRole(['gerant', 'superadmin']), async 
 
 // ===== ROUTES GESTION DES EMPLOYÉS =====
 
-// Lister les employés
+// Lister les employés (GET)
 app.get('/api/admin/employes', checkRole(['gerant', 'superadmin']), async (req, res) => {
   const restoId = req.user.resto_id;
   
@@ -679,10 +679,128 @@ app.get('/api/admin/employes', checkRole(['gerant', 'superadmin']), async (req, 
     .select('id, nom, prenom, role, token_unique, lien_unique, created_at')
     .eq('resto_id', restoId)
     .neq('role', 'gerant')
+    .neq('role', 'superadmin')
     .order('created_at', { ascending: false });
   
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    console.error('Erreur liste employés:', error);
+    return res.status(500).json({ error: error.message });
+  }
+  
   res.json(data || []);
+});
+
+// Ajouter un employé (POST)
+app.post('/api/admin/employe', checkRole(['gerant', 'superadmin']), async (req, res) => {
+  const { nom, prenom, role } = req.body;
+  const restoId = req.user.resto_id;
+  
+  if (!nom || !role) {
+    return res.status(400).json({ error: 'Nom et rôle requis' });
+  }
+  
+  // Vérifier si un employé avec ce nom existe déjà
+  const { data: existing } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('resto_id', restoId)
+    .eq('nom', nom)
+    .eq('prenom', prenom || '')
+    .single();
+  
+  if (existing) {
+    return res.status(400).json({ error: 'Cet employé existe déjà' });
+  }
+  
+  // Générer un token unique
+  const tokenUnique = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+  const lienUnique = `${PUBLIC_URL}/magic.html?token=${tokenUnique}`;
+  
+  // Créer l'employé
+  const { data, error } = await supabase
+    .from('profiles')
+    .insert({ 
+      nom: nom.trim(),
+      prenom: prenom ? prenom.trim() : '',
+      resto_id: restoId, 
+      role: role,
+      token_unique: tokenUnique,
+      lien_unique: lienUnique,
+      email: `${tokenUnique}@temp.resto`
+    })
+    .select();
+  
+  if (error) {
+    console.error('Erreur création employé:', error);
+    return res.status(500).json({ error: error.message });
+  }
+  
+  const roleText = role === 'cuisinier' ? 'Cuisinier' : 'Serveur';
+  const nomComplet = `${prenom ? prenom + ' ' : ''}${nom}`.trim();
+  
+  res.json({ 
+    success: true, 
+    employe: data[0],
+    lien: lienUnique,
+    nom: nomComplet,
+    role: roleText
+  });
+});
+
+// Supprimer un employé (DELETE)
+app.delete('/api/admin/employe/:id', checkRole(['gerant', 'superadmin']), async (req, res) => {
+  const { id } = req.params;
+  const restoId = req.user.resto_id;
+  
+  // Vérifier que l'employé appartient bien au restaurant
+  const { data: employe, error: checkError } = await supabase
+    .from('profiles')
+    .select('id, resto_id')
+    .eq('id', id)
+    .single();
+  
+  if (checkError || !employe) {
+    return res.status(404).json({ error: 'Employé non trouvé' });
+  }
+  
+  if (employe.resto_id !== restoId) {
+    return res.status(403).json({ error: 'Non autorisé' });
+  }
+  
+  // Supprimer l'employé
+  const { error } = await supabase
+    .from('profiles')
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Erreur suppression:', error);
+    return res.status(500).json({ error: error.message });
+  }
+  
+  res.json({ success: true });
+});
+
+// Modifier le rôle d'un employé (PUT)
+app.put('/api/admin/employe/:id/role', checkRole(['gerant', 'superadmin']), async (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body;
+  
+  if (!role || !['cuisinier', 'serveur'].includes(role)) {
+    return res.status(400).json({ error: 'Rôle invalide' });
+  }
+  
+  const { error } = await supabase
+    .from('profiles')
+    .update({ role: role })
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Erreur modification rôle:', error);
+    return res.status(500).json({ error: error.message });
+  }
+  
+  res.json({ success: true });
 });
 
 // ===== CONNEXION MAGIQUE PAR LIEN UNIQUE =====
