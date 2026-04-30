@@ -708,6 +708,148 @@ app.get('/api/admin/employes', checkRole(['gerant', 'superadmin']), async (req, 
   res.json(data || []);
 });
 
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
+// ===== INSCRIPTION AVEC MOT DE PASSE =====
+app.post('/api/register', async (req, res) => {
+  const { email, motDePasse, nomRestaurant, telephone, adresse } = req.body;
+  
+  if (!email || !motDePasse || !nomRestaurant) {
+    return res.status(400).json({ error: 'Email, mot de passe et nom du restaurant requis' });
+  }
+  
+  // Vérifier si l'email existe déjà
+  const { data: existingUser } = await supabase
+    .from('profiles')
+    .select('email')
+    .eq('email', email)
+    .single();
+  
+  if (existingUser) {
+    return res.status(400).json({ error: 'Cet email est déjà utilisé' });
+  }
+  
+  // Hasher le mot de passe
+  const hashedPassword = await bcrypt.hash(motDePasse, saltRounds);
+  
+  // Créer un slug unique
+  const baseSlug = nomRestaurant.toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  
+  const timestamp = Date.now();
+  const slug = `${baseSlug}-${timestamp}`;
+  
+  // Créer le restaurant
+  const { data: restaurant, error: restoError } = await supabase
+    .from('restaurants')
+    .insert({ 
+      nom: nomRestaurant, 
+      slug: slug, 
+      telephone: telephone || null, 
+      adresse: adresse || null, 
+      actif: true 
+    })
+    .select()
+    .single();
+  
+  if (restoError) {
+    return res.status(500).json({ error: restoError.message });
+  }
+  
+  // Créer le profil gérant
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .insert({ 
+      email: email, 
+      resto_id: restaurant.id, 
+      nom: nomRestaurant,
+      mot_de_passe: hashedPassword,
+      role: 'gerant' 
+    })
+    .select()
+    .single();
+  
+  if (profileError) {
+    await supabase.from('restaurants').delete().eq('id', restaurant.id);
+    return res.status(500).json({ error: profileError.message });
+  }
+  
+  // Créer les tables par défaut
+  const tables = [];
+  for (let i = 1; i <= 10; i++) {
+    tables.push({ resto_id: restaurant.id, numero_table: i });
+  }
+  await supabase.from('tables').insert(tables);
+  
+  // Plats par défaut
+  const platsParDefaut = [
+    { resto_id: restaurant.id, nom_plat: 'Yassa Poulet', prix: 2500, categorie: 'Plat', disponible: true, description: 'Poulet mariné aux oignons et citron' },
+    { resto_id: restaurant.id, nom_plat: 'Thieboudienne', prix: 3000, categorie: 'Plat', disponible: true, description: 'Riz au poisson et légumes' },
+    { resto_id: restaurant.id, nom_plat: 'Mafé', prix: 2800, categorie: 'Plat', disponible: true, description: 'Sauce arachide et viande' },
+    { resto_id: restaurant.id, nom_plat: 'Jus de Bissap', prix: 500, categorie: 'Boisson', disponible: true, description: 'Jus d\'hibiscus' },
+    { resto_id: restaurant.id, nom_plat: 'Ngata', prix: 1500, categorie: 'Dessert', disponible: true, description: 'Beignet sénégalais' }
+  ];
+  await supabase.from('menus').insert(platsParDefaut);
+  
+  const token = jwt.sign(
+    { id: profile.id, email: email, resto_id: restaurant.id, restaurant_name: restaurant.nom, role: 'gerant' },
+    JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+  
+  res.json({ success: true, token, user: profile, restaurant });
+});
+
+// ===== CONNEXION SÉCURISÉE =====
+app.post('/api/auth/login', async (req, res) => {
+  const { email, motDePasse, role } = req.body;
+  
+  if (!email || !motDePasse) {
+    return res.status(400).json({ error: 'Email et mot de passe requis' });
+  }
+  
+  // Vérifier si le compte existe
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('*, restaurants(*)')
+    .eq('email', email)
+    .single();
+  
+  if (error || !profile) {
+    return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+  }
+  
+  // Vérifier le mot de passe
+  const isValid = await bcrypt.compare(motDePasse, profile.mot_de_passe);
+  if (!isValid) {
+    return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+  }
+  
+  // Vérifier le rôle
+  if (role && profile.role !== role) {
+    return res.status(401).json({ error: `Accès non autorisé. Vous êtes ${profile.role}.` });
+  }
+  
+  const token = jwt.sign(
+    { 
+      id: profile.id, 
+      email: profile.email, 
+      resto_id: profile.resto_id,
+      restaurant_name: profile.restaurants?.nom,
+      role: profile.role 
+    },
+    JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+  
+  res.json({ success: true, token, user: profile, restaurant: profile.restaurants });
+});
+
 // Ajouter un employé (POST)
 app.post('/api/admin/employe', checkRole(['gerant', 'superadmin']), async (req, res) => {
   const { nom, prenom, role } = req.body;
