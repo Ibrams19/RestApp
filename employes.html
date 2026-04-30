@@ -612,8 +612,38 @@
         }
 
         function partagerLien(lien, nom) {
-            afficherModalLien(lien, nom);
-        }
+    if (!lien || lien === 'null' || lien === 'undefined') {
+        showToast('❌ Lien invalide. Veuillez réessayer.', true);
+        return;
+    }
+    
+    const modal = document.createElement('div');
+    modal.className = 'lien-modal';
+    modal.innerHTML = `
+        <div class="lien-modal-content">
+            <div style="font-size:48px;margin-bottom:10px;">🔗</div>
+            <h3>Lien magique</h3>
+            <p style="margin-bottom:15px;color:#666;">Envoyez ce lien à <strong>${escapeHtml(nom)}</strong></p>
+            <div class="lien-text" style="background:#f0f0f0;border-radius:12px;padding:12px;margin:15px 0;word-break:break-all;font-size:12px;">${lien}</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+                <a href="${lien}" target="_blank" class="btn-test" style="background:#C6A43F;color:#1A1A2E;padding:12px;border-radius:50px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;">🔗 Tester le lien</a>
+                <button onclick="copierLienManuellement('${lien}')" class="btn-copy" style="background:#3498DB;color:white;padding:12px;border-radius:50px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">📋 Copier</button>
+            </div>
+            <div style="margin-top:15px;">
+                <button class="btn-close" onclick="this.parentElement.parentElement.parentElement.remove()" style="background:#6C6C7A;color:white;border:none;padding:10px 20px;border-radius:50px;cursor:pointer;">Fermer</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+function copierLienManuellement(lien) {
+    navigator.clipboard.writeText(lien).then(() => {
+        showToast('✅ Lien copié dans le presse-papier !');
+    }).catch(() => {
+        prompt('Copiez ce lien manuellement :', lien);
+    });
+}
 
         async function ajouterEmploye() {
             const prenom = document.getElementById('employe-prenom').value.trim();

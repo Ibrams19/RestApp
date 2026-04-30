@@ -583,11 +583,10 @@ app.delete('/api/delete-photo/:platId', checkRole(['gerant', 'superadmin']), asy
   res.json({ success: true });
 });
 
-// Ajouter un employé (version avec lien unique, sans email)
+// Ajouter un employé (version avec lien unique)
 app.post('/api/admin/employe', checkRole(['gerant', 'superadmin']), async (req, res) => {
   const { nom, prenom, role } = req.body;
   const restoId = req.user.resto_id;
-  const restaurantName = req.user.restaurant_name || 'Restaurant';
   
   if (!nom || !role) {
     return res.status(400).json({ error: 'Nom et rôle requis' });
@@ -607,25 +606,22 @@ app.post('/api/admin/employe', checkRole(['gerant', 'superadmin']), async (req, 
       role: role,
       token_unique: tokenUnique,
       lien_unique: lienUnique,
-      email: `${tokenUnique}@magic.resto` // Email fictif pour compatibilité
+      email: `${tokenUnique}@magic.resto`
     })
     .select();
   
   if (error) return res.status(500).json({ error: error.message });
   
-  const roleText = role === 'cuisinier' ? '👨‍🍳 Cuisinier' : '🍽️ Serveur';
+  const roleText = role === 'cuisinier' ? 'Cuisinier' : 'Serveur';
   const nomComplet = `${prenom} ${nom}`.trim();
   
+  // Retourner le lien directement
   res.json({ 
     success: true, 
     employe: data[0],
     lien: lienUnique,
-    message: `${roleText} ajouté !`,
-    infos: {
-      nom: nomComplet,
-      role: roleText,
-      lien: lienUnique
-    }
+    nom: nomComplet,
+    role: roleText
   });
 });
 
