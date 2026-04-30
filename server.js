@@ -583,57 +583,50 @@ app.delete('/api/delete-photo/:platId', checkRole(['gerant', 'superadmin']), asy
   res.json({ success: true });
 });
 
-// ===== ROUTES GESTION DES EMPLOYÉS =====
-
-// Lister les employés (gérant uniquement)
-app.get('/api/admin/employes', checkRole(['gerant', 'superadmin']), async (req, res) => {
-  const restoId = req.user.resto_id;
-  
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, email, nom, role, created_at')
-    .eq('resto_id', restoId)
-    .neq('role', 'gerant')
-    .order('created_at', { ascending: false });
-  
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data || []);
-});
-
-// Ajouter un employé
+// Ajouter un employé (version avec lien unique, sans email)
 app.post('/api/admin/employe', checkRole(['gerant', 'superadmin']), async (req, res) => {
-  const { email, nom, role } = req.body;
+  const { nom, prenom, role } = req.body;
   const restoId = req.user.resto_id;
+  const restaurantName = req.user.restaurant_name || 'Restaurant';
   
-  if (!email || !role) {
-    return res.status(400).json({ error: 'Email et rôle requis' });
+  if (!nom || !role) {
+    return res.status(400).json({ error: 'Nom et rôle requis' });
   }
   
-  // Vérifier si l'email existe déjà
-  const { data: existing } = await supabase
-    .from('profiles')
-    .select('email')
-    .eq('email', email)
-    .single();
+  // Générer un token unique
+  const tokenUnique = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+  const lienUnique = `${PUBLIC_URL}/magic.html?token=${tokenUnique}`;
   
-  if (existing) {
-    return res.status(400).json({ error: 'Cet email est déjà utilisé' });
-  }
-  
-  // Créer l'employé
+  // Créer l'employé avec token
   const { data, error } = await supabase
     .from('profiles')
     .insert({ 
-      email: email.toLowerCase(), 
+      nom: nom,
+      prenom: prenom || '',
       resto_id: restoId, 
-      nom: nom || email.split('@')[0],
-      role: role 
+      role: role,
+      token_unique: tokenUnique,
+      lien_unique: lienUnique,
+      email: `${tokenUnique}@magic.resto` // Email fictif pour compatibilité
     })
     .select();
   
   if (error) return res.status(500).json({ error: error.message });
   
-  res.json({ success: true, employe: data[0] });
+  const roleText = role === 'cuisinier' ? '👨‍🍳 Cuisinier' : '🍽️ Serveur';
+  const nomComplet = `${prenom} ${nom}`.trim();
+  
+  res.json({ 
+    success: true, 
+    employe: data[0],
+    lien: lienUnique,
+    message: `${roleText} ajouté !`,
+    infos: {
+      nom: nomComplet,
+      role: roleText,
+      lien: lienUnique
+    }
+  });
 });
 
 // Modifier le rôle d'un employé
@@ -677,6 +670,36 @@ app.delete('/api/admin/employe/:id', checkRole(['gerant', 'superadmin']), async 
   
   if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true });
+});
+
+// ===== CONNEXION MAGIQUE PAR LIEN UNIQUE =====
+app.get('/api/auth/magic/:token', async (req, res) => {
+  const { token } = req.params;
+  
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('token_unique', token)
+    .single();
+  
+  if (error || !profile) {
+    return res.status(401).json({ error: 'Lien invalide ou expiré' });
+  }
+  
+  const jwtToken = jwt.sign(
+    { 
+      id: profile.id, 
+      email: profile.email || `${profile.token_unique}@magic.resto`,
+      prenom: profile.prenom,
+      nom: profile.nom,
+      resto_id: profile.resto_id, 
+      role: profile.role 
+    },
+    JWT_SECRET,
+    { expiresIn: '30d' }
+  );
+  
+  res.json({ success: true, token: jwtToken, user: profile });
 });
 
 // ===== WEBSOCKETS =====

@@ -10,221 +10,38 @@
     <title>Équipe | Restaurant Élite</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        .page-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px;
-        }
-        .header-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .btn-add {
-            background: linear-gradient(135deg, #C6A43F 0%, #9E7E2E 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: transform 0.3s;
-        }
-        .btn-add:hover {
-            transform: translateY(-2px);
-        }
-        .employes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 20px;
-        }
-        .employe-card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            transition: transform 0.3s;
-            position: relative;
-        }
-        .employe-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        .employe-avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #1A1A2E 0%, #242440 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin-bottom: 15px;
-        }
-        .employe-nom {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .employe-email {
-            color: #6C6C7A;
-            font-size: 13px;
-            margin-bottom: 15px;
-            word-break: break-all;
-        }
-        .employe-role {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 40px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
+        .page-container { max-width: 1200px; margin: 0 auto; padding: 30px; }
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px; }
+        .btn-add { background: linear-gradient(135deg, #C6A43F 0%, #9E7E2E 100%); color: white; border: none; padding: 12px 24px; border-radius: 40px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: transform 0.3s; }
+        .btn-add:hover { transform: translateY(-2px); }
+        .employes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
+        .employe-card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.3s; }
+        .employe-card:hover { transform: translateY(-3px); }
+        .employe-avatar { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #1A1A2E 0%, #242440 100%); display: flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 15px; }
+        .employe-nom { font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .employe-role { display: inline-block; padding: 5px 12px; border-radius: 40px; font-size: 12px; font-weight: bold; margin: 10px 0; }
         .role-cuisinier { background: #3498DB; color: white; }
         .role-serveur { background: #F39C12; color: white; }
-        .role-gerant { background: #C6A43F; color: #1A1A2E; }
-        .employe-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
-        }
-        .btn-icon {
-            padding: 8px 16px;
-            border-radius: 40px;
-            border: none;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        .btn-edit { background: #F39C12; color: white; }
-        .btn-edit:hover { background: #e67e22; }
-        .btn-delete { background: #E74C3C; color: white; }
-        .btn-delete:hover { background: #c0392b; }
+        .employe-actions { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+        .btn-icon { padding: 8px 16px; border-radius: 40px; border: none; cursor: pointer; font-size: 12px; font-weight: 500; transition: all 0.3s; }
         .btn-link { background: #3498DB; color: white; }
-        .btn-link:hover { background: #2980b9; }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-content {
-            background: white;
-            border-radius: 32px;
-            padding: 30px;
-            max-width: 450px;
-            width: 90%;
-            animation: fadeIn 0.3s ease;
-        }
-        .modal-content h3 {
-            margin-bottom: 20px;
-            color: #1A1A2E;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            font-size: 14px;
-        }
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
-        .btn-confirm {
-            background: #C6A43F;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 40px;
-            cursor: pointer;
-        }
-        .btn-cancel {
-            background: #6C6C7A;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 40px;
-            cursor: pointer;
-        }
-        .search-bar {
-            margin-bottom: 25px;
-        }
-        .search-bar input {
-            width: 100%;
-            padding: 14px 20px;
-            border-radius: 50px;
-            border: 1px solid #ddd;
-            font-size: 14px;
-        }
-        .stats-info {
-            background: #f8f8f8;
-            padding: 12px 20px;
-            border-radius: 16px;
-            margin-bottom: 25px;
-            font-size: 14px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6C6C7A;
-        }
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: #27AE60;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            z-index: 1100;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        .toast-error {
-            background: #E74C3C;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @media (max-width: 768px) {
-            .page-container { padding: 20px; }
-            .employes-grid { grid-template-columns: 1fr; }
-            .header-actions { flex-direction: column; align-items: stretch; }
-        }
+        .btn-delete { background: #E74C3C; color: white; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: white; border-radius: 32px; padding: 30px; max-width: 450px; width: 90%; animation: fadeIn 0.3s ease; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 12px; font-size: 14px; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .btn-confirm { background: #C6A43F; color: white; border: none; padding: 10px 20px; border-radius: 40px; cursor: pointer; }
+        .btn-cancel { background: #6C6C7A; color: white; border: none; padding: 10px 20px; border-radius: 40px; cursor: pointer; }
+        .search-bar { margin-bottom: 25px; }
+        .search-bar input { width: 100%; padding: 14px 20px; border-radius: 50px; border: 1px solid #ddd; font-size: 14px; }
+        .stats-info { background: #f8f8f8; padding: 12px 20px; border-radius: 16px; margin-bottom: 25px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .toast { position: fixed; bottom: 30px; right: 30px; background: #27AE60; color: white; padding: 12px 24px; border-radius: 50px; z-index: 1100; animation: slideIn 0.3s ease; }
+        .toast-error { background: #E74C3C; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @media (max-width: 768px) { .page-container { padding: 20px; } .employes-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -240,21 +57,21 @@
     </header>
 
     <div class="nav-bar" style="display: flex; gap: 10px; justify-content: center; margin: 20px; flex-wrap: wrap;">
-        <a href="/dashboard.html" class="nav-btn" style="background: #1A1A2E;">📊 Dashboard</a>
-        <a href="/admin.html" class="nav-btn" style="background: #1A1A2E;">🍽️ Gestion plats</a>
+        <a href="/dashboard.html" class="nav-btn">📊 Dashboard</a>
+        <a href="/admin.html" class="nav-btn">🍽️ Gestion plats</a>
         <a href="/employes.html" class="nav-btn" style="background: #C6A43F; color: #1A1A2E;">👥 Équipe</a>
-        <a href="/resto.html" class="nav-btn" style="background: #1A1A2E;">👨‍🍳 Cuisine</a>
-        <a href="/qrcodes.html" class="nav-btn" style="background: #1A1A2E;">📱 QR Codes</a>
+        <a href="/resto.html" class="nav-btn">👨‍🍳 Cuisine</a>
+        <a href="/qrcodes.html" class="nav-btn">📱 QR Codes</a>
     </div>
 
     <div class="page-container">
         <div class="header-actions">
-            <h1 style="color: #1A1A2E;">👥 Mon équipe</h1>
+            <h1>👥 Mon équipe</h1>
             <button class="btn-add" id="btn-add-employe">➕ Ajouter un employé</button>
         </div>
 
         <div class="search-bar">
-            <input type="text" id="search-employe" placeholder="🔍 Rechercher par nom ou email...">
+            <input type="text" id="search-employe" placeholder="🔍 Rechercher...">
         </div>
 
         <div class="stats-info" id="stats-info">
@@ -262,21 +79,21 @@
         </div>
 
         <div class="employes-grid" id="employes-grid">
-            <div style="text-align: center; padding: 40px;">Chargement de l'équipe...</div>
+            <div style="text-align: center; padding: 40px;">Chargement...</div>
         </div>
     </div>
 
-    <!-- MODAL AJOUT EMPLOYÉ -->
+    <!-- MODAL AJOUT -->
     <div id="modal-add" class="modal">
         <div class="modal-content">
             <h3>➕ Ajouter un employé</h3>
             <div class="form-group">
-                <label>📧 Email</label>
-                <input type="email" id="employe-email" placeholder="ex: cuisinier@resto.com">
+                <label>👤 Prénom</label>
+                <input type="text" id="employe-prenom" placeholder="Ex: Modou">
             </div>
             <div class="form-group">
-                <label>👤 Nom (optionnel)</label>
-                <input type="text" id="employe-nom" placeholder="Ex: Modou">
+                <label>📛 Nom</label>
+                <input type="text" id="employe-nom" placeholder="Ex: Diop">
             </div>
             <div class="form-group">
                 <label>👔 Rôle</label>
@@ -292,49 +109,20 @@
         </div>
     </div>
 
-    <!-- MODAL MODIFIER RÔLE -->
-    <div id="modal-edit" class="modal">
-        <div class="modal-content">
-            <h3>✏️ Modifier le rôle</h3>
-            <div class="form-group">
-                <label>👤 Employé</label>
-                <p id="edit-employe-nom" style="padding: 10px; background: #f5f5f5; border-radius: 12px;"></p>
-            </div>
-            <div class="form-group">
-                <label>👔 Nouveau rôle</label>
-                <select id="edit-employe-role">
-                    <option value="cuisinier">👨‍🍳 Cuisinier</option>
-                    <option value="serveur">🍽️ Serveur</option>
-                </select>
-            </div>
-            <div class="modal-buttons">
-                <button class="btn-cancel" onclick="closeModal('modal-edit')">Annuler</button>
-                <button class="btn-confirm" id="confirm-edit">Modifier</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         const token = localStorage.getItem('resto_token');
         const userRole = localStorage.getItem('resto_role');
         
-        if (!token) {
+        if (!token || (userRole !== 'gerant' && userRole !== 'superadmin')) {
             window.location.href = '/login.html';
         }
-        
-        if (userRole !== 'gerant' && userRole !== 'superadmin') {
-            window.location.href = '/resto.html';
-        }
-        
-        let currentEmployes = [];
-        let editEmployeId = null;
         
         function showToast(message, isError = false) {
             const toast = document.createElement('div');
             toast.className = `toast ${isError ? 'toast-error' : ''}`;
             toast.textContent = message;
             document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
+            setTimeout(() => toast.remove(), 5000);
         }
         
         async function chargerEmployes() {
@@ -343,201 +131,105 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
-                    currentEmployes = await res.json();
-                    afficherEmployes();
-                } else if (res.status === 401) {
-                    localStorage.clear();
-                    window.location.href = '/login.html';
+                    const data = await res.json();
+                    afficherEmployes(data);
                 }
             } catch(e) { console.error(e); }
         }
         
-        function afficherEmployes() {
-            const searchTerm = document.getElementById('search-employe').value.toLowerCase();
-            const filtered = currentEmployes.filter(e => 
-                e.email.toLowerCase().includes(searchTerm) || 
-                (e.nom && e.nom.toLowerCase().includes(searchTerm))
-            );
-            
+        function afficherEmployes(employes) {
             const container = document.getElementById('employes-grid');
             const statsDiv = document.getElementById('stats-info');
             
-            const total = currentEmployes.length;
-            const cuisiniers = currentEmployes.filter(e => e.role === 'cuisinier').length;
-            const serveurs = currentEmployes.filter(e => e.role === 'serveur').length;
-            statsDiv.innerHTML = `
-                <span>📋 Total: ${total} employé(s)</span>
-                <span>👨‍🍳 Cuisiniers: ${cuisiniers}</span>
-                <span>🍽️ Serveurs: ${serveurs}</span>
-            `;
+            const cuisiniers = employes.filter(e => e.role === 'cuisinier').length;
+            const serveurs = employes.filter(e => e.role === 'serveur').length;
+            statsDiv.innerHTML = `<span>📋 Total: ${employes.length}</span><span>👨‍🍳 Cuisiniers: ${cuisiniers}</span><span>🍽️ Serveurs: ${serveurs}</span>`;
             
-            if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div style="font-size: 48px; margin-bottom: 15px;">👥</div>
-                        <p>Aucun employé trouvé</p>
-                        <p style="font-size: 13px;">Cliquez sur "Ajouter un employé" pour commencer</p>
-                    </div>
-                `;
+            if (employes.length === 0) {
+                container.innerHTML = `<div class="empty-state"><div style="font-size:48px;">👥</div><p>Aucun employé</p></div>`;
                 return;
             }
             
-            container.innerHTML = filtered.map(emp => `
+            container.innerHTML = employes.map(emp => `
                 <div class="employe-card">
-                    <div class="employe-avatar">
-                        ${emp.role === 'cuisinier' ? '👨‍🍳' : '🍽️'}
-                    </div>
-                    <div class="employe-nom">${escapeHtml(emp.nom || emp.email.split('@')[0])}</div>
-                    <div class="employe-email">${escapeHtml(emp.email)}</div>
-                    <div class="employe-role role-${emp.role}">
-                        ${emp.role === 'cuisinier' ? '👨‍🍳 Cuisinier' : '🍽️ Serveur'}
-                    </div>
+                    <div class="employe-avatar">${emp.role === 'cuisinier' ? '👨‍🍳' : '🍽️'}</div>
+                    <div class="employe-nom">${emp.prenom ? emp.prenom + ' ' : ''}${emp.nom}</div>
+                    <div class="employe-role role-${emp.role}">${emp.role === 'cuisinier' ? '👨‍🍳 Cuisinier' : '🍽️ Serveur'}</div>
                     <div class="employe-actions">
-                        <button class="btn-icon btn-link" onclick="copierLienConnexion('${escapeHtml(emp.email)}', '${emp.role}')">🔗 Lien de connexion</button>
-                        <button class="btn-icon btn-edit" onclick="openEditModal('${emp.id}', '${escapeHtml(emp.nom || emp.email)}', '${emp.role}')">✏️ Rôle</button>
-                        <button class="btn-icon btn-delete" onclick="supprimerEmploye('${emp.id}')">🗑️</button>
+                        <button class="btn-icon btn-link" onclick="copierLien('${emp.lien_unique}')">🔗 Lien magique</button>
+                        <button class="btn-icon btn-delete" onclick="supprimerEmploye('${emp.id}')">🗑️ Supprimer</button>
                     </div>
                 </div>
             `).join('');
         }
         
-        function copierLienConnexion(email, role) {
-            const baseUrl = window.location.origin;
-            const roleText = role === 'cuisinier' ? 'Cuisinier' : 'Serveur';
-            const lien = `${baseUrl}/login.html?email=${encodeURIComponent(email)}&role=${role}`;
-            
-            // Copier dans le presse-papier
-            navigator.clipboard.writeText(lien).then(() => {
-                showToast(`✅ Lien copié !\n\nEnvoyez-le à l'employé.\nEmail: ${email}\nRôle: ${roleText}`, false);
-            }).catch(() => {
-                prompt("Copiez ce lien manuellement :", lien);
-            });
-        }
-        
-        function openEditModal(id, nom, role) {
-            editEmployeId = id;
-            document.getElementById('edit-employe-nom').innerText = nom;
-            document.getElementById('edit-employe-role').value = role;
-            document.getElementById('modal-edit').style.display = 'flex';
+        function copierLien(lien) {
+            navigator.clipboard.writeText(lien);
+            showToast('✅ Lien magique copié ! Envoyez-le à l\'employé par WhatsApp');
         }
         
         async function ajouterEmploye() {
-            const email = document.getElementById('employe-email').value.trim();
+            const prenom = document.getElementById('employe-prenom').value.trim();
             const nom = document.getElementById('employe-nom').value.trim();
             const role = document.getElementById('employe-role').value;
             
-            if (!email) {
-                showToast('❌ Veuillez entrer un email', true);
+            if (!nom) {
+                showToast('❌ Veuillez entrer un nom', true);
                 return;
             }
             
             try {
                 const res = await fetch('/api/admin/employe', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ email, nom, role })
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ nom, prenom, role })
                 });
                 
                 if (res.ok) {
                     const data = await res.json();
-                    const roleText = role === 'cuisinier' ? '👨‍🍳 Cuisinier' : '🍽️ Serveur';
-                    const lien = `${window.location.origin}/login.html?email=${encodeURIComponent(email)}&role=${role}`;
-                    
-                    showToast(`✅ Employé ajouté !\n\n📋 Lien à partager :\n${lien}\n\nEmail: ${email}\nRôle: ${roleText}`, false);
-                    
-                    // Copier automatiquement le lien
-                    navigator.clipboard.writeText(lien).catch(() => {});
-                    
+                    showToast(`✅ ${data.infos.role} ajouté ! Lien magique copié`);
+                    navigator.clipboard.writeText(data.lien);
                     closeModal('modal-add');
-                    document.getElementById('employe-email').value = '';
+                    document.getElementById('employe-prenom').value = '';
                     document.getElementById('employe-nom').value = '';
                     chargerEmployes();
                 } else {
                     const error = await res.json();
-                    showToast('❌ Erreur: ' + (error.error || 'Email déjà utilisé'), true);
-                }
-            } catch(e) { console.error(e); }
-        }
-        
-        async function modifierRole() {
-            const newRole = document.getElementById('edit-employe-role').value;
-            
-            try {
-                const res = await fetch(`/api/admin/employe/${editEmployeId}/role`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ role: newRole })
-                });
-                
-                if (res.ok) {
-                    showToast('✅ Rôle modifié avec succès !', false);
-                    closeModal('modal-edit');
-                    chargerEmployes();
-                } else {
-                    showToast('❌ Erreur lors de la modification', true);
+                    showToast('❌ Erreur: ' + (error.error || 'Réessaie'), true);
                 }
             } catch(e) { console.error(e); }
         }
         
         async function supprimerEmploye(id) {
-            if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer cet employé ?')) return;
-            
+            if (!confirm('Supprimer cet employé ?')) return;
             try {
                 const res = await fetch(`/api/admin/employe/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
                 if (res.ok) {
-                    showToast('✅ Employé supprimé', false);
+                    showToast('✅ Employé supprimé');
                     chargerEmployes();
-                } else {
-                    showToast('❌ Erreur lors de la suppression', true);
                 }
             } catch(e) { console.error(e); }
         }
         
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-        
-        document.getElementById('btn-add-employe').onclick = () => {
-            document.getElementById('modal-add').style.display = 'flex';
-        };
+        document.getElementById('btn-add-employe').onclick = () => document.getElementById('modal-add').style.display = 'flex';
         document.getElementById('confirm-add').onclick = ajouterEmploye;
-        document.getElementById('confirm-edit').onclick = modifierRole;
-        document.getElementById('logout-btn').onclick = () => {
-            localStorage.clear();
-            window.location.href = '/login.html';
-        };
-        document.getElementById('search-employe').oninput = () => afficherEmployes();
-        
-        window.onclick = (e) => {
-            if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
+        document.getElementById('logout-btn').onclick = () => { localStorage.clear(); window.location.href = '/login.html'; };
+        document.getElementById('search-employe').oninput = (e) => {
+            const search = e.target.value.toLowerCase();
+            document.querySelectorAll('.employe-card').forEach(card => {
+                const text = card.innerText.toLowerCase();
+                card.style.display = text.includes(search) ? 'block' : 'none';
+            });
         };
         
+        window.copierLien = copierLien;
         window.supprimerEmploye = supprimerEmploye;
-        window.openEditModal = openEditModal;
         window.closeModal = closeModal;
-        window.copierLienConnexion = copierLienConnexion;
         
         chargerEmployes();
     </script>
