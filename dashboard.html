@@ -221,6 +221,7 @@
         <a href="/employes.html" class="nav-btn">👥 Équipe</a>
         <a href="/resto.html" class="nav-btn">👨‍🍳 Cuisine</a>
         <a href="/qrcodes.html" class="nav-btn">📱 QR Codes</a>
+        <a href="/subscription.html" class="nav-btn">💰 Abonnement</a>
     </div>
 
     <div class="dashboard-container">
@@ -272,6 +273,53 @@
     </div>
 
     <script>
+
+        // Vérifier le statut d'abonnement et afficher une notification
+async function checkSubscriptionStatus() {
+    try {
+        const res = await fetch('/api/restaurant/subscription', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            if (data.status === 'trial') {
+                const daysLeft = data.days_left;
+                if (daysLeft <= 3) {
+                    showWarningNotification(`⚠️ Votre essai gratuit se termine dans ${daysLeft} jours ! Abonnez-vous pour continuer.`, daysLeft);
+                } else {
+                    showInfoNotification(`📋 Période d'essai : ${daysLeft} jours restants`);
+                }
+            } else if (data.status === 'active' && data.ends_at) {
+                const endDate = new Date(data.ends_at);
+                const daysLeft = Math.ceil((endDate - new Date()) / (1000 * 60 * 60 * 24));
+                if (daysLeft <= 7) {
+                    showWarningNotification(`⚠️ Votre abonnement se termine dans ${daysLeft} jours ! Pensez à le renouveler.`, daysLeft);
+                }
+            } else if (data.status === 'expired') {
+                window.location.href = '/subscription.html';
+            }
+        } else if (res.status === 403) {
+            window.location.href = '/subscription.html';
+        }
+    } catch(e) { console.error(e); }
+}
+
+function showInfoNotification(message) {
+    const notif = document.createElement('div');
+    notif.style.cssText = 'position:fixed;top:20px;right:20px;background:#3498DB;color:white;padding:12px 20px;border-radius:40px;z-index:1000;box-shadow:0 5px 15px rgba(0,0,0,0.2);';
+    notif.innerHTML = message;
+    document.body.appendChild(notif);
+    setTimeout(() => notif.remove(), 8000);
+}
+
+function showWarningNotification(message, daysLeft) {
+    const notif = document.createElement('div');
+    notif.style.cssText = 'position:fixed;top:20px;right:20px;background:#F39C12;color:white;padding:12px 20px;border-radius:40px;z-index:1000;box-shadow:0 5px 15px rgba(0,0,0,0.2);cursor:pointer;';
+    notif.innerHTML = `${message} <a href="/subscription.html" style="color:white;text-decoration:underline;margin-left:10px;">Voir les offres →</a>`;
+    document.body.appendChild(notif);
+    setTimeout(() => notif.remove(), 10000);
+}
 
         async function checkSubscriptionStatus() {
     try {
