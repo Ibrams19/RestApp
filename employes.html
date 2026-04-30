@@ -8,7 +8,6 @@
     <meta name="theme-color" content="#C6A43F">
     <link rel="manifest" href="/manifest.json">
     <title>Équipe | Restaurant Élite</title>
-    <link rel="stylesheet" href="styles.css">
     <style>
         /* ===== VARIABLES ===== */
         :root {
@@ -27,7 +26,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: #F5F6FA;
             color: var(--dark);
         }
@@ -52,16 +51,13 @@
         }
 
         .logo {
-            font-family: 'Playfair Display', serif;
             font-size: 24px;
             font-weight: 700;
-            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: white;
         }
 
-        /* ===== BOUTONS ===== */
+        .logo span { color: var(--gold); }
+
         .btn-outline {
             background: transparent;
             border: 2px solid var(--gold);
@@ -125,7 +121,6 @@
             padding: 20px 30px;
         }
 
-        /* ===== HEADER ACTIONS ===== */
         .header-actions {
             display: flex;
             justify-content: space-between;
@@ -136,7 +131,6 @@
         }
 
         .header-actions h1 {
-            font-family: 'Playfair Display', serif;
             font-size: 32px;
             color: var(--dark);
         }
@@ -200,7 +194,7 @@
             color: var(--gray);
         }
 
-        .stats-info span strong {
+        .stats-info strong {
             color: var(--gold);
             font-size: 18px;
         }
@@ -212,14 +206,12 @@
             gap: 25px;
         }
 
-        /* ===== CARTE EMPLOYÉ ===== */
         .employe-card {
             background: white;
             border-radius: 24px;
             padding: 24px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.08);
             transition: all 0.3s;
-            position: relative;
             border: 1px solid rgba(0,0,0,0.05);
         }
 
@@ -238,7 +230,6 @@
             justify-content: center;
             font-size: 32px;
             margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
         .employe-nom {
@@ -260,7 +251,6 @@
         .role-cuisinier { background: #3498DB; color: white; }
         .role-serveur { background: #F39C12; color: white; }
 
-        /* ===== ACTIONS ===== */
         .employe-actions {
             display: flex;
             gap: 12px;
@@ -281,15 +271,10 @@
             gap: 8px;
         }
 
-        .btn-share { 
-            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); 
-            color: white; 
-        }
+        .btn-share { background: #25D366; color: white; }
         .btn-share:hover { transform: translateY(-2px); filter: brightness(1.05); }
-
         .btn-link { background: var(--info); color: white; }
         .btn-link:hover { transform: translateY(-2px); background: #2980b9; }
-
         .btn-delete { background: var(--danger); color: white; }
         .btn-delete:hover { transform: translateY(-2px); background: #c0392b; }
 
@@ -321,7 +306,6 @@
         .modal-content h3 {
             margin-bottom: 25px;
             color: var(--dark);
-            font-family: 'Playfair Display', serif;
             font-size: 28px;
         }
 
@@ -343,13 +327,11 @@
             border: 1px solid #E0E0E0;
             border-radius: 16px;
             font-size: 15px;
-            transition: all 0.3s;
         }
 
         .form-group input:focus, .form-group select:focus {
             outline: none;
             border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
         }
 
         .modal-buttons {
@@ -367,7 +349,6 @@
             border-radius: 50px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
         }
 
         .btn-cancel {
@@ -378,31 +359,75 @@
             border-radius: 50px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
         }
 
-        .btn-confirm:hover, .btn-cancel:hover {
-            transform: translateY(-2px);
+        /* ===== MODALE LIEN ===== */
+        .lien-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        /* ===== EMPTY STATE ===== */
-        .empty-state {
+        .lien-modal-content {
+            background: white;
+            border-radius: 32px;
+            padding: 30px;
+            max-width: 90%;
+            width: 450px;
             text-align: center;
-            padding: 80px 20px;
-            color: var(--gray);
         }
 
-        .empty-state-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
+        .lien-modal-content h3 { margin-bottom: 15px; color: var(--dark); }
+        .lien-modal-content .lien-text {
+            background: #f5f5f5;
+            border-radius: 16px;
+            padding: 12px;
+            margin: 20px 0;
+            word-break: break-all;
+            font-size: 12px;
+            color: #666;
         }
-
-        .empty-state h3 {
-            margin-bottom: 10px;
+        .lien-modal-content .btn-wa {
+            background: #25D366;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px;
+        }
+        .lien-modal-content .btn-test {
+            background: var(--gold);
             color: var(--dark);
+            padding: 12px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px;
+        }
+        .lien-modal-content .btn-close {
+            background: var(--gray);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 15px;
         }
 
-        /* ===== TOAST NOTIFICATION ===== */
+        .empty-state { text-align: center; padding: 80px 20px; color: var(--gray); }
+        .empty-state-icon { font-size: 64px; margin-bottom: 20px; }
         .toast {
             position: fixed;
             bottom: 30px;
@@ -413,46 +438,32 @@
             border-radius: 60px;
             z-index: 1100;
             animation: slideIn 0.3s ease;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
-
-        .toast-error {
-            background: var(--danger);
-        }
+        .toast-error { background: var(--danger); }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             .page-container { padding: 15px; }
             .employes-grid { grid-template-columns: 1fr; }
             .header-actions { flex-direction: column; align-items: stretch; }
-            .header-actions h1 { font-size: 28px; }
             .btn-add { justify-content: center; }
-            .nav-bar { gap: 8px; }
-            .nav-btn { padding: 8px 16px; font-size: 12px; }
         }
     </style>
 </head>
 <body>
     <header class="header-premium">
         <div class="container">
-            <div class="logo">🍽️ RESTAURANT <span style="color: var(--gold);">ÉLITE</span></div>
+            <div class="logo">🍽️ <span>RESTAURANT ÉLITE</span></div>
             <div style="display: flex; align-items: center; gap: 15px;">
-                <span id="resto-name" style="color: var(--gold); font-weight: 500;">Restaurant</span>
-                <span id="user-role" style="background: var(--gold); padding: 5px 15px; border-radius: 30px; font-size: 11px; font-weight: 600; color: var(--dark);">Gérant</span>
+                <span id="resto-name" style="color: var(--gold);">Restaurant</span>
                 <button class="logout-btn" id="logout-btn">🚪 Déconnexion</button>
             </div>
         </div>
@@ -469,28 +480,21 @@
     <div class="page-container">
         <div class="header-actions">
             <h1>👥 Mon équipe</h1>
-            <button class="btn-add" id="btn-add-employe">
-                <span style="font-size: 20px;">➕</span> Ajouter un employé
-            </button>
+            <button class="btn-add" id="btn-add-employe">➕ Ajouter un employé</button>
         </div>
 
         <div class="search-bar">
             <input type="text" id="search-employe" placeholder="🔍 Rechercher par nom...">
         </div>
 
-        <div class="stats-info" id="stats-info">
-            <span>📊 Chargement...</span>
-        </div>
+        <div class="stats-info" id="stats-info">📊 Chargement...</div>
 
         <div class="employes-grid" id="employes-grid">
-            <div style="text-align: center; padding: 60px;">
-                <div style="font-size: 48px; margin-bottom: 15px;">👥</div>
-                <p>Chargement de l'équipe...</p>
-            </div>
+            <div style="text-align: center; padding: 60px;">Chargement...</div>
         </div>
     </div>
 
-    <!-- MODAL AJOUT EMPLOYÉ -->
+    <!-- MODAL AJOUT -->
     <div id="modal-add" class="modal">
         <div class="modal-content">
             <h3>➕ Ajouter un employé</h3>
@@ -517,7 +521,6 @@
     </div>
 
     <script>
-        // ===== AUTHENTIFICATION =====
         const token = localStorage.getItem('resto_token');
         const userRole = localStorage.getItem('resto_role');
         
@@ -525,19 +528,38 @@
             window.location.href = '/login.html';
         }
 
-        // ===== ÉLÉMENTS DOM =====
         let currentEmployes = [];
 
-        // ===== TOAST NOTIFICATION =====
         function showToast(message, isError = false) {
             const toast = document.createElement('div');
             toast.className = `toast ${isError ? 'toast-error' : ''}`;
-            toast.innerHTML = `<span>${isError ? '❌' : '✅'}</span> ${message}`;
+            toast.innerHTML = `${isError ? '❌' : '✅'} ${message}`;
             document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 5000);
+            setTimeout(() => toast.remove(), 4000);
         }
 
-        // ===== CHARGER EMPLOYÉS =====
+        function afficherModalLien(lien, nomEmploye) {
+            const modal = document.createElement('div');
+            modal.className = 'lien-modal';
+            modal.innerHTML = `
+                <div class="lien-modal-content">
+                    <div style="font-size:48px;margin-bottom:10px;">🔗</div>
+                    <h3>Lien magique</h3>
+                    <p style="margin-bottom:15px;color:#666;">Envoyez ce lien à <strong>${escapeHtml(nomEmploye)}</strong></p>
+                    <div class="lien-text">${lien}</div>
+                    <div>
+                        <a href="whatsapp://send?text=${encodeURIComponent('🔗 Voici votre lien magique pour rejoindre l\'équipe : ' + lien)}" 
+                           class="btn-wa">📤 WhatsApp</a>
+                        <a href="${lien}" target="_blank" class="btn-test">🔗 Tester le lien</a>
+                    </div>
+                    <div>
+                        <button class="btn-close" onclick="this.parentElement.parentElement.parentElement.remove()">Fermer</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
         async function chargerEmployes() {
             try {
                 const res = await fetch('/api/admin/employes', {
@@ -546,21 +568,13 @@
                 if (res.ok) {
                     currentEmployes = await res.json();
                     afficherEmployes();
-                } else if (res.status === 401) {
-                    localStorage.clear();
-                    window.location.href = '/login.html';
                 }
-            } catch(e) { 
-                console.error(e); 
-                showToast('Erreur de chargement', true);
-            }
+            } catch(e) { console.error(e); }
         }
 
-        // ===== AFFICHER EMPLOYÉS =====
         function afficherEmployes() {
             const searchTerm = document.getElementById('search-employe').value.toLowerCase();
             let filtered = currentEmployes;
-            
             if (searchTerm) {
                 filtered = currentEmployes.filter(e => 
                     (e.nom && e.nom.toLowerCase().includes(searchTerm)) ||
@@ -569,101 +583,45 @@
             }
             
             const container = document.getElementById('employes-grid');
-            const statsDiv = document.getElementById('stats-info');
-            
             const total = currentEmployes.length;
             const cuisiniers = currentEmployes.filter(e => e.role === 'cuisinier').length;
             const serveurs = currentEmployes.filter(e => e.role === 'serveur').length;
             
-            statsDiv.innerHTML = `
+            document.getElementById('stats-info').innerHTML = `
                 <span>📋 <strong>${total}</strong> employé(s)</span>
                 <span>👨‍🍳 <strong>${cuisiniers}</strong> cuisinier(s)</span>
                 <span>🍽️ <strong>${serveurs}</strong> serveur(s)</span>
             `;
             
             if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">👥</div>
-                        <h3>Aucun employé trouvé</h3>
-                        <p style="color: var(--gray);">Cliquez sur "Ajouter un employé" pour commencer</p>
-                    </div>
-                `;
+                container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">👥</div><h3>Aucun employé</h3></div>`;
                 return;
             }
             
             container.innerHTML = filtered.map(emp => `
                 <div class="employe-card">
-                    <div class="employe-avatar">
-                        ${emp.role === 'cuisinier' ? '👨‍🍳' : '🍽️'}
-                    </div>
+                    <div class="employe-avatar">${emp.role === 'cuisinier' ? '👨‍🍳' : '🍽️'}</div>
                     <div class="employe-nom">${escapeHtml(emp.prenom ? emp.prenom + ' ' : '')}${escapeHtml(emp.nom)}</div>
-                    <div class="employe-role role-${emp.role}">
-                        ${emp.role === 'cuisinier' ? '👨‍🍳 Cuisinier' : '🍽️ Serveur'}
-                    </div>
+                    <div class="employe-role role-${emp.role}">${emp.role === 'cuisinier' ? '👨‍🍳 Cuisinier' : '🍽️ Serveur'}</div>
                     <div class="employe-actions">
-                        <button class="btn-icon btn-share" onclick="partagerLien('${emp.lien_unique}')">
-                            📤 Partager
-                        </button>
-                        <button class="btn-icon btn-link" onclick="copierLien('${emp.lien_unique}')">
-                            📋 Copier lien
-                        </button>
-                        <button class="btn-icon btn-delete" onclick="supprimerEmploye('${emp.id}')">
-                            🗑️ Supprimer
-                        </button>
+                        <button class="btn-icon btn-share" onclick="partagerLien('${emp.lien_unique}', '${escapeHtml(emp.nom)}')">📤 Partager</button>
+                        <button class="btn-icon btn-delete" onclick="supprimerEmploye('${emp.id}')">🗑️ Supprimer</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        // ===== PARTAGER LIEN (WhatsApp, SMS, etc.) =====
-        async function partagerLien(lien) {
-            const message = `🔗 Lien magique pour rejoindre l'équipe du restaurant :\n\n${lien}\n\nCliquez sur le lien pour accéder à votre espace.`;
-            
-            // Vérifier si l'appareil supporte le partage natif
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: 'Lien magique - Restaurant',
-                        text: 'Voici votre lien pour rejoindre l\'équipe du restaurant',
-                        url: lien
-                    });
-                    showToast('✅ Lien partagé !');
-                } catch (err) {
-                    if (err.name !== 'AbortError') {
-                        fallbackCopy(lien, message);
-                    }
-                }
-            } else {
-                fallbackCopy(lien, message);
-            }
+        function partagerLien(lien, nom) {
+            afficherModalLien(lien, nom);
         }
 
-        // ===== COPIER LIEN =====
-        async function copierLien(lien) {
-            try {
-                await navigator.clipboard.writeText(lien);
-                showToast('✅ Lien magique copié ! Envoyez-le à l\'employé');
-            } catch (err) {
-                fallbackCopy(lien);
-            }
-        }
-
-        // ===== FALLBACK (quand partage ou copie échoue) =====
-        function fallbackCopy(lien, message = null) {
-            const texte = message || `🔗 Lien magique à copier :\n\n${lien}`;
-            prompt(texte, lien);
-            showToast('📋 Lien affiché ! Copiez-le manuellement');
-        }
-
-        // ===== AJOUTER EMPLOYÉ =====
         async function ajouterEmploye() {
             const prenom = document.getElementById('employe-prenom').value.trim();
             const nom = document.getElementById('employe-nom').value.trim();
             const role = document.getElementById('employe-role').value;
             
             if (!nom) {
-                showToast('❌ Veuillez entrer un nom', true);
+                showToast('Veuillez entrer un nom', true);
                 return;
             }
             
@@ -679,56 +637,37 @@
                 
                 if (res.ok) {
                     const data = await res.json();
-                    showToast(`✅ ${data.infos.role} ajouté avec succès !`);
+                    showToast(`${data.infos.role} ajouté !`);
                     closeModal('modal-add');
                     document.getElementById('employe-prenom').value = '';
                     document.getElementById('employe-nom').value = '';
                     chargerEmployes();
-                    
-                    // Proposer de partager le lien immédiatement
-                    setTimeout(() => {
-                        if (confirm('Voulez-vous partager le lien magique avec cet employé ?')) {
-                            partagerLien(data.lien);
-                        }
-                    }, 500);
+                    setTimeout(() => partagerLien(data.lien, data.infos.nom), 500);
                 } else {
                     const error = await res.json();
-                    showToast('❌ Erreur: ' + (error.error || 'Réessayez'), true);
+                    showToast('Erreur: ' + (error.error || 'Réessayez'), true);
                 }
-            } catch(e) { 
-                console.error(e); 
-                showToast('❌ Erreur de connexion', true);
-            }
+            } catch(e) { console.error(e); }
         }
 
-        // ===== SUPPRIMER EMPLOYÉ =====
         async function supprimerEmploye(id) {
-            if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer cet employé ?\n\nCette action est irréversible.')) return;
-            
+            if (!confirm('Supprimer cet employé ?')) return;
             try {
                 const res = await fetch(`/api/admin/employe/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
                 if (res.ok) {
-                    showToast('✅ Employé supprimé');
+                    showToast('Employé supprimé');
                     chargerEmployes();
-                } else {
-                    showToast('❌ Erreur lors de la suppression', true);
                 }
-            } catch(e) { 
-                console.error(e); 
-                showToast('❌ Erreur de connexion', true);
-            }
+            } catch(e) { console.error(e); }
         }
 
-        // ===== FERMER MODAL =====
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
         }
 
-        // ===== ESCAPE HTML =====
         function escapeHtml(str) {
             if (!str) return '';
             return str.replace(/[&<>]/g, function(m) {
@@ -739,38 +678,23 @@
             });
         }
 
-        // ===== ÉVÉNEMENTS =====
-        document.getElementById('btn-add-employe').onclick = () => {
-            document.getElementById('modal-add').style.display = 'flex';
-        };
+        document.getElementById('btn-add-employe').onclick = () => document.getElementById('modal-add').style.display = 'flex';
         document.getElementById('confirm-add').onclick = ajouterEmploye;
-        document.getElementById('logout-btn').onclick = () => {
-            localStorage.clear();
-            window.location.href = '/login.html';
-        };
+        document.getElementById('logout-btn').onclick = () => { localStorage.clear(); window.location.href = '/login.html'; };
         document.getElementById('search-employe').oninput = () => afficherEmployes();
 
-        // Fermer modals en cliquant à l'extérieur
         window.onclick = (e) => {
-            if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
+            if (e.target.classList.contains('modal')) e.target.style.display = 'none';
         };
 
-        // Rendre les fonctions globales
         window.partagerLien = partagerLien;
-        window.copierLien = copierLien;
         window.supprimerEmploye = supprimerEmploye;
         window.closeModal = closeModal;
 
-        // ===== INIT =====
-        chargerEmployes();
-
-        // Afficher le nom du restaurant
         const user = JSON.parse(localStorage.getItem('resto_user') || '{}');
-        if (user.restaurant_name) {
-            document.getElementById('resto-name').innerText = user.restaurant_name;
-        }
+        if (user.restaurant_name) document.getElementById('resto-name').innerText = user.restaurant_name;
+
+        chargerEmployes();
     </script>
 </body>
 </html>

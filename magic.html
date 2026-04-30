@@ -42,14 +42,8 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .success-icon {
-            font-size: 64px;
-            margin: 20px 0;
-        }
-        .error-icon {
-            font-size: 64px;
-            margin: 20px 0;
-        }
+        .success-icon { font-size: 64px; margin: 20px 0; }
+        .error-icon { font-size: 64px; margin: 20px 0; }
         .btn {
             background: #C6A43F;
             color: #1A1A2E;
@@ -116,6 +110,7 @@
                     <div class="error-icon">❌</div>
                     <h2>Erreur de connexion</h2>
                     <p>Impossible de se connecter au serveur.</p>
+                    <button class="btn" onclick="window.location.reload()">🔄 Réessayer</button>
                 `;
             }
         }
