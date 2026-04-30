@@ -770,33 +770,46 @@ app.delete('/api/admin/employe/:id', checkRole(['gerant', 'superadmin']), async 
   const { id } = req.params;
   const restoId = req.user.resto_id;
   
-  // Vérifier que l'employé appartient bien au restaurant
-  const { data: employe, error: checkError } = await supabase
-    .from('profiles')
-    .select('id, resto_id')
-    .eq('id', id)
-    .single();
+  console.log('=== SUPPRESSION ===');
+  console.log('ID:', id);
+  console.log('Resto ID:', restoId);
   
-  if (checkError || !employe) {
-    return res.status(404).json({ error: 'Employé non trouvé' });
+  try {
+    // Vérifier que l'employé existe et appartient au restaurant
+    const { data: employe, error: findError } = await supabase
+      .from('profiles')
+      .select('id, resto_id')
+      .eq('id', id)
+      .single();
+    
+    if (findError || !employe) {
+      console.log('Employé non trouvé');
+      return res.status(404).json({ error: 'Employé non trouvé' });
+    }
+    
+    if (employe.resto_id !== restoId) {
+      console.log('Non autorisé');
+      return res.status(403).json({ error: 'Non autorisé' });
+    }
+    
+    // Supprimer l'employé
+    const { error: deleteError } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', id);
+    
+    if (deleteError) {
+      console.log('Erreur suppression:', deleteError);
+      return res.status(500).json({ error: deleteError.message });
+    }
+    
+    console.log('✅ Suppression réussie');
+    res.json({ success: true });
+    
+  } catch (error) {
+    console.error('Exception:', error);
+    res.status(500).json({ error: error.message });
   }
-  
-  if (employe.resto_id !== restoId) {
-    return res.status(403).json({ error: 'Non autorisé' });
-  }
-  
-  // Supprimer l'employé
-  const { error } = await supabase
-    .from('profiles')
-    .delete()
-    .eq('id', id);
-  
-  if (error) {
-    console.error('Erreur suppression:', error);
-    return res.status(500).json({ error: error.message });
-  }
-  
-  res.json({ success: true });
 });
 
 // Modifier le rôle d'un employé (PUT)
