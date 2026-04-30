@@ -583,6 +583,102 @@ app.delete('/api/delete-photo/:platId', checkRole(['gerant', 'superadmin']), asy
   res.json({ success: true });
 });
 
+// ===== ROUTES GESTION DES EMPLOYÉS =====
+
+// Lister les employés (gérant uniquement)
+app.get('/api/admin/employes', checkRole(['gerant', 'superadmin']), async (req, res) => {
+  const restoId = req.user.resto_id;
+  
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, email, nom, role, created_at')
+    .eq('resto_id', restoId)
+    .neq('role', 'gerant')
+    .order('created_at', { ascending: false });
+  
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
+});
+
+// Ajouter un employé
+app.post('/api/admin/employe', checkRole(['gerant', 'superadmin']), async (req, res) => {
+  const { email, nom, role } = req.body;
+  const restoId = req.user.resto_id;
+  
+  if (!email || !role) {
+    return res.status(400).json({ error: 'Email et rôle requis' });
+  }
+  
+  // Vérifier si l'email existe déjà
+  const { data: existing } = await supabase
+    .from('profiles')
+    .select('email')
+    .eq('email', email)
+    .single();
+  
+  if (existing) {
+    return res.status(400).json({ error: 'Cet email est déjà utilisé' });
+  }
+  
+  // Créer l'employé
+  const { data, error } = await supabase
+    .from('profiles')
+    .insert({ 
+      email: email.toLowerCase(), 
+      resto_id: restoId, 
+      nom: nom || email.split('@')[0],
+      role: role 
+    })
+    .select();
+  
+  if (error) return res.status(500).json({ error: error.message });
+  
+  res.json({ success: true, employe: data[0] });
+});
+
+// Modifier le rôle d'un employé
+app.put('/api/admin/employe/:id/role', checkRole(['gerant', 'superadmin']), async (req, res) => {
+  const { id } = req.params;
+  const { role } = req.body;
+  
+  if (!role || !['cuisinier', 'serveur'].includes(role)) {
+    return res.status(400).json({ error: 'Rôle invalide' });
+  }
+  
+  const { error } = await supabase
+    .from('profiles')
+    .update({ role })
+    .eq('id', id);
+  
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ success: true });
+});
+
+// Supprimer un employé
+app.delete('/api/admin/employe/:id', checkRole(['gerant', 'superadmin']), async (req, res) => {
+  const { id } = req.params;
+  const restoId = req.user.resto_id;
+  
+  // Vérifier que l'employé appartient bien au resto
+  const { data: employe } = await supabase
+    .from('profiles')
+    .select('id, resto_id')
+    .eq('id', id)
+    .single();
+  
+  if (!employe || employe.resto_id !== restoId) {
+    return res.status(403).json({ error: 'Non autorisé' });
+  }
+  
+  const { error } = await supabase
+    .from('profiles')
+    .delete()
+    .eq('id', id);
+  
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ success: true });
+});
+
 // ===== WEBSOCKETS =====
 io.on('connection', (socket) => {
   console.log('🟢 Client connecté');
