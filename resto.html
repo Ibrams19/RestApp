@@ -129,6 +129,14 @@
         }
         .table-number { font-size: 18px; font-weight: 600; }
         .table-number::before { content: "🍽️ "; }
+        .client-name { 
+            background: #C6A43F; 
+            color: #1A1A2E; 
+            padding: 4px 12px; 
+            border-radius: 40px; 
+            font-size: 12px; 
+            font-weight: bold;
+        }
         .statut-badge {
             padding: 5px 12px;
             border-radius: 50px;
@@ -259,13 +267,15 @@
             roleBadge.innerHTML = '👨‍🍳 Cuisinier - Prépare les plats';
         } else if (userRole === 'serveur') {
             roleBadge.innerHTML = '🍽️ Serveur - Sert et encaisse';
+        } else if (userRole === 'superadmin') {
+            roleBadge.innerHTML = '👑 Super Admin';
         } else {
             roleBadge.innerHTML = '📋 Staff';
         }
         
         // Barre de navigation adaptée au rôle
         const navBar = document.getElementById('nav-bar');
-        if (userRole === 'gerant') {
+        if (userRole === 'gerant' || userRole === 'superadmin') {
             navBar.innerHTML = `
                 <a href="/dashboard.html" class="nav-btn">📊 Dashboard</a>
                 <a href="/admin.html" class="nav-btn">🍽️ Gestion plats</a>
@@ -325,8 +335,6 @@
                 showNotification('✅ Un plat est prêt à être servi !', 'success');
             }
         });
-
-        socket.on('statut_change', () => chargerCommandes());
         
         function mettreAJourStats() {
             document.getElementById('count-attente').innerText = allCommandes.filter(c => c.statut === 'en_attente').length;
@@ -352,7 +360,6 @@
             const actions = [];
             
             if (role === 'cuisinier') {
-                // Actions pour le cuisinier
                 if (statut === 'en_attente') {
                     actions.push({ label: '👨‍🍳 Cuisiner', action: 'cuisine', class: 'btn-action-primary' });
                 }
@@ -362,7 +369,6 @@
             }
             
             if (role === 'serveur') {
-                // Actions pour le serveur
                 if (statut === 'pret') {
                     actions.push({ label: '🍽️ Servir à table', action: 'servi', class: 'btn-action-warning' });
                 }
@@ -371,8 +377,7 @@
                 }
             }
             
-            if (role === 'gerant') {
-                // Gérant a toutes les actions
+            if (role === 'gerant' || role === 'superadmin') {
                 if (statut === 'en_attente') {
                     actions.push({ label: '👨‍🍳 Cuisiner', action: 'cuisine', class: 'btn-action-primary' });
                 }
@@ -390,30 +395,25 @@
             return actions;
         }
         
-       async function changerStatut(commandeId, nouveauStatut) {
-        try {
-        const res = await fetch(`/api/commande/${commandeId}/statut`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ statut: nouveauStatut, restoId: currentResto })
-        });
-        if (res.ok) {
-            chargerCommandes();
-            const messages = {
-                'cuisine': '🔪 Commande passée en cuisine',
-                'pret': '✅ Plat prêt à être servi ! Le serveur est notifié.',
-                'servi': '🍽️ Plat servi à table',
-                'paye': '💰 Paiement validé'
-            };
-            showNotification(messages[nouveauStatut] || 'Statut mis à jour');
-            
-            // Notification spéciale pour le serveur
-            if (nouveauStatut === 'pret') {
-                showNotification('🔔 Plat prêt à être servi !', 'success');
-            }
-        }
+        async function changerStatut(commandeId, nouveauStatut) {
+            try {
+                const res = await fetch(`/api/commande/${commandeId}/statut`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ statut: nouveauStatut, restoId: currentResto })
+                });
+                if (res.ok) {
+                    chargerCommandes();
+                    const messages = {
+                        'cuisine': '🔪 Commande passée en cuisine',
+                        'pret': '✅ Plat prêt à être servi !',
+                        'servi': '🍽️ Plat servi à table',
+                        'paye': '💰 Paiement validé'
+                    };
+                    showNotification(messages[nouveauStatut] || 'Statut mis à jour');
+                }
             } catch(e) { console.error(e); }
-        }   
+        }
         
         function afficherCommandes() {
             let filtered = allCommandes;
@@ -433,13 +433,16 @@
                 return `
                 <div class="commande-card-premium fade-in">
                     <div class="commande-header">
-                        <span class="table-number">Table ${cmd.table_numero || cmd.table_id}</span>
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            <span class="table-number">Table ${cmd.table_numero || cmd.table_id}</span>
+                            ${cmd.client_nom ? `<span class="client-name">👤 ${escapeHtml(cmd.client_nom)}</span>` : ''}
+                        </div>
                         <span class="statut-badge statut-${cmd.statut}">${getStatutText(cmd.statut)}</span>
                     </div>
                     <div style="padding: 20px;">
                         ${cmd.details && cmd.details.length ? cmd.details.map(d => `
                             <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
-                                <span><strong>${d.quantite}x</strong> ${d.nom_plat}</span>
+                                <span><strong>${d.quantite}x</strong> ${escapeHtml(d.nom_plat)}</span>
                                 <span>${(d.prix_unitaire * d.quantite).toLocaleString()} FCFA</span>
                             </div>
                         `).join('') : '<div>Aucun détail</div>'}
@@ -464,8 +467,19 @@
             `}).join('');
         }
         
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
         document.getElementById('resto-select').onchange = (e) => {
             currentResto = parseInt(e.target.value);
+            localStorage.setItem('resto_id', currentResto);
             socket.emit('join_resto', currentResto);
             chargerCommandes();
         };
@@ -486,6 +500,7 @@
         
         // Rendre la fonction globale pour les onclick
         window.changerStatut = changerStatut;
+        window.escapeHtml = escapeHtml;
         
         chargerCommandes();
         setInterval(chargerCommandes, 5000);

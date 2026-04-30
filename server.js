@@ -97,10 +97,8 @@ app.post('/api/auth/verify', authMiddleware, async (req, res) => {
 app.post('/api/register', async (req, res) => {
   const { email, nomRestaurant, telephone, adresse, password } = req.body;
   
-  // Créer un slug unique
   const slug = nomRestaurant.toLowerCase().replace(/[^a-z0-9]/g, '-');
   
-  // Créer le restaurant
   const { data: restaurant, error: restoError } = await supabase
     .from('restaurants')
     .insert({ nom: nomRestaurant, slug, telephone, adresse, actif: true })
@@ -109,7 +107,6 @@ app.post('/api/register', async (req, res) => {
   
   if (restoError) return res.status(500).json({ error: restoError.message });
   
-  // Créer le profil gérant
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .insert({ email, resto_id: restaurant.id, role: 'gerant' })
@@ -118,14 +115,12 @@ app.post('/api/register', async (req, res) => {
   
   if (profileError) return res.status(500).json({ error: profileError.message });
   
-  // Créer les tables par défaut (1 à 10)
   const tables = [];
   for (let i = 1; i <= 10; i++) {
     tables.push({ resto_id: restaurant.id, numero_table: i });
   }
   await supabase.from('tables').insert(tables);
   
-  // Générer le token
   const token = jwt.sign(
     { id: profile.id, email, resto_id: restaurant.id, restaurant_name: restaurant.nom, slug: restaurant.slug, role: 'gerant' },
     JWT_SECRET,
@@ -149,12 +144,18 @@ app.get('/api/menu/:restoId', async (req, res) => {
   res.json(data);
 });
 
+// ROUTE COMMANDE AVEC NOM DU CLIENT
 app.post('/api/commande', async (req, res) => {
-  const { restoId, tableId, items, total } = req.body;
+  const { restoId, tableId, clientName, items, total } = req.body;
   
   const { data: commande, error: commandeError } = await supabase
     .from('commandes')
-    .insert({ resto_id: restoId, table_id: tableId, total: total })
+    .insert({ 
+      resto_id: restoId, 
+      table_id: tableId, 
+      client_nom: clientName || 'Anonyme',
+      total: total 
+    })
     .select()
     .single();
   
@@ -173,6 +174,7 @@ app.post('/api/commande', async (req, res) => {
   io.to(`resto_${restoId}`).emit('nouvelle_commande', {
     commande_id: commande.id,
     table_id: tableId,
+    client_name: clientName || 'Anonyme',
     items,
     total
   });
@@ -243,7 +245,6 @@ app.get('/api/generate-qr/:restoId/:tableId', async (req, res) => {
   const url = `${PUBLIC_URL}/menu.html?resto=${restoId}&table=${tableId}`;
   const qrImage = await QRCode.toDataURL(url, { width: 300, margin: 2 });
   
-  // Récupérer le nom du restaurant
   const { data: resto } = await supabase.from('restaurants').select('nom').eq('id', restoId).single();
   const restoName = resto?.nom || 'RESTAURANT';
   
@@ -313,6 +314,7 @@ app.get('/api/commandes/:restoId', async (req, res) => {
     id: cmd.id,
     table_id: cmd.table_id,
     table_numero: cmd.tables?.numero_table,
+    client_nom: cmd.client_nom || 'Anonyme',
     statut: cmd.statut,
     total: cmd.total,
     date_commande: cmd.date_commande,
