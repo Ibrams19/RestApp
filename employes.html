@@ -467,33 +467,35 @@
         }
 
         async function supprimerEmploye(id) {
-            if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer cet employé ?\n\nCette action est irréversible.')) {
-                return;
+    if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer cet employé ?\n\nCette action est irréversible.')) {
+        return;
+    }
+    
+    try {
+        const res = await fetch(`/api/admin/employe/${id}`, {
+            method: 'DELETE',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
             }
-            
-            try {
-                const res = await fetch(`/api/admin/employe/${id}`, {
-                    method: 'DELETE',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const data = await res.json();
-                
-                if (res.ok) {
-                    showToast('✅ Employé supprimé avec succès');
-                    chargerEmployes();
-                } else {
-                    console.error('Erreur:', data);
-                    showToast('❌ ' + (data.error || 'Suppression impossible'), true);
-                }
-            } catch(e) {
-                console.error('Erreur réseau:', e);
-                showToast('❌ Erreur de connexion au serveur', true);
-            }
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            showToast('✅ Employé supprimé avec succès');
+            // ✅ FORCER LE RAFRAÎCHISSEMENT IMMÉDIAT
+            await chargerEmployes();
+            // ✅ AUSSI FORCER L'AFFICHAGE
+            afficherEmployes();
+        } else {
+            showToast('❌ ' + (data.error || 'Suppression impossible'), true);
         }
+    } catch(e) {
+        console.error('Erreur réseau:', e);
+        showToast('❌ Erreur de connexion au serveur', true);
+    }
+}
 
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
