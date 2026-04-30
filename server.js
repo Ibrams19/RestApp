@@ -95,39 +95,104 @@ app.post('/api/auth/verify', authMiddleware, async (req, res) => {
 
 // ===== INSCRIPTION NOUVEAU RESTAURANT =====
 app.post('/api/register', async (req, res) => {
-  const { email, nomRestaurant, telephone, adresse, password } = req.body;
+  const { email, nomRestaurant, telephone, adresse } = req.body;
   
-  const slug = nomRestaurant.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  // Vérifier si l'email existe déjà
+  const { data: existingUser } = await supabase
+    .from('profiles')
+    .select('email')
+    .eq('email', email)
+    .single();
   
+  if (existingUser) {
+    return res.status(400).json({ error: 'Cet email est déjà utilisé' });
+  }
+  
+  // Créer un slug unique avec un timestamp
+  const baseSlug = nomRestaurant.toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  
+  const timestamp = Date.now();
+  const slug = `${baseSlug}-${timestamp}`;
+  
+  // Créer le restaurant
   const { data: restaurant, error: restoError } = await supabase
     .from('restaurants')
-    .insert({ nom: nomRestaurant, slug, telephone, adresse, actif: true })
+    .insert({ 
+      nom: nomRestaurant, 
+      slug: slug, 
+      telephone: telephone || null, 
+      adresse: adresse || null, 
+      actif: true 
+    })
     .select()
     .single();
   
-  if (restoError) return res.status(500).json({ error: restoError.message });
+  if (restoError) {
+    console.error('Erreur création restaurant:', restoError);
+    return res.status(500).json({ error: 'Erreur lors de la création du restaurant: ' + restoError.message });
+  }
   
+  // Créer le profil gérant
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .insert({ email, resto_id: restaurant.id, role: 'gerant' })
+    .insert({ 
+      email: email, 
+      resto_id: restaurant.id, 
+      nom: nomRestaurant,
+      role: 'gerant' 
+    })
     .select()
     .single();
   
-  if (profileError) return res.status(500).json({ error: profileError.message });
+  if (profileError) {
+    console.error('Erreur création profil:', profileError);
+    // Nettoyer le restaurant créé
+    await supabase.from('restaurants').delete().eq('id', restaurant.id);
+    return res.status(500).json({ error: 'Erreur lors de la création du compte: ' + profileError.message });
+  }
   
+  // Créer les tables par défaut (1 à 10)
   const tables = [];
   for (let i = 1; i <= 10; i++) {
     tables.push({ resto_id: restaurant.id, numero_table: i });
   }
   await supabase.from('tables').insert(tables);
   
+  // Créer des plats par défaut
+  const platsParDefaut = [
+    { resto_id: restaurant.id, nom_plat: 'Yassa Poulet', prix: 2500, categorie: 'Plat', disponible: true, description: 'Poulet mariné aux oignons et citron' },
+    { resto_id: restaurant.id, nom_plat: 'Thieboudienne', prix: 3000, categorie: 'Plat', disponible: true, description: 'Riz au poisson et légumes' },
+    { resto_id: restaurant.id, nom_plat: 'Mafé', prix: 2800, categorie: 'Plat', disponible: true, description: 'Sauce arachide et viande' },
+    { resto_id: restaurant.id, nom_plat: 'Jus de Bissap', prix: 500, categorie: 'Boisson', disponible: true, description: 'Jus d\'hibiscus' },
+    { resto_id: restaurant.id, nom_plat: 'Ngata', prix: 1500, categorie: 'Dessert', disponible: true, description: 'Beignet sénégalais' }
+  ];
+  await supabase.from('menus').insert(platsParDefaut);
+  
+  // Générer le token
   const token = jwt.sign(
-    { id: profile.id, email, resto_id: restaurant.id, restaurant_name: restaurant.nom, slug: restaurant.slug, role: 'gerant' },
+    { 
+      id: profile.id, 
+      email: email, 
+      resto_id: restaurant.id, 
+      restaurant_name: restaurant.nom, 
+      slug: restaurant.slug, 
+      role: 'gerant' 
+    },
     JWT_SECRET,
     { expiresIn: '7d' }
   );
   
-  res.json({ success: true, token, user: profile, restaurant });
+  res.json({ 
+    success: true, 
+    token, 
+    user: profile, 
+    restaurant 
+  });
 });
 
 // ===== ROUTES CLIENT (publiques) =====
