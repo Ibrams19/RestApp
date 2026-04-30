@@ -672,6 +672,23 @@ app.delete('/api/admin/employe/:id', checkRole(['gerant', 'superadmin']), async 
   res.json({ success: true });
 });
 
+// ===== ROUTES GESTION DES EMPLOYÉS =====
+
+// Lister les employés
+app.get('/api/admin/employes', checkRole(['gerant', 'superadmin']), async (req, res) => {
+  const restoId = req.user.resto_id;
+  
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, nom, prenom, role, token_unique, lien_unique, created_at')
+    .eq('resto_id', restoId)
+    .neq('role', 'gerant')
+    .order('created_at', { ascending: false });
+  
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
+});
+
 // ===== CONNEXION MAGIQUE PAR LIEN UNIQUE =====
 app.get('/api/auth/magic/:token', async (req, res) => {
   const { token } = req.params;
