@@ -34,6 +34,10 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            transition: transform 0.3s;
+        }
+        .btn-add:hover {
+            transform: translateY(-2px);
         }
         .employes-grid {
             display: grid;
@@ -50,6 +54,7 @@
         }
         .employe-card:hover {
             transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
         .employe-avatar {
             width: 60px;
@@ -100,7 +105,11 @@
             transition: all 0.3s;
         }
         .btn-edit { background: #F39C12; color: white; }
+        .btn-edit:hover { background: #e67e22; }
         .btn-delete { background: #E74C3C; color: white; }
+        .btn-delete:hover { background: #c0392b; }
+        .btn-link { background: #3498DB; color: white; }
+        .btn-link:hover { background: #2980b9; }
         .modal {
             display: none;
             position: fixed;
@@ -188,9 +197,28 @@
             padding: 60px 20px;
             color: #6C6C7A;
         }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #27AE60;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            z-index: 1100;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .toast-error {
+            background: #E74C3C;
+        }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
         @media (max-width: 768px) {
             .page-container { padding: 20px; }
@@ -214,8 +242,8 @@
     <div class="nav-bar" style="display: flex; gap: 10px; justify-content: center; margin: 20px; flex-wrap: wrap;">
         <a href="/dashboard.html" class="nav-btn" style="background: #1A1A2E;">📊 Dashboard</a>
         <a href="/admin.html" class="nav-btn" style="background: #1A1A2E;">🍽️ Gestion plats</a>
-        <a href="/resto.html" class="nav-btn" style="background: #1A1A2E;">👨‍🍳 Cuisine</a>
         <a href="/employes.html" class="nav-btn" style="background: #C6A43F; color: #1A1A2E;">👥 Équipe</a>
+        <a href="/resto.html" class="nav-btn" style="background: #1A1A2E;">👨‍🍳 Cuisine</a>
         <a href="/qrcodes.html" class="nav-btn" style="background: #1A1A2E;">📱 QR Codes</a>
     </div>
 
@@ -301,6 +329,14 @@
         let currentEmployes = [];
         let editEmployeId = null;
         
+        function showToast(message, isError = false) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${isError ? 'toast-error' : ''}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+        
         async function chargerEmployes() {
             try {
                 const res = await fetch('/api/admin/employes', {
@@ -357,11 +393,25 @@
                         ${emp.role === 'cuisinier' ? '👨‍🍳 Cuisinier' : '🍽️ Serveur'}
                     </div>
                     <div class="employe-actions">
-                        <button class="btn-icon btn-edit" onclick="openEditModal('${emp.id}', '${escapeHtml(emp.nom || emp.email)}', '${emp.role}')">✏️ Modifier rôle</button>
-                        <button class="btn-icon btn-delete" onclick="supprimerEmploye('${emp.id}')">🗑️ Supprimer</button>
+                        <button class="btn-icon btn-link" onclick="copierLienConnexion('${escapeHtml(emp.email)}', '${emp.role}')">🔗 Lien de connexion</button>
+                        <button class="btn-icon btn-edit" onclick="openEditModal('${emp.id}', '${escapeHtml(emp.nom || emp.email)}', '${emp.role}')">✏️ Rôle</button>
+                        <button class="btn-icon btn-delete" onclick="supprimerEmploye('${emp.id}')">🗑️</button>
                     </div>
                 </div>
             `).join('');
+        }
+        
+        function copierLienConnexion(email, role) {
+            const baseUrl = window.location.origin;
+            const roleText = role === 'cuisinier' ? 'Cuisinier' : 'Serveur';
+            const lien = `${baseUrl}/login.html?email=${encodeURIComponent(email)}&role=${role}`;
+            
+            // Copier dans le presse-papier
+            navigator.clipboard.writeText(lien).then(() => {
+                showToast(`✅ Lien copié !\n\nEnvoyez-le à l'employé.\nEmail: ${email}\nRôle: ${roleText}`, false);
+            }).catch(() => {
+                prompt("Copiez ce lien manuellement :", lien);
+            });
         }
         
         function openEditModal(id, nom, role) {
@@ -377,7 +427,7 @@
             const role = document.getElementById('employe-role').value;
             
             if (!email) {
-                alert('❌ Veuillez entrer un email');
+                showToast('❌ Veuillez entrer un email', true);
                 return;
             }
             
@@ -392,14 +442,22 @@
                 });
                 
                 if (res.ok) {
-                    alert('✅ Employé ajouté avec succès !');
+                    const data = await res.json();
+                    const roleText = role === 'cuisinier' ? '👨‍🍳 Cuisinier' : '🍽️ Serveur';
+                    const lien = `${window.location.origin}/login.html?email=${encodeURIComponent(email)}&role=${role}`;
+                    
+                    showToast(`✅ Employé ajouté !\n\n📋 Lien à partager :\n${lien}\n\nEmail: ${email}\nRôle: ${roleText}`, false);
+                    
+                    // Copier automatiquement le lien
+                    navigator.clipboard.writeText(lien).catch(() => {});
+                    
                     closeModal('modal-add');
                     document.getElementById('employe-email').value = '';
                     document.getElementById('employe-nom').value = '';
                     chargerEmployes();
                 } else {
                     const error = await res.json();
-                    alert('❌ Erreur: ' + (error.error || 'Email déjà utilisé'));
+                    showToast('❌ Erreur: ' + (error.error || 'Email déjà utilisé'), true);
                 }
             } catch(e) { console.error(e); }
         }
@@ -418,11 +476,11 @@
                 });
                 
                 if (res.ok) {
-                    alert('✅ Rôle modifié avec succès !');
+                    showToast('✅ Rôle modifié avec succès !', false);
                     closeModal('modal-edit');
                     chargerEmployes();
                 } else {
-                    alert('❌ Erreur lors de la modification');
+                    showToast('❌ Erreur lors de la modification', true);
                 }
             } catch(e) { console.error(e); }
         }
@@ -437,10 +495,10 @@
                 });
                 
                 if (res.ok) {
-                    alert('✅ Employé supprimé');
+                    showToast('✅ Employé supprimé', false);
                     chargerEmployes();
                 } else {
-                    alert('❌ Erreur lors de la suppression');
+                    showToast('❌ Erreur lors de la suppression', true);
                 }
             } catch(e) { console.error(e); }
         }
@@ -470,7 +528,6 @@
         };
         document.getElementById('search-employe').oninput = () => afficherEmployes();
         
-        // Fermer les modals en cliquant en dehors
         window.onclick = (e) => {
             if (e.target.classList.contains('modal')) {
                 e.target.style.display = 'none';
@@ -480,6 +537,7 @@
         window.supprimerEmploye = supprimerEmploye;
         window.openEditModal = openEditModal;
         window.closeModal = closeModal;
+        window.copierLienConnexion = copierLienConnexion;
         
         chargerEmployes();
     </script>
