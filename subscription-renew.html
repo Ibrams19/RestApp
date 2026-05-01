@@ -275,42 +275,42 @@
  document.getElementById(`plan-${plan}`).classList.add('selected');
  }
 
- // Procéder au paiement
- async function proceedToPayment() {
- if (!selectedPlan) {
- alert("Veuillez sélectionner une formule d'abonnement");
- return;
- }
+async function proceedToPayment() {
+  if (!selectedPlan) {
+    alert("Veuillez sélectionner une formule");
+    return;
+  }
 
- const payButton = document.getElementById('pay-button');
- const originalText = payButton.innerHTML;
+  const payButton = document.getElementById('pay-button');
+  payButton.innerHTML = 'Traitement...';
+  payButton.disabled = true;
 
- payButton.innerHTML = 'Traitement en cours...';
- payButton.disabled = true;
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch('/api/subscription/renew', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ plan: selectedPlan })
+    });
 
- try {
- const response = await fetch('/api/subscription/renew', {
- method: 'POST',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ plan: selectedPlan })
- });
+    const result = await response.json();
 
- const result = await response.json();
-
- if (response.ok) {
- alert(`Demande de paiement créée avec succès !\n\nMontant : ${result.amount.toLocaleString('fr-FR')} FCFA\nFormule : ${result.plan_name}`);
- // Plus tard : window.location.href = result.payment_url;
- } else {
- alert(result.message || "Une erreur est survenue");
- }
- } catch (error) {
- console.error(error);
- alert("Erreur de connexion. Veuillez réessayer.");
- } finally {
- payButton.innerHTML = originalText;
- payButton.disabled = false;
- }
- }
+    if (response.ok) {
+      alert(result.message || 'Abonnement activé !');
+      window.location.href = '/dashboard.html';
+    } else {
+      alert(result.error || 'Erreur');
+    }
+  } catch (error) {
+    alert('Erreur réseau');
+  } finally {
+    payButton.innerHTML = 'Payer';
+    payButton.disabled = false;
+  }
+}
 
  // Charger les informations du restaurant au chargement
  window.onload = async () => {
