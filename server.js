@@ -6,6 +6,8 @@ const { Server } = require('socket.io');
 const http = require('http');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 const app = express();
 const server = http.createServer(app);
@@ -22,12 +24,12 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const JWT_SECRET = 'resto-secret-key-2024';
 const PUBLIC_URL = 'https://restapp-a8ac.onrender.com';
+const SALT_ROUNDS = 10;
 
-// ===== MIDDLEWARE =====
+// ==================== MIDDLEWARE ====================
 function authMiddleware(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Non autorisé' });
-  
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
@@ -39,25 +41,58 @@ function authMiddleware(req, res, next) {
 
 function checkRole(allowedRoles) {
   return (req, res, next) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ error: 'Non autorisé' });
-    
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET);
-      if (!allowedRoles.includes(decoded.role)) {
-        return res.status(403).json({ error: 'Accès interdit' });
-      }
-      req.user = decoded;
-      next();
-    } catch (error) {
-      res.status(401).json({ error: 'Token invalide' });
+    if (!req.user) return res.status(401).json({ error: 'Non autorisé' });
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Accès interdit' });
     }
+    next();
   };
 }
 
-// ===== AUTHENTIFICATION =====
+async function checkSubscription(req, res, next) {
+  if (req.user?.role === 'superadmin') return next();
+  const restoId = req.user?.resto_id;
+  if (!restoId) return next();
+  
+  try {
+    const { data: restaurant } = await supabase
+      .from('restaurants')
+      .select('subscription_status, trial_ends_at, subscription_ends_at')
+      .eq('id', restoId)
+      .single();
+    
+    if (!restaurant) return next();
+    
+    const now = new Date();
+    
+    if (restaurant.subscription_status === 'trial') {
+      const trialEnd = new Date(restaurant.trial_ends_at);
+      if (now > trialEnd) {
+        await supabase.from('restaurants').update({ subscription_status: 'expired' }).eq('id', restoId);
+        return res.status(403).json({ error: 'expired', message: 'Votre période d\'essai est terminée.' });
+      }
+      req.subscription = { status: 'trial', days_left: Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24)) };
+    } else if (restaurant.subscription_status === 'active' && restaurant.subscription_ends_at) {
+      const subEnd = new Date(restaurant.subscription_ends_at);
+      if (now > subEnd) {
+        await supabase.from('restaurants').update({ subscription_status: 'expired' }).eq('id', restoId);
+        return res.status(403).json({ error: 'expired', message: 'Votre abonnement a expiré.' });
+      }
+    } else if (restaurant.subscription_status === 'expired' || restaurant.subscription_status === 'suspended') {
+      return res.status(403).json({ error: restaurant.subscription_status, message: 'Accès bloqué.' });
+    }
+    next();
+  } catch (error) { next(); }
+}
+
+app.use('/api/admin/*', authMiddleware, checkSubscription);
+app.use('/api/stats/*', authMiddleware, checkSubscription);
+app.use('/api/tables/*', authMiddleware, checkSubscription);
+
+// ==================== AUTHENTIFICATION ====================
 app.post('/api/auth/login', async (req, res) => {
-  const { email, role } = req.body;
+  const { email, motDePasse } = req.body;
+  if (!email || !motDePasse) return res.status(400).json({ error: 'Email et mot de passe requis' });
   
   const { data: profile, error } = await supabase
     .from('profiles')
@@ -65,27 +100,17 @@ app.post('/api/auth/login', async (req, res) => {
     .eq('email', email)
     .single();
   
-  if (error || !profile) {
-    return res.status(401).json({ error: 'Email non reconnu' });
-  }
+  if (error || !profile) return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
+  if (!profile.mot_de_passe) return res.status(401).json({ error: 'first_login', message: 'Utilisez votre lien magique.' });
   
-  if (role && profile.role !== role) {
-    return res.status(401).json({ error: `Accès non autorisé. Vous êtes ${profile.role}, pas ${role}.` });
-  }
+  const isValid = await bcrypt.compare(motDePasse, profile.mot_de_passe);
+  if (!isValid) return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
   
   const token = jwt.sign(
-    { 
-      id: profile.id, 
-      email: profile.email, 
-      resto_id: profile.resto_id,
-      restaurant_name: profile.restaurants?.nom,
-      slug: profile.restaurants?.slug,
-      role: profile.role 
-    },
+    { id: profile.id, email: profile.email, resto_id: profile.resto_id, restaurant_name: profile.restaurants?.nom, role: profile.role },
     JWT_SECRET,
     { expiresIn: '7d' }
   );
-  
   res.json({ success: true, token, user: profile, restaurant: profile.restaurants });
 });
 
@@ -93,429 +118,271 @@ app.post('/api/auth/verify', authMiddleware, async (req, res) => {
   res.json({ success: true, user: req.user });
 });
 
-// ===== INSCRIPTION NOUVEAU RESTAURANT =====
-app.post('/api/register', async (req, res) => {
-  const { email, nomRestaurant, telephone, adresse } = req.body;
+app.get('/api/auth/magic/:token', async (req, res) => {
+  const { token } = req.params;
+  const { data: profile } = await supabase.from('profiles').select('*').eq('token_unique', token).single();
+  if (!profile) return res.redirect(`${PUBLIC_URL}/set-password.html?error=invalid`);
+  res.redirect(`${PUBLIC_URL}/set-password.html?token=${token}&email=${encodeURIComponent(profile.email)}&role=${profile.role}&resto_id=${profile.resto_id}`);
+});
+
+app.post('/api/auth/set-password', async (req, res) => {
+  const { token, email, motDePasse, role, restoId } = req.body;
+  if (!motDePasse || motDePasse.length < 8) return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 8 caractères' });
   
-  // Vérifier si l'email existe déjà
-  const { data: existingUser } = await supabase
+  const hashedPassword = await bcrypt.hash(motDePasse, SALT_ROUNDS);
+  const { data, error } = await supabase
     .from('profiles')
-    .select('email')
+    .update({ mot_de_passe: hashedPassword, first_login: false, reset_token: null, reset_token_expires: null })
+    .eq('token_unique', token)
+    .select();
+  
+  if (error) return res.status(500).json({ error: error.message });
+  
+  const jwtToken = jwt.sign(
+    { id: data[0].id, email, resto_id: restoId, role },
+    JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+  res.json({ success: true, token: jwtToken, user: data[0] });
+});
+
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  const { data: profile } = await supabase.from('profiles').select('*').eq('email', email).single();
+  if (!profile) return res.status(404).json({ error: 'Email non trouvé' });
+  
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  const resetTokenExpires = new Date(Date.now() + 3600000);
+  await supabase.from('profiles').update({ reset_token: resetToken, reset_token_expires: resetTokenExpires }).eq('id', profile.id);
+  
+  const resetUrl = `${PUBLIC_URL}/reset-password.html?token=${resetToken}&email=${encodeURIComponent(email)}`;
+  res.json({ success: true, message: 'Lien de réinitialisation envoyé', resetUrl });
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  const { token, email, motDePasse } = req.body;
+  if (!motDePasse || motDePasse.length < 8) return res.status(400).json({ error: 'Minimum 8 caractères' });
+  
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
     .eq('email', email)
+    .eq('reset_token', token)
     .single();
   
-  if (existingUser) {
-    return res.status(400).json({ error: 'Cet email est déjà utilisé' });
-  }
+  if (!profile || new Date() > new Date(profile.reset_token_expires)) return res.status(400).json({ error: 'Lien invalide ou expiré' });
   
-  // Créer un slug unique avec un timestamp
-  const baseSlug = nomRestaurant.toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
+  const hashedPassword = await bcrypt.hash(motDePasse, SALT_ROUNDS);
+  await supabase.from('profiles').update({ mot_de_passe: hashedPassword, reset_token: null, reset_token_expires: null }).eq('id', profile.id);
   
-  const timestamp = Date.now();
-  const slug = `${baseSlug}-${timestamp}`;
+  const jwtToken = jwt.sign(
+    { id: profile.id, email, resto_id: profile.resto_id, role: profile.role },
+    JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+  res.json({ success: true, token: jwtToken });
+});
+
+// ==================== INSCRIPTION RESTAURANT ====================
+app.post('/api/register', async (req, res) => {
+  const { email, motDePasse, nomRestaurant, telephone, adresse } = req.body;
+  if (!email || !motDePasse || !nomRestaurant) return res.status(400).json({ error: 'Champs requis' });
+  if (motDePasse.length < 8) return res.status(400).json({ error: 'Mot de passe minimum 8 caractères' });
   
-  // Créer le restaurant
+  const { data: existingUser } = await supabase.from('profiles').select('email').eq('email', email).single();
+  if (existingUser) return res.status(400).json({ error: 'Email déjà utilisé' });
+  
+  const hashedPassword = await bcrypt.hash(motDePasse, SALT_ROUNDS);
+  const baseSlug = nomRestaurant.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  const slug = `${baseSlug}-${Date.now()}`;
+  const trialEndsAt = new Date(Date.now() + 14 * 86400000);
+  
   const { data: restaurant, error: restoError } = await supabase
     .from('restaurants')
-    .insert({ 
-      nom: nomRestaurant, 
-      slug: slug, 
-      telephone: telephone || null, 
-      adresse: adresse || null, 
-      actif: true 
-    })
+    .insert({ nom: nomRestaurant, slug, telephone: telephone || null, adresse: adresse || null, actif: true, subscription_status: 'trial', trial_ends_at: trialEndsAt })
     .select()
     .single();
   
-  if (restoError) {
-    console.error('Erreur création restaurant:', restoError);
-    return res.status(500).json({ error: 'Erreur lors de la création du restaurant: ' + restoError.message });
-  }
+  if (restoError) return res.status(500).json({ error: restoError.message });
   
-  // Créer le profil gérant
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .insert({ 
-      email: email, 
-      resto_id: restaurant.id, 
-      nom: nomRestaurant,
-      role: 'gerant' 
-    })
+    .insert({ email, resto_id: restaurant.id, nom: nomRestaurant, mot_de_passe: hashedPassword, role: 'gerant', first_login: false })
     .select()
     .single();
   
   if (profileError) {
-    console.error('Erreur création profil:', profileError);
-    // Nettoyer le restaurant créé
     await supabase.from('restaurants').delete().eq('id', restaurant.id);
-    return res.status(500).json({ error: 'Erreur lors de la création du compte: ' + profileError.message });
+    return res.status(500).json({ error: profileError.message });
   }
   
-  // Créer les tables par défaut (1 à 10)
-  const tables = [];
-  for (let i = 1; i <= 10; i++) {
-    tables.push({ resto_id: restaurant.id, numero_table: i });
-  }
-  await supabase.from('tables').insert(tables);
+  for (let i = 1; i <= 10; i++) await supabase.from('tables').insert({ resto_id: restaurant.id, numero_table: i });
   
-  // Créer des plats par défaut
   const platsParDefaut = [
-    { resto_id: restaurant.id, nom_plat: 'Yassa Poulet', prix: 2500, categorie: 'Plat', disponible: true, description: 'Poulet mariné aux oignons et citron' },
-    { resto_id: restaurant.id, nom_plat: 'Thieboudienne', prix: 3000, categorie: 'Plat', disponible: true, description: 'Riz au poisson et légumes' },
-    { resto_id: restaurant.id, nom_plat: 'Mafé', prix: 2800, categorie: 'Plat', disponible: true, description: 'Sauce arachide et viande' },
-    { resto_id: restaurant.id, nom_plat: 'Jus de Bissap', prix: 500, categorie: 'Boisson', disponible: true, description: 'Jus d\'hibiscus' },
-    { resto_id: restaurant.id, nom_plat: 'Ngata', prix: 1500, categorie: 'Dessert', disponible: true, description: 'Beignet sénégalais' }
+    { resto_id: restaurant.id, nom_plat: 'Yassa Poulet', prix: 2500, categorie: 'Plat', disponible: true },
+    { resto_id: restaurant.id, nom_plat: 'Thieboudienne', prix: 3000, categorie: 'Plat', disponible: true },
+    { resto_id: restaurant.id, nom_plat: 'Mafé', prix: 2800, categorie: 'Plat', disponible: true },
+    { resto_id: restaurant.id, nom_plat: 'Jus de Bissap', prix: 500, categorie: 'Boisson', disponible: true },
+    { resto_id: restaurant.id, nom_plat: 'Ngata', prix: 1500, categorie: 'Dessert', disponible: true }
   ];
   await supabase.from('menus').insert(platsParDefaut);
   
-  // Générer le token
   const token = jwt.sign(
-    { 
-      id: profile.id, 
-      email: email, 
-      resto_id: restaurant.id, 
-      restaurant_name: restaurant.nom, 
-      slug: restaurant.slug, 
-      role: 'gerant' 
-    },
+    { id: profile.id, email, resto_id: restaurant.id, restaurant_name: restaurant.nom, role: 'gerant' },
     JWT_SECRET,
     { expiresIn: '7d' }
   );
-  
-  res.json({ 
-    success: true, 
-    token, 
-    user: profile, 
-    restaurant 
-  });
+  res.json({ success: true, token, user: profile, restaurant, trial_days: 14 });
 });
 
-// ===== ROUTES CLIENT (publiques) =====
+// ==================== ROUTES CLIENT ====================
 app.get('/api/menu/:restoId', async (req, res) => {
   const { restoId } = req.params;
-  
-  const { data, error } = await supabase
-    .from('menus')
-    .select('*')
-    .eq('resto_id', restoId)
-    .eq('disponible', true);
-  
+  const { data, error } = await supabase.from('menus').select('*').eq('resto_id', restoId).eq('disponible', true);
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
 
-// ROUTE COMMANDE AVEC NOM DU CLIENT
 app.post('/api/commande', async (req, res) => {
   const { restoId, tableId, clientName, items, total } = req.body;
-  
   const { data: commande, error: commandeError } = await supabase
     .from('commandes')
-    .insert({ 
-      resto_id: restoId, 
-      table_id: tableId, 
-      client_nom: clientName || 'Anonyme',
-      total: total 
-    })
+    .insert({ resto_id: restoId, table_id: tableId, client_nom: clientName || 'Anonyme', total })
     .select()
     .single();
-  
   if (commandeError) return res.status(500).json({ error: commandeError.message });
   
   for (const item of items) {
-    await supabase.from('commande_details').insert({
-      commande_id: commande.id,
-      menu_id: item.menuId,
-      quantite: item.quantite,
-      prix_unitaire: item.prix,
-      nom_plat: item.nom
-    });
+    await supabase.from('commande_details').insert({ commande_id: commande.id, menu_id: item.menuId, quantite: item.quantite, prix_unitaire: item.prix, nom_plat: item.nom });
   }
-  
-  io.to(`resto_${restoId}`).emit('nouvelle_commande', {
-    commande_id: commande.id,
-    table_id: tableId,
-    client_name: clientName || 'Anonyme',
-    items,
-    total
-  });
-  
+  io.to(`resto_${restoId}`).emit('nouvelle_commande', { commande_id: commande.id, table_id: tableId, client_name: clientName || 'Anonyme', items, total });
   res.json({ success: true, commande_id: commande.id });
 });
 
 app.put('/api/commande/:id/statut', async (req, res) => {
   const { id } = req.params;
   const { statut, restoId } = req.body;
-  
-  const { error } = await supabase
-    .from('commandes')
-    .update({ statut: statut })
-    .eq('id', id);
-  
+  const { error } = await supabase.from('commandes').update({ statut }).eq('id', id);
   if (error) return res.status(500).json({ error: error.message });
-  
   io.to(`resto_${restoId}`).emit('statut_change', { commande_id: id, statut });
   res.json({ success: true });
 });
 
-app.post('/api/payer', async (req, res) => {
-  const { commande_id, restoId } = req.body;
-  
-  const { error } = await supabase
+app.get('/api/commandes/:restoId', async (req, res) => {
+  const { restoId } = req.params;
+  const { data: commandes, error } = await supabase
     .from('commandes')
-    .update({ statut: 'paye', paye_le: new Date() })
-    .eq('id', commande_id);
-  
+    .select(`*, tables(numero_table), commande_details(quantite, prix_unitaire, nom_plat)`)
+    .eq('resto_id', restoId)
+    .order('date_commande', { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
-  
-  io.to(`resto_${restoId}`).emit('commande_payee', { commande_id });
-  res.json({ success: true });
+  const result = commandes.map(cmd => ({
+    id: cmd.id, table_id: cmd.table_id, table_numero: cmd.tables?.numero_table,
+    client_nom: cmd.client_nom || 'Anonyme', statut: cmd.statut, total: cmd.total,
+    date_commande: cmd.date_commande, details: cmd.commande_details || []
+  }));
+  res.json(result);
 });
 
+app.get('/api/commande/suivi/:id', async (req, res) => {
+  const { id } = req.params;
+  const { data: commande } = await supabase.from('commandes').select('*').eq('id', id).single();
+  if (!commande) return res.status(404).json({ error: 'Commande non trouvée' });
+  const { data: details } = await supabase.from('commande_details').select('nom_plat, quantite, prix_unitaire').eq('commande_id', id);
+  res.json({ id: commande.id, statut: commande.statut, total: commande.total, date_commande: commande.date_commande, details: details || [] });
+});
+
+// ==================== QR CODES ====================
 app.get('/api/qrcode/:restoId/:tableId', async (req, res) => {
   const { restoId, tableId } = req.params;
   const url = `${PUBLIC_URL}/menu.html?resto=${restoId}&table=${tableId}`;
-  
-  try {
-    const qrImage = await QRCode.toDataURL(url, { width: 200, margin: 1 });
-    res.json({ success: true, qr: qrImage, url });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
+  const qrImage = await QRCode.toDataURL(url, { width: 200, margin: 1 });
+  res.json({ success: true, qr: qrImage, url });
 });
 
 app.get('/api/qrcode-image/:restoId/:tableId', async (req, res) => {
   const { restoId, tableId } = req.params;
   const url = `${PUBLIC_URL}/menu.html?resto=${restoId}&table=${tableId}`;
-  
-  try {
-    const qrImage = await QRCode.toDataURL(url, { width: 200, margin: 1 });
-    const base64 = qrImage.replace(/^data:image\/png;base64,/, '');
-    const imgBuffer = Buffer.from(base64, 'base64');
-    
-    res.setHeader('Content-Type', 'image/png');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.send(imgBuffer);
-  } catch (error) {
-    res.status(500).send('Erreur génération QR code');
-  }
+  const qrImage = await QRCode.toDataURL(url, { width: 200, margin: 1 });
+  const base64 = qrImage.replace(/^data:image\/png;base64,/, '');
+  res.setHeader('Content-Type', 'image/png');
+  res.send(Buffer.from(base64, 'base64'));
 });
 
 app.get('/api/generate-qr/:restoId/:tableId', async (req, res) => {
   const { restoId, tableId } = req.params;
   const url = `${PUBLIC_URL}/menu.html?resto=${restoId}&table=${tableId}`;
   const qrImage = await QRCode.toDataURL(url, { width: 300, margin: 2 });
-  
   const { data: resto } = await supabase.from('restaurants').select('nom').eq('id', restoId).single();
   const restoName = resto?.nom || 'RESTAURANT';
   
-  const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>QR Code - ${restoName}</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-          font-family: 'Segoe UI', Arial, sans-serif; 
-          text-align: center; 
-          padding: 50px; 
-          background: #f5f5f5;
-        }
-        .container {
-          background: white;
-          max-width: 400px;
-          margin: 0 auto;
-          padding: 40px;
-          border-radius: 32px;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        img { width: 250px; height: 250px; margin: 20px 0; }
-        .restaurant-name { font-size: 24px; font-weight: bold; color: #1A1A2E; }
-        .restaurant-name span { color: #C6A43F; }
-        .table-number { font-size: 48px; color: #C6A43F; margin: 20px 0; font-weight: bold; }
-        .instruction { color: #666; margin-top: 20px; font-size: 14px; }
-        @media print { body { padding: 0; background: white; } .container { box-shadow: none; } .no-print { display: none; } }
-        .print-btn { background: #C6A43F; border: none; padding: 10px 20px; border-radius: 40px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="restaurant-name">🍽️ <span>${restoName}</span></div>
-        <div class="table-number">TABLE ${tableId}</div>
-        <img src="${qrImage}" alt="QR Code">
-        <div class="instruction">📱 Scannez ce code pour accéder au menu</div>
-        <button class="print-btn no-print" onclick="window.print()">🖨️ Imprimer</button>
-      </div>
-    </body>
-    </html>
-  `;
-  
-  res.setHeader('Content-Type', 'text/html');
-  res.send(html);
+  res.send(`<!DOCTYPE html>
+  <html><head><meta charset="UTF-8"><title>QR Code - ${restoName}</title>
+  <style>body{font-family:Arial;text-align:center;padding:50px;background:#f5f5f5}.container{background:white;max-width:400px;margin:0 auto;padding:40px;border-radius:32px}img{width:250px;margin:20px 0}.restaurant-name{font-size:24px;font-weight:bold}.restaurant-name span{color:#C6A43F}.table-number{font-size:48px;color:#C6A43F;margin:20px 0}@media print{body{padding:0;background:white}.no-print{display:none}}.print-btn{background:#C6A43F;border:none;padding:10px 20px;border-radius:40px;cursor:pointer;margin-top:20px}</style></head>
+  <body><div class="container"><div class="restaurant-name">🍽️ <span>${restoName}</span></div><div class="table-number">TABLE ${tableId}</div><img src="${qrImage}"><div class="instruction">📱 Scannez pour accéder au menu</div><button class="print-btn no-print" onclick="window.print()">🖨️ Imprimer</button></div></body></html>`);
 });
 
-app.get('/api/commandes/:restoId', async (req, res) => {
-  const { restoId } = req.params;
-  
-  const { data: commandes, error } = await supabase
-    .from('commandes')
-    .select(`
-      *,
-      tables (numero_table),
-      commande_details (quantite, prix_unitaire, nom_plat)
-    `)
-    .eq('resto_id', restoId)
-    .order('date_commande', { ascending: false });
-  
-  if (error) return res.status(500).json({ error: error.message });
-  
-  const result = commandes.map(cmd => ({
-    id: cmd.id,
-    table_id: cmd.table_id,
-    table_numero: cmd.tables?.numero_table,
-    client_nom: cmd.client_nom || 'Anonyme',
-    statut: cmd.statut,
-    total: cmd.total,
-    date_commande: cmd.date_commande,
-    details: cmd.commande_details || []
-  }));
-  
-  res.json(result);
-});
-
-// ===== ROUTES ADMIN =====
+// ==================== ROUTES ADMIN ====================
 app.post('/api/admin/plat', checkRole(['gerant', 'superadmin']), async (req, res) => {
   const { restoId, nom_plat, prix, categorie, disponible, description } = req.body;
   const finalRestoId = restoId || req.user.resto_id;
-  
-  const { data, error } = await supabase
-    .from('menus')
-    .insert({ resto_id: finalRestoId, nom_plat, prix, categorie, disponible, description })
-    .select();
-  
+  const { data, error } = await supabase.from('menus').insert({ resto_id: finalRestoId, nom_plat, prix, categorie, disponible, description }).select();
   if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true, data });
 });
 
+app.get('/api/admin/menu/:restoId', checkRole(['gerant', 'superadmin']), async (req, res) => {
+  const targetRestoId = req.params.restoId || req.user.resto_id;
+  const { data, error } = await supabase.from('menus').select('*').eq('resto_id', targetRestoId).order('id');
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
+});
+
 app.put('/api/admin/plat/:id/disponible', checkRole(['gerant', 'superadmin']), async (req, res) => {
-  const { id } = req.params;
-  const { disponible } = req.body;
-  
-  const { error } = await supabase
-    .from('menus')
-    .update({ disponible })
-    .eq('id', id);
-  
+  const { id, disponible } = req.params;
+  const { error } = await supabase.from('menus').update({ disponible }).eq('id', id);
   if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true });
 });
 
 app.delete('/api/admin/plat/:id', checkRole(['gerant', 'superadmin']), async (req, res) => {
   const { id } = req.params;
-  
-  const { error } = await supabase
-    .from('menus')
-    .delete()
-    .eq('id', id);
-  
+  const { error } = await supabase.from('menus').delete().eq('id', id);
   if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true });
 });
 
-app.get('/api/admin/menu/:restoId', checkRole(['gerant', 'superadmin']), async (req, res) => {
-  const { restoId } = req.params;
-  const targetRestoId = restoId || req.user.resto_id;
-  
-  const { data, error } = await supabase
-    .from('menus')
-    .select('*')
-    .eq('resto_id', targetRestoId)
-    .order('id', { ascending: true });
-  
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
-});
-
-// ===== ROUTES STATISTIQUES =====
+// ==================== ROUTES STATISTIQUES ====================
 app.get('/api/stats/:restoId', checkRole(['gerant', 'superadmin']), async (req, res) => {
-  const { restoId } = req.params;
-  const targetRestoId = restoId || req.user.resto_id;
+  const targetRestoId = req.params.restoId || req.user.resto_id;
   const { periode } = req.query;
-  
   let startDate = null;
   const now = new Date();
-  
-  if (periode === 'day') startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (periode === 'day') startDate = new Date(now.setHours(0, 0, 0, 0));
   else if (periode === 'week') startDate = new Date(now.setDate(now.getDate() - 7));
   else if (periode === 'month') startDate = new Date(now.setMonth(now.getMonth() - 1));
   
-  let query = supabase
-    .from('commandes')
-    .select('id, total, date_commande')
-    .eq('resto_id', targetRestoId)
-    .eq('statut', 'paye');
-  
+  let query = supabase.from('commandes').select('id, total').eq('resto_id', targetRestoId).eq('statut', 'paye');
   if (startDate) query = query.gte('date_commande', startDate.toISOString());
+  const { data: commandes } = await query;
   
-  const { data: commandes, error: commandesError } = await query;
-  if (commandesError) return res.status(500).json({ error: commandesError.message });
+  const caTotal = commandes?.reduce((s, c) => s + (c.total || 0), 0) || 0;
+  const nbCommandes = commandes?.length || 0;
+  const panierMoyen = nbCommandes ? caTotal / nbCommandes : 0;
   
-  const caTotal = commandes.reduce((sum, cmd) => sum + (cmd.total || 0), 0);
-  const nbCommandes = commandes.length;
-  const panierMoyen = nbCommandes > 0 ? caTotal / nbCommandes : 0;
-  
-  if (commandes.length === 0) {
-    return res.json({ caTotal: 0, nbCommandes: 0, panierMoyen: 0, topPlats: [], evolution: [] });
-  }
-  
-  const commandeIds = commandes.map(c => c.id);
-  const { data: details } = await supabase
-    .from('commande_details')
-    .select('nom_plat, quantite, prix_unitaire')
-    .in('commande_id', commandeIds);
-  
+  const commandeIds = commandes?.map(c => c.id) || [];
+  const { data: details } = await supabase.from('commande_details').select('nom_plat, quantite').in('commande_id', commandeIds);
   const ventesParPlat = {};
-  if (details) {
-    details.forEach(detail => {
-      ventesParPlat[detail.nom_plat] = (ventesParPlat[detail.nom_plat] || 0) + detail.quantite;
-    });
-  }
+  details?.forEach(d => ventesParPlat[d.nom_plat] = (ventesParPlat[d.nom_plat] || 0) + d.quantite);
+  const topPlats = Object.entries(ventesParPlat).sort((a, b) => b[1] - a[1]).slice(0, 10).map(([nom, quantite]) => ({ nom, quantite }));
   
-  const topPlats = Object.entries(ventesParPlat)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
-    .map(([nom, quantite]) => ({ nom, quantite }));
-  
-  const evolutionParJour = {};
-  commandes.forEach(cmd => {
-    const date = new Date(cmd.date_commande).toLocaleDateString('fr-FR');
-    evolutionParJour[date] = (evolutionParJour[date] || 0) + cmd.total;
-  });
-  
-  const evolution = Object.entries(evolutionParJour)
-    .sort((a, b) => new Date(a[0]) - new Date(b[0]))
-    .map(([date, total]) => ({ date, total }));
-  
-  res.json({ caTotal, nbCommandes, panierMoyen, topPlats, evolution, periode });
+  res.json({ caTotal, nbCommandes, panierMoyen, topPlats });
 });
 
-// ===== ROUTES TABLES =====
+// ==================== ROUTES TABLES ====================
 app.get('/api/tables/:restoId', checkRole(['gerant', 'superadmin']), async (req, res) => {
-  const { restoId } = req.params;
-  const targetRestoId = restoId || req.user.resto_id;
-  
-  const { data, error } = await supabase
-    .from('tables')
-    .select('*')
-    .eq('resto_id', targetRestoId)
-    .order('numero_table');
-  
+  const targetRestoId = req.params.restoId || req.user.resto_id;
+  const { data, error } = await supabase.from('tables').select('*').eq('resto_id', targetRestoId).order('numero_table');
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
@@ -523,183 +390,95 @@ app.get('/api/tables/:restoId', checkRole(['gerant', 'superadmin']), async (req,
 app.post('/api/tables', checkRole(['gerant', 'superadmin']), async (req, res) => {
   const { restoId, numeroTable } = req.body;
   const targetRestoId = restoId || req.user.resto_id;
-  
-  const { data, error } = await supabase
-    .from('tables')
-    .insert({ resto_id: targetRestoId, numero_table: numeroTable })
-    .select();
-  
+  const { data, error } = await supabase.from('tables').insert({ resto_id: targetRestoId, numero_table: numeroTable }).select();
   if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true, data });
 });
 
 app.delete('/api/tables/:id', checkRole(['gerant', 'superadmin']), async (req, res) => {
   const { id } = req.params;
-  
-  const { error } = await supabase
-    .from('tables')
-    .delete()
-    .eq('id', id);
-  
+  const { error } = await supabase.from('tables').delete().eq('id', id);
   if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true });
 });
 
-// ===== ROUTES PHOTOS =====
+// ==================== ROUTES PHOTOS ====================
 const upload = multer({ storage: multer.memoryStorage() });
-
 app.post('/api/upload-plat-photo/:platId', checkRole(['gerant', 'superadmin']), upload.single('photo'), async (req, res) => {
   const { platId } = req.params;
   const file = req.file;
-  
   if (!file) return res.status(400).json({ error: 'Aucune photo' });
   
   const fileName = `plat_${platId}_${Date.now()}.jpg`;
-  const filePath = `plats/${fileName}`;
-  
-  const { error } = await supabase.storage
-    .from('plat-photos')
-    .upload(filePath, file.buffer, { contentType: file.mimetype });
-  
+  const { error } = await supabase.storage.from('plat-photos').upload(`plats/${fileName}`, file.buffer, { contentType: file.mimetype });
   if (error) return res.status(500).json({ error: error.message });
   
-  const { data: urlData } = supabase.storage.from('plat-photos').getPublicUrl(filePath);
+  const { data: urlData } = supabase.storage.from('plat-photos').getPublicUrl(`plats/${fileName}`);
   await supabase.from('menus').update({ photo_url: urlData.publicUrl }).eq('id', platId);
-  
   res.json({ success: true, photoUrl: urlData.publicUrl });
 });
 
 app.delete('/api/delete-photo/:platId', checkRole(['gerant', 'superadmin']), async (req, res) => {
   const { platId } = req.params;
-  
   const { data: plat } = await supabase.from('menus').select('photo_url').eq('id', platId).single();
-  
   if (plat?.photo_url) {
     const path = plat.photo_url.split('/').slice(-2).join('/');
     await supabase.storage.from('plat-photos').remove([path]);
   }
-  
   await supabase.from('menus').update({ photo_url: null }).eq('id', platId);
   res.json({ success: true });
 });
 
-// Ajouter un employé (version avec lien unique)
+// ==================== ROUTES EMPLOYÉS ====================
+app.get('/api/admin/employes', checkRole(['gerant', 'superadmin']), async (req, res) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, nom, prenom, role, token_unique, lien_unique, created_at')
+    .eq('resto_id', req.user.resto_id)
+    .neq('role', 'gerant')
+    .neq('role', 'superadmin')
+    .order('created_at', { ascending: false });
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
+});
+
 app.post('/api/admin/employe', checkRole(['gerant', 'superadmin']), async (req, res) => {
   const { nom, prenom, role } = req.body;
-  const restoId = req.user.resto_id;
+  if (!nom || !role) return res.status(400).json({ error: 'Nom et rôle requis' });
   
-  if (!nom || !role) {
-    return res.status(400).json({ error: 'Nom et rôle requis' });
-  }
-  
-  // Générer un token unique
   const tokenUnique = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
   const lienUnique = `${PUBLIC_URL}/magic.html?token=${tokenUnique}`;
   
-  // Créer l'employé avec token
   const { data, error } = await supabase
     .from('profiles')
-    .insert({ 
-      nom: nom,
-      prenom: prenom || '',
-      resto_id: restoId, 
-      role: role,
-      token_unique: tokenUnique,
-      lien_unique: lienUnique,
-      email: `${tokenUnique}@magic.resto`
-    })
+    .insert({ nom: nom.trim(), prenom: prenom?.trim() || '', resto_id: req.user.resto_id, role, token_unique: tokenUnique, lien_unique: lienUnique, email: `${tokenUnique}@temp.resto`, first_login: true })
     .select();
-  
   if (error) return res.status(500).json({ error: error.message });
   
-  const roleText = role === 'cuisinier' ? 'Cuisinier' : 'Serveur';
-  const nomComplet = `${prenom} ${nom}`.trim();
-  
-  // Retourner le lien directement
-  res.json({ 
-    success: true, 
-    employe: data[0],
-    lien: lienUnique,
-    nom: nomComplet,
-    role: roleText
-  });
+  res.json({ success: true, employe: data[0], lien: lienUnique, nom: `${prenom || ''} ${nom}`.trim(), role: role === 'cuisinier' ? 'Cuisinier' : 'Serveur' });
 });
 
-// Modifier le rôle d'un employé
-app.put('/api/admin/employe/:id/role', checkRole(['gerant', 'superadmin']), async (req, res) => {
-  const { id } = req.params;
-  const { role } = req.body;
-  
-  if (!role || !['cuisinier', 'serveur'].includes(role)) {
-    return res.status(400).json({ error: 'Rôle invalide' });
-  }
-  
-  const { error } = await supabase
-    .from('profiles')
-    .update({ role })
-    .eq('id', id);
-  
-  if (error) return res.status(500).json({ error: error.message });
-  res.json({ success: true });
-});
-
-// Supprimer un employé (DELETE)
 app.delete('/api/admin/employe/:id', checkRole(['gerant', 'superadmin']), async (req, res) => {
   const { id } = req.params;
-  const restoId = req.user.resto_id;
-  
-  console.log('Tentative suppression employé - ID:', id, 'Resto ID:', restoId);
-  
-  // Vérifier que l'employé existe et appartient au restaurant
-  const { data: employe, error: checkError } = await supabase
-    .from('profiles')
-    .select('id, resto_id')
-    .eq('id', id)
-    .single();
-  
-  if (checkError) {
-    console.error('Erreur recherche employé:', checkError);
-    return res.status(404).json({ error: 'Employé non trouvé' });
-  }
-  
-  if (!employe) {
-    return res.status(404).json({ error: 'Employé non trouvé' });
-  }
-  
-  if (employe.resto_id !== restoId) {
-    console.error('Non autorisé - resto_id ne correspond pas');
-    return res.status(403).json({ error: 'Non autorisé' });
-  }
-  
-  // Supprimer l'employé
-  const { error } = await supabase
-    .from('profiles')
-    .delete()
-    .eq('id', id);
-  
-  if (error) {
-    console.error('Erreur suppression:', error);
-    return res.status(500).json({ error: error.message });
-  }
-  
-  console.log('Employé supprimé avec succès, ID:', id);
+  const { error } = await supabase.from('profiles').delete().eq('id', id).eq('resto_id', req.user.resto_id);
+  if (error) return res.status(500).json({ error: error.message });
   res.json({ success: true });
 });
 
-// ===== ROUTE POUR RÉCUPÉRER LES INFOS D'ABONNEMENT =====
-app.get('/api/restaurant/subscription', authMiddleware, async (req, res) => {
-  const restoId = req.user.resto_id;
-  
-  const { data: restaurant, error } = await supabase
-    .from('restaurants')
-    .select('subscription_status, trial_ends_at, subscription_ends_at')
-    .eq('id', restoId)
-    .single();
-  
+app.put('/api/admin/employe/:id/role', checkRole(['gerant', 'superadmin']), async (req, res) => {
+  const { id, role } = req.params;
+  if (!role || !['cuisinier', 'serveur'].includes(role)) return res.status(400).json({ error: 'Rôle invalide' });
+  const { error } = await supabase.from('profiles').update({ role }).eq('id', id);
   if (error) return res.status(500).json({ error: error.message });
+  res.json({ success: true });
+});
+
+// ==================== ROUTES ABONNEMENT ====================
+app.get('/api/restaurant/subscription', authMiddleware, async (req, res) => {
+  const { data: restaurant } = await supabase.from('restaurants').select('subscription_status, trial_ends_at, subscription_ends_at').eq('id', req.user.resto_id).single();
+  if (!restaurant) return res.status(404).json({ error: 'Restaurant non trouvé' });
   
-  let response = { status: restaurant.subscription_status };
-  
+  const response = { status: restaurant.subscription_status };
   if (restaurant.subscription_status === 'trial') {
     const daysLeft = Math.ceil((new Date(restaurant.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24));
     response.days_left = Math.max(0, daysLeft);
@@ -707,491 +486,23 @@ app.get('/api/restaurant/subscription', authMiddleware, async (req, res) => {
   } else if (restaurant.subscription_status === 'active') {
     response.ends_at = restaurant.subscription_ends_at;
   }
-  
   res.json(response);
 });
 
-// ===== ROUTES GESTION DES EMPLOYÉS =====
-
-// Lister les employés (GET)
-app.get('/api/admin/employes', checkRole(['gerant', 'superadmin']), async (req, res) => {
-  const restoId = req.user.resto_id;
-  
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, nom, prenom, role, token_unique, lien_unique, created_at')
-    .eq('resto_id', restoId)
-    .neq('role', 'gerant')
-    .neq('role', 'superadmin')
-    .order('created_at', { ascending: false });
-  
-  if (error) {
-    console.error('Erreur liste employés:', error);
-    return res.status(500).json({ error: error.message });
-  }
-  
-  res.json(data || []);
-});
-
-const bcrypt = require('bcrypt');
-const saltRounds = 10;
-
-// ===== INSCRIPTION NOUVEAU RESTAURANT AVEC ABONNEMENT =====
-app.post('/api/register', async (req, res) => {
-  const { email, motDePasse, nomRestaurant, telephone, adresse } = req.body;
-  
-  // Validation
-  if (!email || !motDePasse || !nomRestaurant) {
-    return res.status(400).json({ error: 'Email, mot de passe et nom du restaurant requis' });
-  }
-  
-  if (motDePasse.length < 6) {
-    return res.status(400).json({ error: 'Le mot de passe doit contenir au moins 6 caractères' });
-  }
-  
-  // Vérifier si l'email existe déjà
-  const { data: existingUser } = await supabase
-    .from('profiles')
-    .select('email')
-    .eq('email', email)
-    .single();
-  
-  if (existingUser) {
-    return res.status(400).json({ error: 'Cet email est déjà utilisé' });
-  }
-  
-  // Hasher le mot de passe
-  const hashedPassword = await bcrypt.hash(motDePasse, 10);
-  
-  // Créer un slug unique
-  const baseSlug = nomRestaurant.toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-  
-  const timestamp = Date.now();
-  const slug = `${baseSlug}-${timestamp}`;
-  
-  // Dates d'abonnement
-  const now = new Date();
-  const trialEndsAt = new Date();
-  trialEndsAt.setDate(trialEndsAt.getDate() + 14); // 14 jours d'essai
-  
-  // Créer le restaurant (avec abonnement)
-  const { data: restaurant, error: restoError } = await supabase
-    .from('restaurants')
-    .insert({ 
-      nom: nomRestaurant, 
-      slug: slug, 
-      telephone: telephone || null, 
-      adresse: adresse || null, 
-      actif: true,
-      subscription_status: 'trial',
-      trial_ends_at: trialEndsAt.toISOString()
-    })
-    .select()
-    .single();
-  
-  if (restoError) {
-    console.error('Erreur création restaurant:', restoError);
-    return res.status(500).json({ error: 'Erreur lors de la création du restaurant' });
-  }
-  
-  // Créer le profil gérant
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .insert({ 
-      email: email, 
-      resto_id: restaurant.id, 
-      nom: nomRestaurant,
-      mot_de_passe: hashedPassword,
-      role: 'gerant' 
-    })
-    .select()
-    .single();
-  
-  if (profileError) {
-    console.error('Erreur création profil:', profileError);
-    await supabase.from('restaurants').delete().eq('id', restaurant.id);
-    return res.status(500).json({ error: 'Erreur lors de la création du compte' });
-  }
-  
-  // Créer les tables par défaut (1 à 10)
-  const tables = [];
-  for (let i = 1; i <= 10; i++) {
-    tables.push({ resto_id: restaurant.id, numero_table: i });
-  }
-  await supabase.from('tables').insert(tables);
-  
-  // Plats par défaut
-  const platsParDefaut = [
-    { resto_id: restaurant.id, nom_plat: 'Yassa Poulet', prix: 2500, categorie: 'Plat', disponible: true, description: 'Poulet mariné aux oignons et citron' },
-    { resto_id: restaurant.id, nom_plat: 'Thieboudienne', prix: 3000, categorie: 'Plat', disponible: true, description: 'Riz au poisson et légumes' },
-    { resto_id: restaurant.id, nom_plat: 'Mafé', prix: 2800, categorie: 'Plat', disponible: true, description: 'Sauce arachide et viande' },
-    { resto_id: restaurant.id, nom_plat: 'Jus de Bissap', prix: 500, categorie: 'Boisson', disponible: true, description: 'Jus d\'hibiscus' },
-    { resto_id: restaurant.id, nom_plat: 'Ngata', prix: 1500, categorie: 'Dessert', disponible: true, description: 'Beignet sénégalais' }
-  ];
-  await supabase.from('menus').insert(platsParDefaut);
-  
-  // Générer le token
-  const token = jwt.sign(
-    { 
-      id: profile.id, 
-      email: email, 
-      resto_id: restaurant.id, 
-      restaurant_name: restaurant.nom, 
-      role: 'gerant' 
-    },
-    JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-  
-  res.json({ 
-    success: true, 
-    token, 
-    user: profile, 
-    restaurant,
-    trial_days: 14
-  });
-});
-
-// ===== CONNEXION SÉCURISÉE =====
-app.post('/api/auth/login', async (req, res) => {
-  const { email, motDePasse, role } = req.body;
-  
-  if (!email || !motDePasse) {
-    return res.status(400).json({ error: 'Email et mot de passe requis' });
-  }
-  
-  // Vérifier si le compte existe
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('*, restaurants(*)')
-    .eq('email', email)
-    .single();
-  
-  if (error || !profile) {
-    return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
-  }
-  
-  // Vérifier le mot de passe
-  const isValid = await bcrypt.compare(motDePasse, profile.mot_de_passe);
-  if (!isValid) {
-    return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
-  }
-  
-  // Vérifier le rôle
-  if (role && profile.role !== role) {
-    return res.status(401).json({ error: `Accès non autorisé. Vous êtes ${profile.role}.` });
-  }
-  
-  const token = jwt.sign(
-    { 
-      id: profile.id, 
-      email: profile.email, 
-      resto_id: profile.resto_id,
-      restaurant_name: profile.restaurants?.nom,
-      role: profile.role 
-    },
-    JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-  
-  res.json({ success: true, token, user: profile, restaurant: profile.restaurants });
-});
-
-// Ajouter un employé (POST)
-app.post('/api/admin/employe', checkRole(['gerant', 'superadmin']), async (req, res) => {
-  const { nom, prenom, role } = req.body;
-  const restoId = req.user.resto_id;
-  
-  if (!nom || !role) {
-    return res.status(400).json({ error: 'Nom et rôle requis' });
-  }
-  
-  // Vérifier si un employé avec ce nom existe déjà
-  const { data: existing } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('resto_id', restoId)
-    .eq('nom', nom)
-    .eq('prenom', prenom || '')
-    .single();
-  
-  if (existing) {
-    return res.status(400).json({ error: 'Cet employé existe déjà' });
-  }
-  
-  // Générer un token unique
-  const tokenUnique = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
-  const lienUnique = `${PUBLIC_URL}/magic.html?token=${tokenUnique}`;
-  
-  // Créer l'employé
-  const { data, error } = await supabase
-    .from('profiles')
-    .insert({ 
-      nom: nom.trim(),
-      prenom: prenom ? prenom.trim() : '',
-      resto_id: restoId, 
-      role: role,
-      token_unique: tokenUnique,
-      lien_unique: lienUnique,
-      email: `${tokenUnique}@temp.resto`
-    })
-    .select();
-  
-  if (error) {
-    console.error('Erreur création employé:', error);
-    return res.status(500).json({ error: error.message });
-  }
-  
-  const roleText = role === 'cuisinier' ? 'Cuisinier' : 'Serveur';
-  const nomComplet = `${prenom ? prenom + ' ' : ''}${nom}`.trim();
-  
-  res.json({ 
-    success: true, 
-    employe: data[0],
-    lien: lienUnique,
-    nom: nomComplet,
-    role: roleText
-  });
-});
-
-// Supprimer un employé (DELETE)
-app.delete('/api/admin/employe/:id', checkRole(['gerant', 'superadmin']), async (req, res) => {
-  const { id } = req.params;
-  const restoId = req.user.resto_id;
-  
-  console.log('=== SUPPRESSION ===');
-  console.log('ID:', id);
-  console.log('Resto ID:', restoId);
-  
-  try {
-    // Vérifier que l'employé existe et appartient au restaurant
-    const { data: employe, error: findError } = await supabase
-      .from('profiles')
-      .select('id, resto_id')
-      .eq('id', id)
-      .single();
-    
-    if (findError || !employe) {
-      console.log('Employé non trouvé');
-      return res.status(404).json({ error: 'Employé non trouvé' });
-    }
-    
-    if (employe.resto_id !== restoId) {
-      console.log('Non autorisé');
-      return res.status(403).json({ error: 'Non autorisé' });
-    }
-    
-    // Supprimer l'employé
-    const { error: deleteError } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('id', id);
-    
-    if (deleteError) {
-      console.log('Erreur suppression:', deleteError);
-      return res.status(500).json({ error: deleteError.message });
-    }
-    
-    console.log('✅ Suppression réussie');
-    res.json({ success: true });
-    
-  } catch (error) {
-    console.error('Exception:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Modifier le rôle d'un employé (PUT)
-app.put('/api/admin/employe/:id/role', checkRole(['gerant', 'superadmin']), async (req, res) => {
-  const { id } = req.params;
-  const { role } = req.body;
-  
-  if (!role || !['cuisinier', 'serveur'].includes(role)) {
-    return res.status(400).json({ error: 'Rôle invalide' });
-  }
-  
-  const { error } = await supabase
-    .from('profiles')
-    .update({ role: role })
-    .eq('id', id);
-  
-  if (error) {
-    console.error('Erreur modification rôle:', error);
-    return res.status(500).json({ error: error.message });
-  }
-  
-  res.json({ success: true });
-});
-
-// ===== MIDDLEWARE VÉRIFICATION ABONNEMENT =====
-async function checkSubscription(req, res, next) {
-  // Le super admin n'est pas concerné
-  if (req.user?.role === 'superadmin') {
-    return next();
-  }
-  
-  const restoId = req.user?.resto_id;
-  
-  if (!restoId) {
-    return next();
-  }
-  
-  try {
-    const { data: restaurant, error } = await supabase
-      .from('restaurants')
-      .select('subscription_status, trial_ends_at, subscription_ends_at')
-      .eq('id', restoId)
-      .single();
-    
-    if (error || !restaurant) {
-      return next();
-    }
-    
-    const now = new Date();
-    
-    // Vérifier l'essai gratuit
-    if (restaurant.subscription_status === 'trial') {
-      const trialEnd = new Date(restaurant.trial_ends_at);
-      if (now > trialEnd) {
-        // Mettre à jour le statut
-        await supabase
-          .from('restaurants')
-          .update({ subscription_status: 'expired' })
-          .eq('id', restoId);
-        
-        return res.status(403).json({ 
-          error: 'expired',
-          message: 'Votre période d\'essai de 14 jours est terminée. Veuillez souscrire un abonnement.',
-          trial_ended: true
-        });
-      }
-      
-      // Ajouter l'info dans la requête
-      req.subscription = {
-        status: 'trial',
-        days_left: Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24))
-      };
-    }
-    
-    // Vérifier l'abonnement payant
-    if (restaurant.subscription_status === 'active' && restaurant.subscription_ends_at) {
-      const subEnd = new Date(restaurant.subscription_ends_at);
-      if (now > subEnd) {
-        await supabase
-          .from('restaurants')
-          .update({ subscription_status: 'expired' })
-          .eq('id', restoId);
-        
-        return res.status(403).json({ 
-          error: 'expired',
-          message: 'Votre abonnement a expiré. Veuillez le renouveler.'
-        });
-      }
-      
-      req.subscription = {
-        status: 'active',
-        days_left: Math.ceil((subEnd - now) / (1000 * 60 * 60 * 24))
-      };
-    }
-    
-    // Bloquer si suspendu
-    if (restaurant.subscription_status === 'suspended') {
-      return res.status(403).json({ 
-        error: 'suspended',
-        message: 'Votre compte a été suspendu. Contactez le support.'
-      });
-    }
-    
-    if (restaurant.subscription_status === 'expired') {
-      return res.status(403).json({ 
-        error: 'expired',
-        message: 'Votre abonnement a expiré. Veuillez le renouveler.'
-      });
-    }
-    
-    next();
-  } catch (error) {
-    console.error('Erreur checkSubscription:', error);
-    next();
-  }
-}
-
-// Appliquer le middleware aux routes protégées
-app.use('/api/admin/*', authMiddleware, checkSubscription);
-app.use('/api/stats/*', authMiddleware, checkSubscription);
-app.use('/api/tables/*', authMiddleware, checkSubscription);
-
-// ===== CONNEXION MAGIQUE PAR LIEN UNIQUE =====
-app.get('/api/auth/magic/:token', async (req, res) => {
-  const { token } = req.params;
-  
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('token_unique', token)
-    .single();
-  
-  if (error || !profile) {
-    return res.status(401).json({ error: 'Lien invalide ou expiré' });
-  }
-  
-  const jwtToken = jwt.sign(
-    { 
-      id: profile.id, 
-      email: profile.email || `${profile.token_unique}@magic.resto`,
-      prenom: profile.prenom,
-      nom: profile.nom,
-      resto_id: profile.resto_id, 
-      role: profile.role 
-    },
-    JWT_SECRET,
-    { expiresIn: '30d' }
-  );
-  
-  res.json({ success: true, token: jwtToken, user: profile });
-});
-
-// ===== WEBSOCKETS =====
+// ==================== WEBSOCKETS ====================
 io.on('connection', (socket) => {
   console.log('🟢 Client connecté');
-  socket.on('join_resto', (restoId) => {
-    socket.join(`resto_${restoId}`);
-  });
+  socket.on('join_resto', (restoId) => socket.join(`resto_${restoId}`));
 });
 
-// ===== SUIVI COMMANDE =====
-app.get('/api/commande/suivi/:id', async (req, res) => {
-  const { id } = req.params;
-  
-  const { data: commande, error: cmdError } = await supabase
-    .from('commandes')
-    .select('*')
-    .eq('id', id)
-    .single();
-  
-  if (cmdError || !commande) return res.status(404).json({ error: 'Commande non trouvée' });
-  
-  const { data: details, error: detError } = await supabase
-    .from('commande_details')
-    .select('nom_plat, quantite, prix_unitaire')
-    .eq('commande_id', id);
-  
-  res.json({ id: commande.id, statut: commande.statut, total: commande.total, date_commande: commande.date_commande, details: details || [] });
-});
-
-// ===== SUPER ADMIN : Liste tous les restaurants =====
+// ==================== SUPER ADMIN ====================
 app.get('/api/superadmin/restaurants', checkRole(['superadmin']), async (req, res) => {
   const { data, error } = await supabase.from('restaurants').select('*, profiles(count)');
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
 
-// ===== LANCEMENT =====
+// ==================== LANCEMENT ====================
 server.listen(3001, '0.0.0.0', () => {
   console.log('🚀 Serveur sur http://localhost:3001');
 });
