@@ -643,15 +643,13 @@ app.get('/api/superadmin/restaurants', checkRole(['superadmin']), async (req, re
   res.json(data);
 });
 
-// ==================== ROUTES ABONNEMENT - RENOUVELLEMENT SIMULÉ ====================
+// ==================== ROUTE DE PAIEMENT SIMULÉ ====================
 app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
   const { plan } = req.body;
   const restoId = req.user.resto_id;
   const profileId = req.user.id;
 
-  if (!plan || !['monthly', 'quarterly', 'yearly'].includes(plan)) {
-    return res.status(400).json({ error: 'Plan invalide' });
-  }
+  console.log('📢 Demande de paiement reçue pour resto:', restoId, 'plan:', plan);
 
   const plans = {
     monthly: { amount: 25000, months: 1, name: 'Mensuel' },
@@ -659,15 +657,30 @@ app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
     yearly: { amount: 200000, months: 12, name: 'Annuel' }
   };
 
+  if (!plan || !plans[plan]) {
+    return res.status(400).json({ error: 'Plan invalide' });
+  }
+
   const config = plans[plan];
   const startDate = new Date();
   const endDate = new Date();
   endDate.setMonth(endDate.getMonth() + config.months);
-  const transactionRef = `RENEW_${restoId}_${Date.now()}`;
 
   try {
-    // 1. Créer la transaction
-    const { data: transaction, error } = await supabase
+    // 1. Mettre à jour l'abonnement du restaurant directement
+    const { error: updateError } = await supabase
+      .from('restaurants')
+      .update({
+        subscription_status: 'active',
+        subscription_ends_at: endDate.toISOString()
+      })
+      .eq('id', restoId);
+
+    if (updateError) throw updateError;
+
+    // 2. Enregistrer la transaction
+    const transactionRef = `PAY_${restoId}_${Date.now()}`;
+    await supabase
       .from('transactions')
       .insert({
         resto_id: restoId,
@@ -679,32 +692,18 @@ app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
         end_date: endDate.toISOString(),
         initiated_by: profileId,
         payment_date: new Date().toISOString()
-      })
-      .select()
-      .single();
+      });
 
-    if (error) throw error;
-
-    // 2. Mettre à jour l'abonnement du restaurant
-    await supabase
-      .from('restaurants')
-      .update({
-        subscription_status: 'active',
-        subscription_ends_at: endDate.toISOString()
-      })
-      .eq('id', restoId);
-
-    console.log(`✅ Abonnement activé pour resto ${restoId} jusqu'au ${endDate.toISOString()}`);
+    console.log('✅ Abonnement activé pour resto', restoId, 'jusqu\'au', endDate);
 
     res.json({
       success: true,
-      message: `✅ Abonnement ${config.name} activé avec succès !`,
-      end_date: endDate,
-      amount: config.amount
+      message: `✅ Abonnement ${config.name} activé avec succès ! Valable jusqu'au ${endDate.toLocaleDateString('fr-FR')}`,
+      end_date: endDate
     });
 
   } catch (error) {
-    console.error('Erreur renouvellement:', error);
+    console.error('Erreur:', error);
     res.status(500).json({ error: error.message });
   }
 });
