@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nos offres - Restaurant Élite</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1A1A2E 0%, #242440 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 50px; }
+        .header h1 { color: white; font-size: 36px; margin-bottom: 10px; }
+        .header p { color: #C6A43F; font-size: 18px; }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .pricing-card {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s;
+            position: relative;
+        }
+        .pricing-card:hover { transform: translateY(-10px); }
+        .pricing-card.recommended { border: 2px solid #C6A43F; }
+        .pricing-card.recommended::before {
+            content: "⭐ Recommandé";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #C6A43F;
+            color: #1A1A2E;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .plan-icon { font-size: 48px; margin-bottom: 20px; }
+        .plan-name { font-size: 24px; font-weight: bold; color: #1A1A2E; margin-bottom: 10px; }
+        .plan-price { font-size: 36px; font-weight: bold; color: #C6A43F; margin: 20px 0; }
+        .plan-price small { font-size: 14px; font-weight: normal; color: #666; }
+        .features { list-style: none; margin: 20px 0; }
+        .features li { padding: 8px 0; color: #555; border-bottom: 1px solid #eee; }
+        .btn-subscribe {
+            background: linear-gradient(135deg, #C6A43F 0%, #9E7E2E 100%);
+            color: #1A1A2E;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .your-plan {
+            background: #E8F8F5;
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 40px;
+            text-align: center;
+        }
+        .btn-back {
+            background: #6C6C7A;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="btn-back" onclick="window.location.href='/dashboard.html'">← Retour au dashboard</button>
+        
+        <div class="header">
+            <h1>🍽️ Nos formules d'abonnement</h1>
+            <p>Choisissez l'offre qui correspond à votre activité</p>
+        </div>
+        
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <div class="plan-icon">📅</div>
+                <div class="plan-name">Mensuel</div>
+                <div class="plan-price">25 000 <small>FCFA/mois</small></div>
+                <ul class="features">
+                    <li>✅ Toutes les fonctionnalités</li>
+                    <li>✅ Support prioritaire</li>
+                    <li>✅ Mises à jour gratuites</li>
+                    <li>✅ Sans engagement</li>
+                </ul>
+                <button class="btn-subscribe" onclick="initierPaiement('monthly', 25000)">Choisir cette offre</button>
+            </div>
+            
+            <div class="pricing-card recommended">
+                <div class="plan-icon">📆</div>
+                <div class="plan-name">Trimestriel</div>
+                <div class="plan-price">60 000 <small>FCFA/3 mois</small></div>
+                <div style="color: #27AE60; font-size: 12px;">Économisez 15 000 FCFA</div>
+                <ul class="features">
+                    <li>✅ Toutes les fonctionnalités</li>
+                    <li>✅ Support prioritaire</li>
+                    <li>✅ Mises à jour gratuites</li>
+                    <li>✅ 3 mois pour le prix de 2</li>
+                </ul>
+                <button class="btn-subscribe" onclick="initierPaiement('quarterly', 60000)">Choisir cette offre</button>
+            </div>
+            
+            <div class="pricing-card">
+                <div class="plan-icon">📅</div>
+                <div class="plan-name">Annuel</div>
+                <div class="plan-price">200 000 <small>FCFA/an</small></div>
+                <div style="color: #27AE60; font-size: 12px;">Économisez 100 000 FCFA</div>
+                <ul class="features">
+                    <li>✅ Toutes les fonctionnalités</li>
+                    <li>✅ Support VIP</li>
+                    <li>✅ Mises à jour gratuites</li>
+                    <li>✅ 2 mois offerts</li>
+                </ul>
+                <button class="btn-subscribe" onclick="initierPaiement('yearly', 200000)">Choisir cette offre</button>
+            </div>
+        </div>
+        
+        <div id="current-plan" class="your-plan"></div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('resto_token');
+        if (!token) window.location.href = '/login.html';
+        
+        async function initierPaiement(plan, price) {
+            if (!confirm(`Souscrire à l'offre ${plan === 'monthly' ? 'Mensuelle' : plan === 'quarterly' ? 'Trimestrielle' : 'Annuelle'} à ${price.toLocaleString()} FCFA ?`)) return;
+            
+            try {
+                const response = await fetch('/api/subscription/initiate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ plan })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert(`✅ Demande de paiement créée !\nMontant : ${price.toLocaleString()} FCFA\n\nRedirection vers Wave...`);
+                    // window.location.href = result.payment_url;
+                } else {
+                    alert('❌ ' + (result.error || 'Erreur'));
+                }
+            } catch(e) {
+                alert('❌ Erreur de connexion');
+            }
+        }
+        
+        async function getCurrentSubscription() {
+            try {
+                const res = await fetch('/api/restaurant/subscription', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.status === 'trial') {
+                    document.getElementById('current-plan').innerHTML = `📋 Vous êtes actuellement en période d'essai. Il vous reste ${data.days_left} jours.`;
+                } else if (data.status === 'active') {
+                    document.getElementById('current-plan').innerHTML = `✅ Votre abonnement est actif.`;
+                }
+            } catch(e) {}
+        }
+        
+        getCurrentSubscription();
+    </script>
+</body>
+</html>

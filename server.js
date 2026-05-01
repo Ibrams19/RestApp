@@ -709,6 +709,48 @@ app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
   }
 });
 
+app.post('/api/subscription/initiate', authMiddleware, async (req, res) => {
+  const { plan } = req.body;
+  const restoId = req.user.resto_id;
+  const profileId = req.user.id;
+
+  const plans = {
+    monthly: { amount: 25000, months: 1, name: 'Mensuel' },
+    quarterly: { amount: 60000, months: 3, name: 'Trimestriel' },
+    yearly: { amount: 200000, months: 12, name: 'Annuel' }
+  };
+
+  const config = plans[plan];
+  const startDate = new Date();
+  const endDate = new Date();
+  endDate.setMonth(endDate.getMonth() + config.months);
+  const transactionRef = `PAY_${restoId}_${Date.now()}`;
+
+  const { data: transaction, error } = await supabase
+    .from('transactions')
+    .insert({
+      resto_id: restoId,
+      transaction_ref: transactionRef,
+      plan_type: plan,
+      amount: config.amount,
+      status: 'pending',
+      start_date: startDate.toISOString(),
+      end_date: endDate.toISOString(),
+      initiated_by: profileId
+    })
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.json({
+    success: true,
+    transaction_id: transaction.id,
+    amount: config.amount,
+    message: `Demande de paiement de ${config.amount.toLocaleString()} FCFA créée`
+  });
+});
+
 // ==================== WEBSOCKETS ====================
 io.on('connection', (socket) => {
   console.log('🟢 Client connecté');
