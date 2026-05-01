@@ -1,217 +1,340 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Renouvellement Abonnement - RestoElite</title>
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .renew-container {
-      background: white;
-      max-width: 520px;
-      width: 90%;
-      border-radius: 20px;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-      overflow: hidden;
-    }
-    .header {
-      background: #C6A43F;
-      color: white;
-      padding: 30px 20px;
-      text-align: center;
-    }
-    .header h1 {
-      margin: 0;
-      font-size: 28px;
-    }
-    .content {
-      padding: 40px 30px;
-    }
-    .status {
-      text-align: center;
-      padding: 15px;
-      background: #fff3cd;
-      color: #856404;
-      border-radius: 12px;
-      margin-bottom: 30px;
-      font-weight: 600;
-    }
-    .plan {
-      border: 2px solid #eee;
-      border-radius: 16px;
-      padding: 20px;
-      margin-bottom: 20px;
-      transition: all 0.3s;
-      cursor: pointer;
-    }
-    .plan:hover {
-      border-color: #C6A43F;
-      transform: translateY(-3px);
-    }
-    .plan.recommended {
-      border-color: #C6A43F;
-      position: relative;
-    }
-    .plan.recommended::after {
-      content: "Recommandé";
-      position: absolute;
-      top: -12px;
-      right: 20px;
-      background: #C6A43F;
-      color: white;
-      font-size: 12px;
-      padding: 4px 12px;
-      border-radius: 20px;
-    }
-    .plan-title {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    .price {
-      font-size: 32px;
-      font-weight: 800;
-      color: #C6A43F;
-    }
-    .price small {
-      font-size: 16px;
-      font-weight: 400;
-    }
-    button {
-      width: 100%;
-      padding: 16px;
-      font-size: 18px;
-      font-weight: 600;
-      background: #C6A43F;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover {
-      background: #b38f2f;
-    }
-    .info {
-      text-align: center;
-      margin-top: 30px;
-      color: #666;
-      font-size: 14px;
-    }
-  </style>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Renouvellement Abonnement - RestoElite</title>
+ <link rel="stylesheet" href="styles.css">
+ <style>
+ :root {
+ --primary: #C6A43F;
+ --dark: #1e2937;
+ }
+
+ body {
+ font-family: 'Segoe UI', system-ui, sans-serif;
+ background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+ margin: 0;
+ padding: 20px;
+ min-height: 100vh;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ }
+
+ .renew-container {
+ background: white;
+ max-width: 560px;
+ width: 100%;
+ border-radius: 24px;
+ box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+ overflow: hidden;
+ }
+
+ .header {
+ background: linear-gradient(135deg, var(--primary), #b38f2f);
+ color: white;
+ padding: 35px 30px;
+ text-align: center;
+ }
+
+ .header h1 {
+ margin: 0 0 8px 0;
+ font-size: 28px;
+ font-weight: 700;
+ }
+
+ .header p {
+ margin: 0;
+ opacity: 0.95;
+ font-size: 15px;
+ }
+
+ .content {
+ padding: 40px 35px;
+ }
+
+ .restaurant-info {
+ text-align: center;
+ margin-bottom: 30px;
+ padding: 15px;
+ background: #f8fafc;
+ border-radius: 12px;
+ border-left: 5px solid var(--primary);
+ }
+
+ .restaurant-name {
+ font-size: 22px;
+ font-weight: 700;
+ color: var(--dark);
+ margin: 0 0 5px 0;
+ }
+
+ .status-alert {
+ background: #fef3c7;
+ color: #92400e;
+ padding: 16px 20px;
+ border-radius: 12px;
+ text-align: center;
+ font-weight: 600;
+ margin-bottom: 35px;
+ border: 1px solid #fcd34d;
+ }
+
+ .plan-card {
+ border: 2px solid #e2e8f0;
+ border-radius: 16px;
+ padding: 24px;
+ margin-bottom: 18px;
+ transition: all 0.3s ease;
+ cursor: pointer;
+ position: relative;
+ }
+
+ .plan-card:hover {
+ border-color: var(--primary);
+ transform: translateY(-4px);
+ box-shadow: 0 10px 25px rgba(198, 164, 63, 0.15);
+ }
+
+ .plan-card.recommended {
+ border-color: var(--primary);
+ box-shadow: 0 0 0 4px rgba(198, 164, 63, 0.15);
+ }
+
+ .plan-card.recommended::before {
+ content: "★ Recommandé";
+ position: absolute;
+ top: -12px;
+ right: 24px;
+ background: var(--primary);
+ color: white;
+ font-size: 13px;
+ font-weight: 700;
+ padding: 4px 14px;
+ border-radius: 30px;
+ }
+
+ .plan-header {
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ margin-bottom: 12px;
+ }
+
+ .plan-name {
+ font-size: 22px;
+ font-weight: 700;
+ color: var(--dark);
+ }
+
+ .plan-price {
+ font-size: 32px;
+ font-weight: 800;
+ color: var(--primary);
+ line-height: 1;
+ }
+
+ .plan-price small {
+ font-size: 16px;
+ font-weight: 500;
+ color: #64748b;
+ }
+
+ .plan-saving {
+ color: #16a34a;
+ font-weight: 600;
+ font-size: 14px;
+ margin-top: 4px;
+ }
+
+ button {
+ width: 100%;
+ padding: 18px;
+ font-size: 18px;
+ font-weight: 700;
+ background: var(--primary);
+ color: white;
+ border: none;
+ border-radius: 14px;
+ cursor: pointer;
+ margin-top: 30px;
+ transition: all 0.3s;
+ }
+
+ button:hover {
+ background: #b38f2f;
+ transform: translateY(-2px);
+ }
+
+ button:disabled {
+ background: #94a3b8;
+ cursor: not-allowed;
+ transform: none;
+ }
+
+ .footer-info {
+ text-align: center;
+ margin-top: 35px;
+ color: #64748b;
+ font-size: 14px;
+ line-height: 1.5;
+ }
+
+ .selected {
+ border-color: var(--primary) !important;
+ }
+ </style>
 </head>
 <body>
 
-  <div class="renew-container">
-    <div class="header">
-      <h1>🔄 Renouvellement d'Abonnement</h1>
-    </div>
+ <div class="renew-container">
+ <div class="header">
+ <h1>🔄 Renouvellement d'Abonnement</h1>
+ <p>Continuez à gérer votre restaurant sans interruption</p>
+ </div>
 
-    <div class="content">
-      <div class="status" id="status-message">
-        Votre abonnement a expiré. Veuillez renouveler pour continuer à utiliser le logiciel.
-      </div>
+ <div class="content">
+ <!-- Infos Restaurant -->
+ <div class="restaurant-info" id="restaurant-info">
+ <div class="restaurant-name" id="restaurant-name">Chargement...</div>
+ <p style="margin: 0; color: #64748b;">Votre restaurant</p>
+ </div>
 
-      <h2 style="text-align:center; margin-bottom:25px;">Choisissez votre formule</h2>
+ <!-- Statut -->
+ <div class="status-alert" id="status-alert">
+ Votre abonnement a expiré. Veuillez renouveler pour retrouver l'accès complet.
+ </div>
 
-      <!-- Plan Mensuel -->
-      <div class="plan" onclick="selectPlan('monthly')">
-        <div class="plan-title">Mensuel</div>
-        <div class="price">25 000 FCFA <small>/mois</small></div>
-        <p>Accès complet pendant 30 jours</p>
-      </div>
+ <h2 style="text-align: center; margin-bottom: 25px; color: var(--dark);">Choisissez votre formule</h2>
 
-      <!-- Plan Trimestriel -->
-      <div class="plan recommended" onclick="selectPlan('quarterly')">
-        <div class="plan-title">Trimestriel</div>
-        <div class="price">60 000 FCFA <small>/3 mois</small></div>
-        <p>Économisez 15 000 FCFA</p>
-      </div>
+ <!-- Plan Mensuel -->
+ <div class="plan-card" id="plan-monthly" onclick="selectPlan('monthly')">
+ <div class="plan-header">
+ <div class="plan-name">Mensuel</div>
+ <div>
+ <div class="plan-price">25 000 <small>FCFA</small></div>
+ <small>/mois</small>
+ </div>
+ </div>
+ <p style="margin: 10px 0 0 0; color: #475569;">Accès complet pendant 30 jours</p>
+ </div>
 
-      <!-- Plan Annuel -->
-      <div class="plan" onclick="selectPlan('yearly')">
-        <div class="plan-title">Annuel</div>
-        <div class="price">200 000 FCFA <small>/an</small></div>
-        <p>Économisez 100 000 FCFA</p>
-      </div>
+ <!-- Plan Trimestriel -->
+ <div class="plan-card recommended" id="plan-quarterly" onclick="selectPlan('quarterly')">
+ <div class="plan-header">
+ <div class="plan-name">Trimestriel</div>
+ <div>
+ <div class="plan-price">60 000 <small>FCFA</small></div>
+ <small>/3 mois</small>
+ </div>
+ </div>
+ <div class="plan-saving">Économisez 15 000 FCFA</div>
+ <p style="margin: 8px 0 0 0; color: #475569;">Le meilleur rapport qualité-prix</p>
+ </div>
 
-      <button id="pay-button" onclick="proceedToPayment()">
-        Payer avec Wave / Orange Money
-      </button>
+ <!-- Plan Annuel -->
+ <div class="plan-card" id="plan-yearly" onclick="selectPlan('yearly')">
+ <div class="plan-header">
+ <div class="plan-name">Annuel</div>
+ <div>
+ <div class="plan-price">200 000 <small>FCFA</small></div>
+ <small>/12 mois</small>
+ </div>
+ </div>
+ <div class="plan-saving">Économisez 100 000 FCFA</div>
+ <p style="margin: 8px 0 0 0; color: #475569;">Meilleure économie sur l'année</p>
+ </div>
 
-      <div class="info">
-        Paiement sécurisé • Accès immédiat après paiement<br>
-        Support disponible 7j/7
-      </div>
-    </div>
-  </div>
+ <button id="pay-button" onclick="proceedToPayment()">
+ Continuer vers le paiement sécurisé
+ </button>
 
-  <script>
-    let selectedPlan = null;
+ <div class="footer-info">
+ Paiement sécurisé via Wave • Orange Money<br>
+ Accès immédiat après confirmation du paiement<br>
+ <strong>Support disponible 7j/7</strong>
+ </div>
+ </div>
+ </div>
 
-    function selectPlan(plan) {
-      selectedPlan = plan;
-      
-      // Réinitialiser tous les plans
-      document.querySelectorAll('.plan').forEach(p => {
-        p.style.borderColor = '#eee';
-      });
+ <script>
+ let selectedPlan = null;
+ let restaurantName = '';
 
-      // Mettre en évidence le plan sélectionné
-      event.currentTarget.style.borderColor = '#C6A43F';
-    }
+ // Sélection du plan
+ function selectPlan(plan) {
+ selectedPlan = plan;
 
-    async function proceedToPayment() {
-      if (!selectedPlan) {
-        alert("Veuillez sélectionner une formule d'abonnement");
-        return;
-      }
+ // Réinitialiser tous les cards
+ document.querySelectorAll('.plan-card').forEach(card => {
+ card.classList.remove('selected');
+ });
 
-      const payButton = document.getElementById('pay-button');
-      payButton.innerHTML = 'Traitement en cours...';
-      payButton.disabled = true;
+ // Activer le plan sélectionné
+ document.getElementById(`plan-${plan}`).classList.add('selected');
+ }
 
-      try {
-        const response = await fetch('/api/subscription/renew', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ plan: selectedPlan })
-        });
+ // Procéder au paiement
+ async function proceedToPayment() {
+ if (!selectedPlan) {
+ alert("Veuillez sélectionner une formule d'abonnement");
+ return;
+ }
 
-        const result = await response.json();
+ const payButton = document.getElementById('pay-button');
+ const originalText = payButton.innerHTML;
 
-        if (response.ok) {
-          alert("Redirection vers le paiement Wave...");
-          // Ici on redirigera vers le lien de paiement Wave quand on l'aura intégré
-          window.location.href = result.payment_url || "/";
-        } else {
-          alert(result.message || "Erreur lors de la création du paiement");
-        }
-      } catch (error) {
-        alert("Erreur de connexion. Veuillez réessayer.");
-      } finally {
-        payButton.innerHTML = 'Payer avec Wave / Orange Money';
-        payButton.disabled = false;
-      }
-    }
+ payButton.innerHTML = 'Traitement en cours...';
+ payButton.disabled = true;
 
-    // Vérifier si l'utilisateur est connecté
-    window.onload = () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        window.location.href = '/login.html';
-      }
-    };
-  </script>
+ try {
+ const response = await fetch('/api/subscription/renew', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({ plan: selectedPlan })
+ });
+
+ const result = await response.json();
+
+ if (response.ok) {
+ alert(`Demande de paiement créée avec succès !\n\nMontant : ${result.amount.toLocaleString('fr-FR')} FCFA\nFormule : ${result.plan_name}`);
+ // Plus tard : window.location.href = result.payment_url;
+ } else {
+ alert(result.message || "Une erreur est survenue");
+ }
+ } catch (error) {
+ console.error(error);
+ alert("Erreur de connexion. Veuillez réessayer.");
+ } finally {
+ payButton.innerHTML = originalText;
+ payButton.disabled = false;
+ }
+ }
+
+ // Charger les informations du restaurant au chargement
+ window.onload = async () => {
+ const token = localStorage.getItem('token');
+ if (!token) {
+ window.location.href = '/login.html';
+ return;
+ }
+
+ try {
+ const response = await fetch('/api/restaurant/subscription', {
+ headers: {
+ 'Authorization': `Bearer ${token}`
+ }
+ });
+
+ if (response.ok) {
+ const data = await response.json();
+ // Tu peux afficher plus d'infos si tu veux
+ }
+ } catch (e) {
+ console.log("Impossible de récupérer les infos d'abonnement");
+ }
+ };
+ </script>
 </body>
 </html>
