@@ -30,6 +30,7 @@
             text-align: center;
             transition: transform 0.3s;
             position: relative;
+            cursor: pointer;
         }
         .pricing-card:hover { transform: translateY(-10px); }
         .pricing-card.recommended { border: 2px solid #C6A43F; }
@@ -65,11 +66,12 @@
             margin-top: 20px;
         }
         .your-plan {
-            background: #E8F8F5;
+            background: rgba(255,255,255,0.1);
             border-radius: 16px;
             padding: 15px;
             margin-top: 40px;
             text-align: center;
+            color: white;
         }
         .btn-back {
             background: #6C6C7A;
@@ -80,6 +82,7 @@
             cursor: pointer;
             margin-bottom: 30px;
         }
+        .loading { text-align: center; color: white; padding: 50px; }
     </style>
 </head>
 <body>
@@ -90,6 +93,8 @@
             <h1>🍽️ Nos formules d'abonnement</h1>
             <p>Choisissez l'offre qui correspond à votre activité</p>
         </div>
+        
+        <div id="current-plan" class="your-plan">Chargement de vos informations...</div>
         
         <div class="pricing-grid">
             <div class="pricing-card">
@@ -133,34 +138,38 @@
                 <button class="btn-subscribe" onclick="initierPaiement('yearly', 200000)">Choisir cette offre</button>
             </div>
         </div>
-        
-        <div id="current-plan" class="your-plan"></div>
     </div>
 
     <script>
         const token = localStorage.getItem('resto_token');
-        if (!token) window.location.href = '/login.html';
+        if (!token) {
+            window.location.href = '/login.html';
+        }
         
         async function initierPaiement(plan, price) {
             if (!confirm(`Souscrire à l'offre ${plan === 'monthly' ? 'Mensuelle' : plan === 'quarterly' ? 'Trimestrielle' : 'Annuelle'} à ${price.toLocaleString()} FCFA ?`)) return;
             
             try {
-                const response = await fetch('/api/subscription/initiate', {
+                const response = await fetch('/api/subscription/renew', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${token}`
+                    },
                     body: JSON.stringify({ plan })
                 });
                 
                 const result = await response.json();
                 
                 if (response.ok) {
-                    alert(`✅ Demande de paiement créée !\nMontant : ${price.toLocaleString()} FCFA\n\nRedirection vers Wave...`);
-                    // window.location.href = result.payment_url;
+                    alert(`✅ ${result.message || 'Abonnement activé avec succès !'}`);
+                    window.location.href = '/dashboard.html';
                 } else {
-                    alert('❌ ' + (result.error || 'Erreur'));
+                    alert('❌ ' + (result.error || result.message || 'Erreur lors du paiement'));
                 }
             } catch(e) {
-                alert('❌ Erreur de connexion');
+                console.error(e);
+                alert('❌ Erreur de connexion au serveur');
             }
         }
         
@@ -170,12 +179,25 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
+                const planDiv = document.getElementById('current-plan');
+                
                 if (data.status === 'trial') {
-                    document.getElementById('current-plan').innerHTML = `📋 Vous êtes actuellement en période d'essai. Il vous reste ${data.days_left} jours.`;
+                    planDiv.innerHTML = `📋 <strong>Période d'essai</strong> - ${data.days_left} jours restants. Profitez-en pleinement !`;
+                    planDiv.style.background = 'rgba(198,164,63,0.2)';
                 } else if (data.status === 'active') {
-                    document.getElementById('current-plan').innerHTML = `✅ Votre abonnement est actif.`;
+                    const endDate = data.ends_at ? new Date(data.ends_at).toLocaleDateString('fr-FR') : 'bientôt';
+                    planDiv.innerHTML = `✅ <strong>Abonnement actif</strong> - Valable jusqu'au ${endDate}. Merci pour votre confiance !`;
+                    planDiv.style.background = 'rgba(39,174,96,0.2)';
+                } else if (data.status === 'expired') {
+                    planDiv.innerHTML = `⚠️ <strong>Abonnement expiré</strong> - Veuillez souscrire une offre pour continuer.`;
+                    planDiv.style.background = 'rgba(231,76,60,0.2)';
+                } else {
+                    planDiv.innerHTML = `📋 Bienvenue ! Choisissez une offre pour commencer.`;
                 }
-            } catch(e) {}
+            } catch(e) {
+                console.error(e);
+                document.getElementById('current-plan').innerHTML = `📋 Bienvenue ! Choisissez une offre pour commencer.`;
+            }
         }
         
         getCurrentSubscription();
