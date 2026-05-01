@@ -644,89 +644,72 @@ app.get('/api/superadmin/restaurants', checkRole(['superadmin']), async (req, re
 });
 
 // ==================== ROUTES ABONNEMENT - RENOUVELLEMENT ====================
-
-/**
- * Route pour créer une demande de renouvellement d'abonnement
- * POST /api/subscription/renew
- */
 app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
-  const { plan } = req.body; // 'monthly', 'quarterly', 'yearly'
+  const { plan } = req.body;
   const restoId = req.user.resto_id;
+  const profileId = req.user.id;
 
   if (!plan || !['monthly', 'quarterly', 'yearly'].includes(plan)) {
-    return res.status(400).json({
-      error: 'invalid_plan',
-      message: 'Formule d\'abonnement invalide. Choisissez monthly, quarterly ou yearly.'
-    });
+    return res.status(400).json({ error: 'Plan invalide' });
   }
 
-  try {
-    // Récupérer les informations actuelles du restaurant
-    const { data: restaurant, error: restoError } = await supabase
-      .from('restaurants')
-      .select('nom, subscription_status')
-      .eq('id', restoId)
-      .single();
+  const plans = {
+    monthly: { amount: 25000, months: 1, name: 'Mensuel' },
+    quarterly: { amount: 60000, months: 3, name: 'Trimestriel' },
+    yearly: { amount: 200000, months: 12, name: 'Annuel' }
+  };
 
-    if (restoError || !restaurant) {
-      return res.status(404).json({ error: 'restaurant_not_found', message: 'Restaurant non trouvé' });
-    }
+  const config = plans[plan];
+  const startDate = new Date();
+  const endDate = new Date();
+  endDate.setMonth(endDate.getMonth() + config.months);
+  const transactionRef = `RENEW_${restoId}_${Date.now()}`;
 
-    // Calcul des prix et durée selon la formule choisie
-    let amount = 0;
-    let durationMonths = 0;
-    let planName = '';
-
-    switch (plan) {
-      case 'monthly':
-        amount = 25000;
-        durationMonths = 1;
-        planName = 'Mensuel';
-        break;
-      case 'quarterly':
-        amount = 60000;
-        durationMonths = 3;
-        planName = 'Trimestriel';
-        break;
-      case 'yearly':
-        amount = 200000;
-        durationMonths = 12;
-        planName = 'Annuel';
-        break;
-    }
-
-    // Pour l'instant : on simule la création d'une transaction
-    // Plus tard on intégrera vraiment Wave ici
-
-    const transactionRef = `RENEW_${restoId}_${Date.now()}`;
-
-    // Option 1 : Créer une entrée dans une table "subscriptions" ou "transactions" (recommandé)
-    // Pour le moment, on retourne simplement les infos nécessaires pour le paiement
-
-    const paymentData = {
-      success: true,
+  // 1. Créer la transaction
+  const { data: transaction, error } = await supabase
+    .from('transactions')
+    .insert({
+      resto_id: restoId,
       transaction_ref: transactionRef,
-      amount: amount,
-      plan: plan,
-      plan_name: planName,
-      restaurant_name: restaurant.nom,
-      // Simulation de lien de paiement Wave (à remplacer par vrai lien Wave plus tard)
-      payment_url: `#`, 
-      message: `Paiement de ${amount.toLocaleString('fr-FR')} FCFA pour l'abonnement ${planName}`,
-      note: "Vous serez redirigé vers Wave/Orange Money après intégration complète"
-    };
+      plan_type: plan,
+      amount: config.amount,
+      status: 'pending',
+      start_date: startDate.toISOString(),
+      end_date: endDate.toISOString(),
+      initiated_by: profileId
+    })
+    .select()
+    .single();
 
-    // TODO : Plus tard, tu pourras enregistrer cette transaction en base avant d'envoyer vers Wave
-
-    res.json(paymentData);
-
-  } catch (error) {
-    console.error("Erreur lors du renouvellement :", error);
-    res.status(500).json({
-      error: 'server_error',
-      message: 'Erreur lors de la création de la demande de paiement'
-    });
+  if (error) {
+    console.error('Erreur transaction:', error);
+    return res.status(500).json({ error: error.message });
   }
+
+  // 2. 🔥 POUR TEST : Simuler un paiement réussi immédiatement
+  // En production, ici tu redirigeras vers Wave/Orange Money
+  
+  // Simulation : on met à jour la transaction comme payée
+  await supabase
+    .from('transactions')
+    .update({ status: 'paid', payment_date: new Date().toISOString() })
+    .eq('id', transaction.id);
+
+  // 3. Mettre à jour l'abonnement du restaurant
+  await supabase
+    .from('restaurants')
+    .update({
+      subscription_status: 'active',
+      subscription_ends_at: endDate.toISOString()
+    })
+    .eq('id', restoId);
+
+  res.json({
+    success: true,
+    message: '✅ Paiement simulé réussi ! Abonnement activé.',
+    transaction: transaction,
+    end_date: endDate
+  });
 });
 
 // ==================== WEBSOCKETS ====================
