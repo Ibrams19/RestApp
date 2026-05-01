@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Renouvellement Abonnement - RestoElite</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .renew-container {
+      background: white;
+      max-width: 520px;
+      width: 90%;
+      border-radius: 20px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .header {
+      background: #C6A43F;
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .status {
+      text-align: center;
+      padding: 15px;
+      background: #fff3cd;
+      color: #856404;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      font-weight: 600;
+    }
+    .plan {
+      border: 2px solid #eee;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .plan:hover {
+      border-color: #C6A43F;
+      transform: translateY(-3px);
+    }
+    .plan.recommended {
+      border-color: #C6A43F;
+      position: relative;
+    }
+    .plan.recommended::after {
+      content: "Recommandé";
+      position: absolute;
+      top: -12px;
+      right: 20px;
+      background: #C6A43F;
+      color: white;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    .plan-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .price {
+      font-size: 32px;
+      font-weight: 800;
+      color: #C6A43F;
+    }
+    .price small {
+      font-size: 16px;
+      font-weight: 400;
+    }
+    button {
+      width: 100%;
+      padding: 16px;
+      font-size: 18px;
+      font-weight: 600;
+      background: #C6A43F;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #b38f2f;
+    }
+    .info {
+      text-align: center;
+      margin-top: 30px;
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="renew-container">
+    <div class="header">
+      <h1>🔄 Renouvellement d'Abonnement</h1>
+    </div>
+
+    <div class="content">
+      <div class="status" id="status-message">
+        Votre abonnement a expiré. Veuillez renouveler pour continuer à utiliser le logiciel.
+      </div>
+
+      <h2 style="text-align:center; margin-bottom:25px;">Choisissez votre formule</h2>
+
+      <!-- Plan Mensuel -->
+      <div class="plan" onclick="selectPlan('monthly')">
+        <div class="plan-title">Mensuel</div>
+        <div class="price">25 000 FCFA <small>/mois</small></div>
+        <p>Accès complet pendant 30 jours</p>
+      </div>
+
+      <!-- Plan Trimestriel -->
+      <div class="plan recommended" onclick="selectPlan('quarterly')">
+        <div class="plan-title">Trimestriel</div>
+        <div class="price">60 000 FCFA <small>/3 mois</small></div>
+        <p>Économisez 15 000 FCFA</p>
+      </div>
+
+      <!-- Plan Annuel -->
+      <div class="plan" onclick="selectPlan('yearly')">
+        <div class="plan-title">Annuel</div>
+        <div class="price">200 000 FCFA <small>/an</small></div>
+        <p>Économisez 100 000 FCFA</p>
+      </div>
+
+      <button id="pay-button" onclick="proceedToPayment()">
+        Payer avec Wave / Orange Money
+      </button>
+
+      <div class="info">
+        Paiement sécurisé • Accès immédiat après paiement<br>
+        Support disponible 7j/7
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedPlan = null;
+
+    function selectPlan(plan) {
+      selectedPlan = plan;
+      
+      // Réinitialiser tous les plans
+      document.querySelectorAll('.plan').forEach(p => {
+        p.style.borderColor = '#eee';
+      });
+
+      // Mettre en évidence le plan sélectionné
+      event.currentTarget.style.borderColor = '#C6A43F';
+    }
+
+    async function proceedToPayment() {
+      if (!selectedPlan) {
+        alert("Veuillez sélectionner une formule d'abonnement");
+        return;
+      }
+
+      const payButton = document.getElementById('pay-button');
+      payButton.innerHTML = 'Traitement en cours...';
+      payButton.disabled = true;
+
+      try {
+        const response = await fetch('/api/subscription/renew', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ plan: selectedPlan })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert("Redirection vers le paiement Wave...");
+          // Ici on redirigera vers le lien de paiement Wave quand on l'aura intégré
+          window.location.href = result.payment_url || "/";
+        } else {
+          alert(result.message || "Erreur lors de la création du paiement");
+        }
+      } catch (error) {
+        alert("Erreur de connexion. Veuillez réessayer.");
+      } finally {
+        payButton.innerHTML = 'Payer avec Wave / Orange Money';
+        payButton.disabled = false;
+      }
+    }
+
+    // Vérifier si l'utilisateur est connecté
+    window.onload = () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/login.html';
+      }
+    };
+  </script>
+</body>
+</html>
