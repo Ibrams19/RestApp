@@ -194,7 +194,7 @@ function isSubscriptionValid(restaurant) {
   return false;
 }
 
-// Magic Link + Set Password + Forgot/Reset Password (tes routes originales)
+// Magic Link + Set Password + Forgot/Reset Password
 app.get('/api/auth/magic/:token', async (req, res) => {
   const { token } = req.params;
   const { data: profile } = await supabase.from('profiles').select('*').eq('token_unique', token).single();
@@ -562,7 +562,7 @@ app.delete('/api/delete-photo/:platId', checkRole(['gerant', 'superadmin']), asy
 });
 
 // ==================== GESTION EMPLOYÉS ====================
-app.get('/api/admin/employes', async (req, res) => {
+app.get('/api/admin/employes', authMiddleware, checkRole(['gerant', 'superadmin']), async (req, res) => {
   const { data, error } = await supabase
     .from('profiles')
     .select('id, nom, prenom, role, token_unique, lien_unique, created_at')
@@ -575,7 +575,7 @@ app.get('/api/admin/employes', async (req, res) => {
   res.json(data || []);
 });
 
-app.post('/api/admin/employe', async (req, res) => {
+app.post('/api/admin/employe', authMiddleware, checkRole(['gerant', 'superadmin']), async (req, res) => {
   const { nom, prenom, role } = req.body;
   if (!nom || !role) return res.status(400).json({ error: 'Nom et rôle requis' });
 
@@ -607,7 +607,7 @@ app.post('/api/admin/employe', async (req, res) => {
   });
 });
 
-app.delete('/api/admin/employe/:id', async (req, res) => {
+app.delete('/api/admin/employe/:id', authMiddleware, checkRole(['gerant', 'superadmin']), async (req, res) => {
   const { id } = req.params;
   const { error } = await supabase.from('profiles').delete().eq('id', id).eq('resto_id', req.user.resto_id);
   if (error) return res.status(500).json({ error: error.message });
@@ -643,7 +643,7 @@ app.get('/api/superadmin/restaurants', checkRole(['superadmin']), async (req, re
   res.json(data);
 });
 
-// ==================== ROUTES ABONNEMENT - RENOUVELLEMENT ====================
+// ==================== ROUTES ABONNEMENT - RENOUVELLEMENT SIMULÉ ====================
 app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
   const { plan } = req.body;
   const restoId = req.user.resto_id;
@@ -665,51 +665,48 @@ app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
   endDate.setMonth(endDate.getMonth() + config.months);
   const transactionRef = `RENEW_${restoId}_${Date.now()}`;
 
-  // 1. Créer la transaction
-  const { data: transaction, error } = await supabase
-    .from('transactions')
-    .insert({
-      resto_id: restoId,
-      transaction_ref: transactionRef,
-      plan_type: plan,
-      amount: config.amount,
-      status: 'pending',
-      start_date: startDate.toISOString(),
-      end_date: endDate.toISOString(),
-      initiated_by: profileId
-    })
-    .select()
-    .single();
+  try {
+    // 1. Créer la transaction
+    const { data: transaction, error } = await supabase
+      .from('transactions')
+      .insert({
+        resto_id: restoId,
+        transaction_ref: transactionRef,
+        plan_type: plan,
+        amount: config.amount,
+        status: 'paid',
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
+        initiated_by: profileId,
+        payment_date: new Date().toISOString()
+      })
+      .select()
+      .single();
 
-  if (error) {
-    console.error('Erreur transaction:', error);
-    return res.status(500).json({ error: error.message });
+    if (error) throw error;
+
+    // 2. Mettre à jour l'abonnement du restaurant
+    await supabase
+      .from('restaurants')
+      .update({
+        subscription_status: 'active',
+        subscription_ends_at: endDate.toISOString()
+      })
+      .eq('id', restoId);
+
+    console.log(`✅ Abonnement activé pour resto ${restoId} jusqu'au ${endDate.toISOString()}`);
+
+    res.json({
+      success: true,
+      message: `✅ Abonnement ${config.name} activé avec succès !`,
+      end_date: endDate,
+      amount: config.amount
+    });
+
+  } catch (error) {
+    console.error('Erreur renouvellement:', error);
+    res.status(500).json({ error: error.message });
   }
-
-  // 2. 🔥 POUR TEST : Simuler un paiement réussi immédiatement
-  // En production, ici tu redirigeras vers Wave/Orange Money
-  
-  // Simulation : on met à jour la transaction comme payée
-  await supabase
-    .from('transactions')
-    .update({ status: 'paid', payment_date: new Date().toISOString() })
-    .eq('id', transaction.id);
-
-  // 3. Mettre à jour l'abonnement du restaurant
-  await supabase
-    .from('restaurants')
-    .update({
-      subscription_status: 'active',
-      subscription_ends_at: endDate.toISOString()
-    })
-    .eq('id', restoId);
-
-  res.json({
-    success: true,
-    message: '✅ Paiement simulé réussi ! Abonnement activé.',
-    transaction: transaction,
-    end_date: endDate
-  });
 });
 
 // ==================== WEBSOCKETS ====================
