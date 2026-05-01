@@ -2,140 +2,333 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nos offres - Restaurant Élite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Resto Élite">
+    <meta name="theme-color" content="#C6A43F">
+    <title>Abonnements Premium | Restaurant Élite</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #1A1A2E 0%, #242440 100%);
+            font-family: 'Poppins', system-ui, sans-serif;
+            background: radial-gradient(ellipse at top, #1A1A2E 0%, #0F0F1A 100%);
             min-height: 100vh;
             padding: 40px 20px;
+            position: relative;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 50px; }
-        .header h1 { color: white; font-size: 36px; margin-bottom: 10px; }
-        .header p { color: #C6A43F; font-size: 18px; }
         
+        /* Effet de particules somptueux */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle at 20% 80%, rgba(198,164,63,0.08) 0%, transparent 50%),
+                              radial-gradient(circle at 80% 20%, rgba(198,164,63,0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Bouton retour */
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
+            color: #C6A43F;
+            border: 1px solid rgba(198,164,63,0.3);
+            padding: 12px 28px;
+            border-radius: 60px;
+            cursor: pointer;
+            margin-bottom: 40px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        .btn-back:hover {
+            background: rgba(198,164,63,0.2);
+            border-color: #C6A43F;
+            transform: translateX(-5px);
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        .header .badge {
+            display: inline-block;
+            background: rgba(198,164,63,0.15);
+            color: #C6A43F;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 54px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFFFFF 0%, #C6A43F 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+        }
+        .header p {
+            color: rgba(255,255,255,0.7);
+            font-size: 18px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Grille des offres */
         .pricing-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 35px;
+            margin-bottom: 50px;
         }
         
         .pricing-card {
-            background: white;
-            border-radius: 24px;
-            padding: 30px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 40px 32px;
             text-align: center;
-            transition: transform 0.3s;
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
             position: relative;
+            border: 1px solid rgba(198,164,63,0.2);
             cursor: pointer;
         }
-        .pricing-card:hover { transform: translateY(-10px); }
-        .pricing-card.recommended { border: 2px solid #C6A43F; }
+        .pricing-card:hover {
+            transform: translateY(-15px);
+            border-color: rgba(198,164,63,0.5);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3), 0 0 0 1px rgba(198,164,63,0.2);
+        }
+        .pricing-card.recommended {
+            border: 2px solid #C6A43F;
+            box-shadow: 0 10px 40px rgba(198,164,63,0.2);
+        }
         .pricing-card.recommended::before {
-            content: "⭐ Recommandé";
+            content: "⭐ RECOMMANDÉ";
             position: absolute;
-            top: -12px;
+            top: -14px;
             left: 50%;
             transform: translateX(-50%);
-            background: #C6A43F;
+            background: linear-gradient(135deg, #C6A43F 0%, #D4AF37 100%);
             color: #1A1A2E;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
+            padding: 6px 20px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            white-space: nowrap;
         }
         
-        .plan-icon { font-size: 48px; margin-bottom: 20px; }
-        .plan-name { font-size: 24px; font-weight: bold; color: #1A1A2E; margin-bottom: 10px; }
-        .plan-price { font-size: 36px; font-weight: bold; color: #C6A43F; margin: 20px 0; }
-        .plan-price small { font-size: 14px; font-weight: normal; color: #666; }
-        .features { list-style: none; margin: 20px 0; }
-        .features li { padding: 8px 0; color: #555; border-bottom: 1px solid #eee; }
+        .plan-icon {
+            font-size: 56px;
+            margin-bottom: 20px;
+        }
+        .plan-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+        }
+        .plan-price {
+            font-size: 44px;
+            font-weight: 800;
+            color: #C6A43F;
+            margin: 25px 0 10px;
+        }
+        .plan-price small {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.6);
+        }
+        .saving-badge {
+            background: rgba(39,174,96,0.15);
+            color: #2ECC71;
+            padding: 5px 12px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .features {
+            list-style: none;
+            margin: 25px 0;
+            text-align: left;
+        }
+        .features li {
+            padding: 10px 0;
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .features li::before {
+            content: "✓";
+            color: #C6A43F;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
         .btn-subscribe {
             background: linear-gradient(135deg, #C6A43F 0%, #9E7E2E 100%);
             color: #1A1A2E;
             border: none;
-            padding: 12px 30px;
-            border-radius: 40px;
-            font-weight: bold;
+            padding: 14px 28px;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 16px;
             cursor: pointer;
             width: 100%;
+            transition: all 0.3s ease;
             margin-top: 20px;
+            position: relative;
+            overflow: hidden;
         }
-        .your-plan {
-            background: rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 15px;
+        .btn-subscribe::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        .btn-subscribe:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(198,164,63,0.4);
+        }
+        .btn-subscribe:hover::before {
+            left: 100%;
+        }
+        
+        /* Statut actuel */
+        .current-status {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 25px 35px;
             margin-top: 40px;
             text-align: center;
-            color: white;
+            border: 1px solid rgba(198,164,63,0.2);
         }
-        .btn-back {
-            background: #6C6C7A;
-            color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 40px;
-            cursor: pointer;
-            margin-bottom: 30px;
+        .current-status .status-icon { font-size: 32px; margin-bottom: 10px; }
+        .current-status .status-text { font-size: 16px; color: rgba(255,255,255,0.8); }
+        .current-status .status-highlight { color: #C6A43F; font-weight: 700; }
+        
+        /* Animation fade in */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .loading { text-align: center; color: white; padding: 50px; }
+        .pricing-card { animation: fadeInUp 0.6s ease forwards; }
+        .pricing-card:nth-child(1) { animation-delay: 0.1s; }
+        .pricing-card:nth-child(2) { animation-delay: 0.2s; }
+        .pricing-card:nth-child(3) { animation-delay: 0.3s; }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 { font-size: 36px; }
+            .pricing-grid { grid-template-columns: 1fr; gap: 25px; }
+            .pricing-card { padding: 30px 20px; }
+            .btn-back { margin-bottom: 25px; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <button class="btn-back" onclick="window.location.href='/dashboard.html'">← Retour au dashboard</button>
+        <button class="btn-back" onclick="window.location.href='/dashboard.html'">
+            ← Retour au tableau de bord
+        </button>
         
         <div class="header">
-            <h1>🍽️ Nos formules d'abonnement</h1>
-            <p>Choisissez l'offre qui correspond à votre activité</p>
+            <div class="badge">✦ EXCELLENCE & SAVOIR-FAIRE ✦</div>
+            <h1>Nos formules d'abonnement</h1>
+            <p>Des solutions adaptées à vos besoins, pour une gestion d'excellence</p>
         </div>
         
-        <div id="current-plan" class="your-plan">Chargement de vos informations...</div>
+        <div id="current-status" class="current-status">
+            <div class="status-icon">✨</div>
+            <div class="status-text">Chargement de votre situation...</div>
+        </div>
         
         <div class="pricing-grid">
+            <!-- Formule Mensuelle -->
             <div class="pricing-card">
-                <div class="plan-icon">📅</div>
-                <div class="plan-name">Mensuel</div>
+                <div class="plan-icon">💎</div>
+                <div class="plan-name">Formule Essentielle</div>
                 <div class="plan-price">25 000 <small>FCFA/mois</small></div>
                 <ul class="features">
-                    <li>✅ Toutes les fonctionnalités</li>
-                    <li>✅ Support prioritaire</li>
-                    <li>✅ Mises à jour gratuites</li>
-                    <li>✅ Sans engagement</li>
+                    <li>Accès illimité à toutes les fonctionnalités</li>
+                    <li>Support prioritaire 7j/7</li>
+                    <li>Mises à jour gratuites</li>
+                    <li>Sans engagement, résiliable à tout moment</li>
                 </ul>
-                <button class="btn-subscribe" onclick="initierPaiement('monthly', 25000)">Choisir cette offre</button>
+                <button class="btn-subscribe" data-plan="monthly" data-price="25000">
+                    Je choisis cette formule
+                </button>
             </div>
             
+            <!-- Formule Trimestrielle (Recommandée) -->
             <div class="pricing-card recommended">
-                <div class="plan-icon">📆</div>
-                <div class="plan-name">Trimestriel</div>
+                <div class="plan-icon">🏆</div>
+                <div class="plan-name">Formule Prestige</div>
                 <div class="plan-price">60 000 <small>FCFA/3 mois</small></div>
-                <div style="color: #27AE60; font-size: 12px;">Économisez 15 000 FCFA</div>
+                <div class="saving-badge">✨ Économisez 15 000 FCFA ✨</div>
                 <ul class="features">
-                    <li>✅ Toutes les fonctionnalités</li>
-                    <li>✅ Support prioritaire</li>
-                    <li>✅ Mises à jour gratuites</li>
-                    <li>✅ 3 mois pour le prix de 2</li>
+                    <li>Accès illimité à toutes les fonctionnalités</li>
+                    <li>Support prioritaire 7j/7</li>
+                    <li>Mises à jour gratuites</li>
+                    <li>3 mois pour le prix de 2</li>
+                    <li>+ Accès anticipé aux nouveautés</li>
                 </ul>
-                <button class="btn-subscribe" onclick="initierPaiement('quarterly', 60000)">Choisir cette offre</button>
+                <button class="btn-subscribe" data-plan="quarterly" data-price="60000">
+                    Je choisis cette formule
+                </button>
             </div>
             
+            <!-- Formule Annuelle -->
             <div class="pricing-card">
-                <div class="plan-icon">📅</div>
-                <div class="plan-name">Annuel</div>
+                <div class="plan-icon">👑</div>
+                <div class="plan-name">Formule Impériale</div>
                 <div class="plan-price">200 000 <small>FCFA/an</small></div>
-                <div style="color: #27AE60; font-size: 12px;">Économisez 100 000 FCFA</div>
+                <div class="saving-badge">✨ Économisez 100 000 FCFA ✨</div>
                 <ul class="features">
-                    <li>✅ Toutes les fonctionnalités</li>
-                    <li>✅ Support VIP</li>
-                    <li>✅ Mises à jour gratuites</li>
-                    <li>✅ 2 mois offerts</li>
+                    <li>Accès illimité à toutes les fonctionnalités</li>
+                    <li>Support VIP dédié 24h/24</li>
+                    <li>Mises à jour gratuites</li>
+                    <li>2 mois offerts</li>
+                    <li>+ Assistance personnalisée</li>
+                    <li>+ Pack de bienvenue offert</li>
                 </ul>
-                <button class="btn-subscribe" onclick="initierPaiement('yearly', 200000)">Choisir cette offre</button>
+                <button class="btn-subscribe" data-plan="yearly" data-price="200000">
+                    Je choisis cette formule
+                </button>
             </div>
         </div>
     </div>
@@ -146,8 +339,24 @@
             window.location.href = '/login.html';
         }
         
-        async function initierPaiement(plan, price) {
-            if (!confirm(`Souscrire à l'offre ${plan === 'monthly' ? 'Mensuelle' : plan === 'quarterly' ? 'Trimestrielle' : 'Annuelle'} à ${price.toLocaleString()} FCFA ?`)) return;
+        // Gestionnaire des clics sur les boutons
+        document.querySelectorAll('.btn-subscribe').forEach(btn => {
+            btn.addEventListener('click', async function(e) {
+                e.stopPropagation();
+                const plan = this.getAttribute('data-plan');
+                const price = parseInt(this.getAttribute('data-price'));
+                await initierPaiement(plan, price, this);
+            });
+        });
+        
+        async function initierPaiement(plan, price, button) {
+            const planName = plan === 'monthly' ? 'Formule Essentielle' : (plan === 'quarterly' ? 'Formule Prestige' : 'Formule Impériale');
+            
+            if (!confirm(`✨ Souscription à la ${planName}\n\nMontant : ${price.toLocaleString()} FCFA\n\nSouhaitez-vous continuer ?`)) return;
+            
+            const originalText = button.innerHTML;
+            button.innerHTML = '⏳ Traitement en cours...';
+            button.disabled = true;
             
             try {
                 const response = await fetch('/api/subscription/renew', {
@@ -162,14 +371,20 @@
                 const result = await response.json();
                 
                 if (response.ok) {
-                    alert(`✅ ${result.message || 'Abonnement activé avec succès !'}`);
-                    window.location.href = '/dashboard.html';
+                    // Afficher une notification élégante
+                    showNotification('success', `✅ ${result.message || 'Abonnement activé avec succès !'}`);
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 2000);
                 } else {
-                    alert('❌ ' + (result.error || result.message || 'Erreur lors du paiement'));
+                    showNotification('error', `❌ ${result.error || result.message || 'Erreur lors du paiement'}`);
                 }
             } catch(e) {
                 console.error(e);
-                alert('❌ Erreur de connexion au serveur');
+                showNotification('error', '❌ Erreur de connexion au serveur');
+            } finally {
+                button.innerHTML = originalText;
+                button.disabled = false;
             }
         }
         
@@ -179,26 +394,98 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
-                const planDiv = document.getElementById('current-plan');
+                const statusDiv = document.querySelector('.current-status');
                 
                 if (data.status === 'trial') {
-                    planDiv.innerHTML = `📋 <strong>Période d'essai</strong> - ${data.days_left} jours restants. Profitez-en pleinement !`;
-                    planDiv.style.background = 'rgba(198,164,63,0.2)';
+                    statusDiv.innerHTML = `
+                        <div class="status-icon">🎁</div>
+                        <div class="status-text">
+                            <span class="status-highlight">Période d'essai gratuite</span><br>
+                            ${data.days_left} jours restants. Profitez pleinement de notre solution !
+                        </div>
+                    `;
                 } else if (data.status === 'active') {
-                    const endDate = data.ends_at ? new Date(data.ends_at).toLocaleDateString('fr-FR') : 'bientôt';
-                    planDiv.innerHTML = `✅ <strong>Abonnement actif</strong> - Valable jusqu'au ${endDate}. Merci pour votre confiance !`;
-                    planDiv.style.background = 'rgba(39,174,96,0.2)';
+                    const endDate = data.ends_at ? new Date(data.ends_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'prochainement';
+                    statusDiv.innerHTML = `
+                        <div class="status-icon">🏅</div>
+                        <div class="status-text">
+                            <span class="status-highlight">Abonnement actif</span><br>
+                            Valable jusqu'au ${endDate}. Merci pour votre confiance !
+                        </div>
+                    `;
+                    statusDiv.style.background = 'rgba(39,174,96,0.1)';
+                    statusDiv.style.borderColor = 'rgba(39,174,96,0.3)';
                 } else if (data.status === 'expired') {
-                    planDiv.innerHTML = `⚠️ <strong>Abonnement expiré</strong> - Veuillez souscrire une offre pour continuer.`;
-                    planDiv.style.background = 'rgba(231,76,60,0.2)';
+                    statusDiv.innerHTML = `
+                        <div class="status-icon">⚠️</div>
+                        <div class="status-text">
+                            <span class="status-highlight" style="color: #E74C3C;">Abonnement expiré</span><br>
+                            Veuillez souscrire une offre pour continuer à profiter de nos services.
+                        </div>
+                    `;
+                    statusDiv.style.background = 'rgba(231,76,60,0.1)';
+                    statusDiv.style.borderColor = 'rgba(231,76,60,0.3)';
                 } else {
-                    planDiv.innerHTML = `📋 Bienvenue ! Choisissez une offre pour commencer.`;
+                    statusDiv.innerHTML = `
+                        <div class="status-icon">🌟</div>
+                        <div class="status-text">
+                            Bienvenue chez Restaurant Élite !<br>
+                            Choisissez l'offre qui correspond le mieux à votre activité.
+                        </div>
+                    `;
                 }
             } catch(e) {
                 console.error(e);
-                document.getElementById('current-plan').innerHTML = `📋 Bienvenue ! Choisissez une offre pour commencer.`;
+                const statusDiv = document.querySelector('.current-status');
+                statusDiv.innerHTML = `
+                    <div class="status-icon">🌟</div>
+                    <div class="status-text">
+                        Bienvenue chez Restaurant Élite !<br>
+                        Choisissez l'offre qui correspond le mieux à votre activité.
+                    </div>
+                `;
             }
         }
+        
+        // Notification élégante
+        function showNotification(type, message) {
+            const notif = document.createElement('div');
+            notif.style.cssText = `
+                position: fixed;
+                top: 30px;
+                right: 30px;
+                background: ${type === 'success' ? 'linear-gradient(135deg, #27AE60, #1E8449)' : 'linear-gradient(135deg, #E74C3C, #C0392B)'};
+                color: white;
+                padding: 15px 25px;
+                border-radius: 50px;
+                font-weight: 500;
+                z-index: 9999;
+                animation: slideIn 0.3s ease;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                backdrop-filter: blur(10px);
+            `;
+            notif.innerHTML = message;
+            document.body.appendChild(notif);
+            
+            setTimeout(() => {
+                notif.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notif.remove(), 300);
+            }, 3000);
+        }
+        
+        // Ajout des animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
         
         getCurrentSubscription();
     </script>
