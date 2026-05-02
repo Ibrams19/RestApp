@@ -892,7 +892,7 @@ app.get('/api/commande/suivi/:id', async (req, res) => {
 app.get('/api/qrcode/:restoId/:tableId', async (req, res) => {
   const { restoId, tableId } = req.params;
 
-  if (!isValidUUID(restoId)) {
+    if (!restoId || restoId === 'null' || restoId === 'undefined') {
     return res.status(400).json({ error: 'ID restaurant invalide' });
   }
 
