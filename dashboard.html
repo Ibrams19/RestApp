@@ -240,6 +240,10 @@
         body.dark .toast { background: var(--surface-dark); border-color: var(--border-dark); }
         @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
+        .chart-card canvas {
+            max-height: 280px !important;
+        }
+
         @media (max-width: 768px) {
             .charts-grid { grid-template-columns: 1fr; }
             .tables-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
