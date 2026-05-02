@@ -222,6 +222,7 @@
         <a href="/resto.html" class="nav-btn">👨‍🍳 Cuisine</a>
         <a href="/qrcodes.html" class="nav-btn">📱 QR Codes</a>
         <a href="/subscription.html" class="nav-btn">💰 Abonnement</a>
+        <a href="/transactions.html" class="nav-btn">📜 Historique</a>
     </div>
 
     <div class="dashboard-container">
@@ -320,6 +321,21 @@ function showWarningNotification(message, daysLeft) {
     document.body.appendChild(notif);
     setTimeout(() => notif.remove(), 10000);
 }
+
+async function showRemainingTime() {
+  try {
+    const res = await fetch('/api/restaurant/subscription', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.ends_at) {
+      const remaining = Math.ceil((new Date(data.ends_at) - new Date()) / 1000);
+      console.log(`⏱️ Temps restant : ${remaining} secondes`);
+    }
+  } catch(e) {}
+}
+
+setInterval(showRemainingTime, 1000);
 
         async function checkSubscriptionStatus() {
     try {

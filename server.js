@@ -56,7 +56,7 @@ const checkRole = (allowedRoles) => {
   };
 };
 
-// 3. Middleware Abonnement Renforcé
+// 3. Middleware Abonnement Renforcé (avec vérification end_date)
 const checkSubscription = async (req, res, next) => {
   if (req.user?.role === 'superadmin') return next();
 
@@ -66,6 +66,7 @@ const checkSubscription = async (req, res, next) => {
   }
 
   try {
+    // Récupérer le restaurant et la dernière transaction
     const { data: restaurant, error } = await supabase
       .from('restaurants')
       .select('id, nom, subscription_status, trial_ends_at, subscription_ends_at')
@@ -79,24 +80,55 @@ const checkSubscription = async (req, res, next) => {
     const now = new Date();
     let isValid = false;
 
-    switch (restaurant.subscription_status) {
-      case 'active':
-        if (restaurant.subscription_ends_at) isValid = now <= new Date(restaurant.subscription_ends_at);
-        break;
-      case 'trial':
-        if (restaurant.trial_ends_at) isValid = now <= new Date(restaurant.trial_ends_at);
-        break;
-      case 'expired':
-      case 'suspended':
-        isValid = false;
-        break;
-      default:
-        isValid = false;
+    // Vérifier d'abord la dernière transaction payée
+    const { data: lastTransaction } = await supabase
+      .from('transactions')
+      .select('end_date, status')
+      .eq('resto_id', restoId)
+      .eq('status', 'paid')
+      .order('end_date', { ascending: false })
+      .limit(1)
+      .single();
+
+    // Si une transaction récente existe, l'utiliser comme source de vérité
+    if (lastTransaction && lastTransaction.end_date) {
+      const transactionEnd = new Date(lastTransaction.end_date);
+      isValid = now <= transactionEnd;
+      
+      // Mettre à jour le statut du restaurant si nécessaire
+      if (isValid && restaurant.subscription_status !== 'active') {
+        await supabase
+          .from('restaurants')
+          .update({ 
+            subscription_status: 'active',
+            subscription_ends_at: lastTransaction.end_date
+          })
+          .eq('id', restoId);
+      }
+    } else {
+      // Fallback sur les dates du restaurant
+      switch (restaurant.subscription_status) {
+        case 'active':
+          if (restaurant.subscription_ends_at) isValid = now <= new Date(restaurant.subscription_ends_at);
+          break;
+        case 'trial':
+          if (restaurant.trial_ends_at) isValid = now <= new Date(restaurant.trial_ends_at);
+          break;
+        case 'expired':
+        case 'suspended':
+          isValid = false;
+          break;
+        default:
+          isValid = false;
+      }
     }
 
     // Mise à jour automatique si expiré
     if (!isValid && ['trial', 'active'].includes(restaurant.subscription_status)) {
-      await supabase.from('restaurants').update({ subscription_status: 'expired' }).eq('id', restoId);
+      await supabase
+        .from('restaurants')
+        .update({ subscription_status: 'expired' })
+        .eq('id', restoId);
     }
 
     if (!isValid) {
@@ -267,7 +299,9 @@ app.post('/api/register', async (req, res) => {
   const hashedPassword = await bcrypt.hash(motDePasse, SALT_ROUNDS);
   const baseSlug = nomRestaurant.toLowerCase().replace(/[^a-z0-9]/g, '-');
   const slug = `${baseSlug}-${Date.now()}`;
-  const trialEndsAt = new Date(Date.now() + 14 * 86400000);
+  // Au lieu de 14 jours, mettre 1 minute pour le test
+  const trialEndsAt = new Date(Date.now() + 60 * 1000); // 1 minute
+  // const trialEndsAt = new Date(Date.now() + 14 * 86400000); // 14 jours (commenté)
 
   const { data: restaurant, error: restoError } = await supabase
     .from('restaurants')
@@ -636,6 +670,21 @@ app.get('/api/restaurant/subscription', authMiddleware, async (req, res) => {
   res.json(response);
 });
 
+// ==================== HISTORIQUE DES TRANSACTIONS ====================
+app.get('/api/restaurant/transactions', authMiddleware, async (req, res) => {
+  const restoId = req.user.resto_id;
+
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('resto_id', restoId)
+    .order('created_at', { ascending: false });
+
+  if (error) return res.status(500).json({ error: error.message });
+
+  res.json(data || []);
+});
+
 // ==================== SUPER ADMIN ====================
 app.get('/api/superadmin/restaurants', checkRole(['superadmin']), async (req, res) => {
   const { data, error } = await supabase.from('restaurants').select('*, profiles(count)');
@@ -651,11 +700,13 @@ app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
 
   console.log('📢 Demande de paiement reçue pour resto:', restoId, 'plan:', plan);
 
+  / Pour tester rapidement, remplacer les mois par des minutes
   const plans = {
-    monthly: { amount: 25000, months: 1, name: 'Mensuel' },
-    quarterly: { amount: 60000, months: 3, name: 'Trimestriel' },
-    yearly: { amount: 200000, months: 12, name: 'Annuel' }
+    monthly: { amount: 25000, minutes: 1, name: 'Mensuel' },    // 1 minute
+    quarterly: { amount: 60000, minutes: 3, name: 'Trimestriel' }, // 3 minutes
+    yearly: { amount: 200000, minutes: 5, name: 'Annuel' }      // 5 minutes
   };
+
 
   if (!plan || !plans[plan]) {
     return res.status(400).json({ error: 'Plan invalide' });
@@ -664,8 +715,7 @@ app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
   const config = plans[plan];
   const startDate = new Date();
   const endDate = new Date();
-  endDate.setMonth(endDate.getMonth() + config.months);
-
+  endDate.setMinutes(endDate.getMinutes() + config.minutes); // au lieu de setMonth
   try {
     // 1. Mettre à jour l'abonnement du restaurant directement
     const { error: updateError } = await supabase
