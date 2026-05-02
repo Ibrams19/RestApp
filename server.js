@@ -647,7 +647,7 @@ app.post('/api/auth/reset-password', loginLimiter, async (req, res) => {
 app.get('/api/menu/:restoId', async (req, res) => {
   const { restoId } = req.params;
   
-  if (!isValidUUID(restoId)) {
+  if (!restoId || restoId === 'null' || restoId === 'undefined') {
     return res.status(400).json({ error: 'ID restaurant invalide' });
   }
 
