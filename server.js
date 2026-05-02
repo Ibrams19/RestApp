@@ -1264,7 +1264,7 @@ const upload = multer({
   }
 });
 
-app.post('/api/upload-plat-photo/:platId', checkRole(['gerant', 'superadmin']), upload.single('photo'), async (req, res) => {
+app.post('/api/upload-plat-photo/:platId', authMiddleware, upload.single('photo'), async (req, res) => {
   const { platId } = req.params;
   const file = req.file;
   
