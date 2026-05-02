@@ -444,8 +444,7 @@ app.post('/api/register', async (req, res) => {
   for (let i = 1; i <= 10; i++) {
     await supabase.from('tables').insert({ 
       resto_id: restaurant.id, 
-      numero_table: i,
-      actif: true
+      numero_table: i
     });
   }
 
@@ -1232,8 +1231,7 @@ app.post('/api/tables', authMiddleware, checkRole(['gerant', 'superadmin']), asy
     .from('tables')
     .insert({ 
       resto_id: targetRestoId, 
-      numero_table: Math.floor(Number(numeroTable)),
-      actif: true 
+      numero_table: Math.floor(Number(numeroTable))
     })
     .select()
     .single();
