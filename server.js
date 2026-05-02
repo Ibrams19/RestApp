@@ -1,4 +1,4 @@
-// ==================== server.js - VERSION COMPLÈTE PROFESSIONNELLE ====================
+// ==================== server.js - VERSION COMPLÈTE CORRIGÉE ====================
 
 const express = require('express');
 const cors = require('cors');
@@ -56,7 +56,7 @@ const checkRole = (allowedRoles) => {
   };
 };
 
-// 3. Middleware Abonnement Renforcé (avec vérification end_date)
+// 3. Middleware Abonnement Renforcé
 const checkSubscription = async (req, res, next) => {
   if (req.user?.role === 'superadmin') return next();
 
@@ -66,7 +66,6 @@ const checkSubscription = async (req, res, next) => {
   }
 
   try {
-    // Récupérer le restaurant et la dernière transaction
     const { data: restaurant, error } = await supabase
       .from('restaurants')
       .select('id, nom, subscription_status, trial_ends_at, subscription_ends_at')
@@ -80,7 +79,6 @@ const checkSubscription = async (req, res, next) => {
     const now = new Date();
     let isValid = false;
 
-    // Vérifier d'abord la dernière transaction payée
     const { data: lastTransaction } = await supabase
       .from('transactions')
       .select('end_date, status')
@@ -90,12 +88,10 @@ const checkSubscription = async (req, res, next) => {
       .limit(1)
       .single();
 
-    // Si une transaction récente existe, l'utiliser comme source de vérité
     if (lastTransaction && lastTransaction.end_date) {
       const transactionEnd = new Date(lastTransaction.end_date);
       isValid = now <= transactionEnd;
       
-      // Mettre à jour le statut du restaurant si nécessaire
       if (isValid && restaurant.subscription_status !== 'active') {
         await supabase
           .from('restaurants')
@@ -106,7 +102,6 @@ const checkSubscription = async (req, res, next) => {
           .eq('id', restoId);
       }
     } else {
-      // Fallback sur les dates du restaurant
       switch (restaurant.subscription_status) {
         case 'active':
           if (restaurant.subscription_ends_at) isValid = now <= new Date(restaurant.subscription_ends_at);
@@ -123,7 +118,6 @@ const checkSubscription = async (req, res, next) => {
       }
     }
 
-    // Mise à jour automatique si expiré
     if (!isValid && ['trial', 'active'].includes(restaurant.subscription_status)) {
       await supabase
         .from('restaurants')
@@ -150,19 +144,19 @@ const checkSubscription = async (req, res, next) => {
   }
 };
 
-// ==================== APPLICATION DES MIDDLEWARES ====================
+function isSubscriptionValid(restaurant) {
+  if (!restaurant) return false;
+  const now = new Date();
+  if (restaurant.subscription_status === 'active' && restaurant.subscription_ends_at) {
+    return now <= new Date(restaurant.subscription_ends_at);
+  }
+  if (restaurant.subscription_status === 'trial' && restaurant.trial_ends_at) {
+    return now <= new Date(restaurant.trial_ends_at);
+  }
+  return false;
+}
 
-app.use('/api/admin/*', authMiddleware, checkSubscription);
-app.use('/api/stats/*', authMiddleware, checkSubscription);
-app.use('/api/tables/*', authMiddleware, checkSubscription);
-app.use('/api/restaurant/*', authMiddleware, checkSubscription);
-app.use('/api/superadmin/*', authMiddleware, checkRole(['superadmin']));
-
-// Routes employées (gestion par gérant)
-app.use('/api/admin/employes', authMiddleware, checkRole(['gerant', 'superadmin']));
-app.use('/api/admin/employe', authMiddleware, checkRole(['gerant', 'superadmin']));
-
-// ==================== AUTHENTIFICATION ====================
+// ==================== AUTHENTIFICATION (ROUTES PUBLIQUES) ====================
 
 app.post('/api/auth/login', async (req, res) => {
   const { email, motDePasse } = req.body;
@@ -180,7 +174,6 @@ app.post('/api/auth/login', async (req, res) => {
   const isValid = await bcrypt.compare(motDePasse, profile.mot_de_passe);
   if (!isValid) return res.status(401).json({ error: 'Email ou mot de passe incorrect' });
 
-  // Vérification abonnement au login
   if (profile.role !== 'superadmin' && profile.resto_id) {
     const { data: restaurant } = await supabase
       .from('restaurants')
@@ -213,20 +206,6 @@ app.post('/api/auth/login', async (req, res) => {
   res.json({ success: true, token, user: profile, restaurant: profile.restaurants });
 });
 
-function isSubscriptionValid(restaurant) {
-  if (!restaurant) return false;
-  const now = new Date();
-
-  if (restaurant.subscription_status === 'active' && restaurant.subscription_ends_at) {
-    return now <= new Date(restaurant.subscription_ends_at);
-  }
-  if (restaurant.subscription_status === 'trial' && restaurant.trial_ends_at) {
-    return now <= new Date(restaurant.trial_ends_at);
-  }
-  return false;
-}
-
-// Magic Link + Set Password + Forgot/Reset Password
 app.get('/api/auth/magic/:token', async (req, res) => {
   const { token } = req.params;
   const { data: profile } = await supabase.from('profiles').select('*').eq('token_unique', token).single();
@@ -299,9 +278,7 @@ app.post('/api/register', async (req, res) => {
   const hashedPassword = await bcrypt.hash(motDePasse, SALT_ROUNDS);
   const baseSlug = nomRestaurant.toLowerCase().replace(/[^a-z0-9]/g, '-');
   const slug = `${baseSlug}-${Date.now()}`;
-  // Au lieu de 14 jours, mettre 1 minute pour le test
-  const trialEndsAt = new Date(Date.now() + 60 * 1000); // 1 minute
-  // const trialEndsAt = new Date(Date.now() + 14 * 86400000); // 14 jours (commenté)
+  const trialEndsAt = new Date(Date.now() + 60 * 1000);
 
   const { data: restaurant, error: restoError } = await supabase
     .from('restaurants')
@@ -337,12 +314,10 @@ app.post('/api/register', async (req, res) => {
     return res.status(500).json({ error: profileError.message });
   }
 
-  // Tables par défaut
   for (let i = 1; i <= 10; i++) {
     await supabase.from('tables').insert({ resto_id: restaurant.id, numero_table: i });
   }
 
-  // Plats par défaut
   const platsParDefaut = [
     { resto_id: restaurant.id, nom_plat: 'Yassa Poulet', prix: 2500, categorie: 'Plat', disponible: true },
     { resto_id: restaurant.id, nom_plat: 'Thieboudienne', prix: 3000, categorie: 'Plat', disponible: true },
@@ -360,6 +335,15 @@ app.post('/api/register', async (req, res) => {
 
   res.json({ success: true, token, user: profile, restaurant, trial_days: 14 });
 });
+
+// ==================== APPLICATION DES MIDDLEWARES (après les routes publiques) ====================
+app.use('/api/admin/*', authMiddleware, checkSubscription);
+app.use('/api/stats/*', authMiddleware, checkSubscription);
+app.use('/api/tables/*', authMiddleware, checkSubscription);
+app.use('/api/restaurant/*', authMiddleware, checkSubscription);
+app.use('/api/superadmin/*', authMiddleware, checkRole(['superadmin']));
+app.use('/api/admin/employes', authMiddleware, checkRole(['gerant', 'superadmin']));
+app.use('/api/admin/employe', authMiddleware, checkRole(['gerant', 'superadmin']));
 
 // ==================== ROUTES CLIENT ====================
 app.get('/api/menu/:restoId', async (req, res) => {
@@ -670,18 +654,10 @@ app.get('/api/restaurant/subscription', authMiddleware, async (req, res) => {
   res.json(response);
 });
 
-// ==================== HISTORIQUE DES TRANSACTIONS ====================
 app.get('/api/restaurant/transactions', authMiddleware, async (req, res) => {
   const restoId = req.user.resto_id;
-
-  const { data, error } = await supabase
-    .from('transactions')
-    .select('*')
-    .eq('resto_id', restoId)
-    .order('created_at', { ascending: false });
-
+  const { data, error } = await supabase.from('transactions').select('*').eq('resto_id', restoId).order('created_at', { ascending: false });
   if (error) return res.status(500).json({ error: error.message });
-
   res.json(data || []);
 });
 
@@ -698,15 +674,11 @@ app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
   const restoId = req.user.resto_id;
   const profileId = req.user.id;
 
-  console.log('📢 Demande de paiement reçue pour resto:', restoId, 'plan:', plan);
-
-  // Pour tester rapidement, remplacer les mois par des minutes
   const plans = {
-    monthly: { amount: 25000, minutes: 1, name: 'Mensuel' },    // 1 minute
-    quarterly: { amount: 60000, minutes: 3, name: 'Trimestriel' }, // 3 minutes
-    yearly: { amount: 200000, minutes: 5, name: 'Annuel' }      // 5 minutes
+    monthly: { amount: 25000, minutes: 1, name: 'Mensuel' },
+    quarterly: { amount: 60000, minutes: 3, name: 'Trimestriel' },
+    yearly: { amount: 200000, minutes: 5, name: 'Annuel' }
   };
-
 
   if (!plan || !plans[plan]) {
     return res.status(400).json({ error: 'Plan invalide' });
@@ -715,9 +687,9 @@ app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
   const config = plans[plan];
   const startDate = new Date();
   const endDate = new Date();
-  endDate.setMinutes(endDate.getMinutes() + config.minutes); // au lieu de setMonth
+  endDate.setMinutes(endDate.getMinutes() + config.minutes);
+
   try {
-    // 1. Mettre à jour l'abonnement du restaurant directement
     const { error: updateError } = await supabase
       .from('restaurants')
       .update({
@@ -728,7 +700,6 @@ app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
 
     if (updateError) throw updateError;
 
-    // 2. Enregistrer la transaction
     const transactionRef = `PAY_${restoId}_${Date.now()}`;
     await supabase
       .from('transactions')
@@ -744,11 +715,9 @@ app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
         payment_date: new Date().toISOString()
       });
 
-    console.log('✅ Abonnement activé pour resto', restoId, 'jusqu\'au', endDate);
-
     res.json({
       success: true,
-      message: `✅ Abonnement ${config.name} activé avec succès ! Valable jusqu'au ${endDate.toLocaleDateString('fr-FR')}`,
+      message: `✅ Abonnement ${config.name} activé avec succès !`,
       end_date: endDate
     });
 
@@ -756,48 +725,6 @@ app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
     console.error('Erreur:', error);
     res.status(500).json({ error: error.message });
   }
-});
-
-app.post('/api/subscription/initiate', authMiddleware, async (req, res) => {
-  const { plan } = req.body;
-  const restoId = req.user.resto_id;
-  const profileId = req.user.id;
-
-  const plans = {
-    monthly: { amount: 25000, months: 1, name: 'Mensuel' },
-    quarterly: { amount: 60000, months: 3, name: 'Trimestriel' },
-    yearly: { amount: 200000, months: 12, name: 'Annuel' }
-  };
-
-  const config = plans[plan];
-  const startDate = new Date();
-  const endDate = new Date();
-  endDate.setMonth(endDate.getMonth() + config.months);
-  const transactionRef = `PAY_${restoId}_${Date.now()}`;
-
-  const { data: transaction, error } = await supabase
-    .from('transactions')
-    .insert({
-      resto_id: restoId,
-      transaction_ref: transactionRef,
-      plan_type: plan,
-      amount: config.amount,
-      status: 'pending',
-      start_date: startDate.toISOString(),
-      end_date: endDate.toISOString(),
-      initiated_by: profileId
-    })
-    .select()
-    .single();
-
-  if (error) return res.status(500).json({ error: error.message });
-
-  res.json({
-    success: true,
-    transaction_id: transaction.id,
-    amount: config.amount,
-    message: `Demande de paiement de ${config.amount.toLocaleString()} FCFA créée`
-  });
 });
 
 // ==================== WEBSOCKETS ====================
