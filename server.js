@@ -723,13 +723,30 @@ app.post('/api/commande', commandLimiter, async (req, res) => {
     return res.status(404).json({ error: 'Restaurant indisponible' });
   }
 
+  // Chercher la table par numero_table ou par id
+  let tableIdFinal = tableId;
+  const tableIdNum = parseInt(tableId);
+  
+  // Si tableId est un numéro de table (1-10), chercher l'ID réel
+  if (!isNaN(tableIdNum) && tableIdNum <= 100) {
+    const { data: tableByNumero } = await supabase
+      .from('tables')
+      .select('id')
+      .eq('resto_id', restoId)
+      .eq('numero_table', tableIdNum)
+      .single();
+    
+    if (tableByNumero) {
+      tableIdFinal = tableByNumero.id;
+    }
+  }
+
   // Vérifier que la table existe
-    // Vérifier que la table existe (cherche par numero_table OU par id)
   const { data: table } = await supabase
     .from('tables')
     .select('id')
+    .eq('id', tableIdFinal)
     .eq('resto_id', restoId)
-    .or(`id.eq.${tableId},numero_table.eq.${tableId}`)
     .single();
 
   if (!table) {
@@ -742,7 +759,7 @@ app.post('/api/commande', commandLimiter, async (req, res) => {
     .from('commandes')
     .insert({ 
       resto_id: restoId, 
-      table_id: tableId, 
+      table_id: tableIdFinal, 
       client_nom: name, 
       total: Math.round(Number(total)),
       statut: 'en_attente'
