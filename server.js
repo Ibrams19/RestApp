@@ -1220,7 +1220,7 @@ app.get('/api/tables/:restoId', checkRole(['gerant', 'superadmin']), async (req,
   res.json(data);
 });
 
-app.post('/api/tables', checkRole(['gerant', 'superadmin']), async (req, res) => {
+app.post('/api/tables', authMiddleware, checkRole(['gerant', 'superadmin']), async (req, res) => {
   const { restoId, numeroTable } = req.body;
   const targetRestoId = restoId || req.user.resto_id;
   
@@ -1242,7 +1242,7 @@ app.post('/api/tables', checkRole(['gerant', 'superadmin']), async (req, res) =>
   res.json({ success: true, data });
 });
 
-app.delete('/api/tables/:id', checkRole(['gerant', 'superadmin']), async (req, res) => {
+app.delete('/api/tables/:id', authMiddleware, checkRole(['gerant', 'superadmin']), async (req, res) => {
   const { id } = req.params;
   
   // Vérifier qu'aucune commande n'est en cours sur cette table
