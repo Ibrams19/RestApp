@@ -724,11 +724,12 @@ app.post('/api/commande', commandLimiter, async (req, res) => {
   }
 
   // Vérifier que la table existe
+    // Vérifier que la table existe (cherche par numero_table OU par id)
   const { data: table } = await supabase
     .from('tables')
     .select('id')
-    .eq('id', tableId)
     .eq('resto_id', restoId)
+    .or(`id.eq.${tableId},numero_table.eq.${tableId}`)
     .single();
 
   if (!table) {
