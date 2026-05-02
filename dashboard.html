@@ -341,7 +341,7 @@
         let pollingTimer = null;
 
         // ==================== INIT ====================
-        function init() {
+                function init() {
             token = localStorage.getItem(TOKEN_KEY);
             if (!token) { redirectToLogin(); return; }
 
@@ -350,6 +350,7 @@
                 userRole = payload.role;
                 userId = payload.id;
                 currentResto = payload.resto_id;
+                document.getElementById('resto-name').textContent = payload.restaurant_name || 'Restaurant';
             } catch(e) { redirectToLogin(); return; }
 
             if (userRole !== 'gerant' && userRole !== 'superadmin') {
@@ -358,7 +359,6 @@
             }
 
             document.getElementById('role-badge').textContent = userRole === 'superadmin' ? '👑 Super Admin' : '👑 Gérant';
-            document.getElementById('resto-name').textContent = payload.restaurant_name || 'Restaurant';
 
             initEventListeners();
             checkSubscription();
