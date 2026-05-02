@@ -165,41 +165,42 @@
         }
         
         async function renouveler() {
-            if (!selectedPlan) {
-                alert('Veuillez sélectionner une formule');
-                return;
-            }
-            
-            const btn = document.getElementById('renew-btn');
-            btn.innerHTML = '⏳ Traitement en cours...';
-            btn.disabled = true;
-            
-            try {
-                const response = await fetch('/api/subscription/renew', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ plan: selectedPlan })
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    alert(result.message || '✅ Abonnement renouvelé avec succès !');
-                    window.location.href = '/dashboard.html';
-                } else {
-                    alert('❌ ' + (result.error || result.message || 'Erreur'));
-                }
-            } catch (error) {
-                console.error(error);
-                alert('❌ Erreur de connexion');
-            } finally {
-                btn.innerHTML = '🔄 Renouveler mon abonnement';
-                btn.disabled = false;
-            }
+        if (!selectedPlan) {
+            alert('Veuillez sélectionner une formule');
+            return;
         }
+        
+        const btn = document.getElementById('renew-btn');
+        btn.innerHTML = '⏳ Traitement en cours...';
+        btn.disabled = true;
+        
+        try {
+            const token = localStorage.getItem('resto_token');
+            const response = await fetch('/api/subscription/renew', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ plan: selectedPlan })
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                alert(result.message || '✅ Abonnement renouvelé avec succès !');
+                window.location.href = '/dashboard.html';
+            } else {
+                alert('❌ ' + (result.error || result.message || 'Erreur'));
+            }
+        } catch (error) {
+            console.error(error);
+            alert('❌ Erreur de connexion');
+        } finally {
+            btn.innerHTML = '🔄 Renouveler mon abonnement';
+            btn.disabled = false;
+        }
+    }
     </script>
 </body>
 </html>
