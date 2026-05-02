@@ -700,7 +700,7 @@ app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
 
   console.log('📢 Demande de paiement reçue pour resto:', restoId, 'plan:', plan);
 
-  / Pour tester rapidement, remplacer les mois par des minutes
+  // Pour tester rapidement, remplacer les mois par des minutes
   const plans = {
     monthly: { amount: 25000, minutes: 1, name: 'Mensuel' },    // 1 minute
     quarterly: { amount: 60000, minutes: 3, name: 'Trimestriel' }, // 3 minutes
