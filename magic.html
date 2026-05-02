@@ -3,119 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Connexion magique | Restaurant</title>
+    <meta name="theme-color" content="#0d0d0d">
+    <title>Invitation | Restaurant 7★</title>
     <style>
+        :root { --gold: #C6A43F; --text: #1a1a1a; --text-secondary: #6b6b6b; --border: #e8e5df; --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif; --font-serif: 'Playfair Display', 'Georgia', serif; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: system-ui, sans-serif;
-            background: linear-gradient(135deg, #1A1A2E 0%, #242440 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .card {
-            background: white;
-            border-radius: 32px;
-            padding: 40px 30px;
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
-            animation: fadeIn 0.5s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #C6A43F;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .success-icon { font-size: 64px; margin: 20px 0; }
-        .error-icon { font-size: 64px; margin: 20px 0; }
-        .btn {
-            background: #C6A43F;
-            color: #1A1A2E;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 40px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-            text-decoration: none;
-            display: inline-block;
-        }
+        body { font-family: var(--font-sans); background: #faf8f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; -webkit-font-smoothing: antialiased; }
+        .card { background: #fff; border: 1px solid var(--border); border-radius: 28px; padding: 40px 32px; max-width: 420px; width: 100%; text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.06); animation: fadeUp 0.5s ease; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .logo-icon { font-size: 48px; margin-bottom: 16px; }
+        h1 { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+        p { color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; }
+        .spinner { display: inline-block; width: 32px; height: 32px; border: 2px solid #e8e5df; border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error { color: #d9534f; font-weight: 500; }
     </style>
 </head>
 <body>
-    <div class="card" id="card">
-        <div id="content">
-            <div class="spinner"></div>
-            <p>Connexion en cours...</p>
-        </div>
+    <div class="card">
+        <div class="logo-icon">🔗</div>
+        <h1>Redirection en cours…</h1>
+        <p>Vous allez être redirigé vers la page de création de mot de passe.</p>
+        <div class="spinner" id="spinner"></div>
+        <p class="error" id="error-msg" style="display:none;"></p>
     </div>
-
     <script>
+    (function() {
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
-        
-        async function connecter() {
-            if (!token) {
-                document.getElementById('content').innerHTML = `
-                    <div class="error-icon">❌</div>
-                    <h2>Lien invalide</h2>
-                    <p>Ce lien de connexion n'est pas valide.</p>
-                    <p style="font-size: 12px; color: gray; margin-top: 20px;">Contactez votre gérant pour obtenir un nouveau lien.</p>
-                `;
-                return;
-            }
-            
-            try {
-                const res = await fetch(`/api/auth/magic/${token}`);
-                const data = await res.json();
-                
-                if (res.ok && data.success) {
-                    localStorage.setItem('resto_token', data.token);
-                    localStorage.setItem('resto_user', JSON.stringify(data.user));
-                    localStorage.setItem('resto_role', data.user.role);
-                    localStorage.setItem('resto_id', data.user.resto_id);
-                    
-                    const role = data.user.role;
-                    if (role === 'cuisinier' || role === 'serveur') {
-                        window.location.href = '/resto.html';
-                    } else {
-                        window.location.href = '/dashboard.html';
-                    }
-                } else {
-                    document.getElementById('content').innerHTML = `
-                        <div class="error-icon">❌</div>
-                        <h2>Lien expiré</h2>
-                        <p>${data.error || 'Ce lien n\'est plus valide.'}</p>
-                        <p style="font-size: 12px; color: gray; margin-top: 20px;">Contactez votre gérant pour obtenir un nouveau lien.</p>
-                    `;
-                }
-            } catch (error) {
-                document.getElementById('content').innerHTML = `
-                    <div class="error-icon">❌</div>
-                    <h2>Erreur de connexion</h2>
-                    <p>Impossible de se connecter au serveur.</p>
-                    <button class="btn" onclick="window.location.reload()">🔄 Réessayer</button>
-                `;
-            }
+
+        if (!token) {
+            document.getElementById('spinner').style.display = 'none';
+            document.getElementById('error-msg').style.display = 'block';
+            document.getElementById('error-msg').textContent = 'Lien d\'invitation invalide. Contactez votre gérant.';
+            return;
         }
-        
-        connecter();
+
+        setTimeout(() => {
+            window.location.href = `/api/auth/magic/${encodeURIComponent(token)}`;
+        }, 800);
+    })();
     </script>
 </body>
 </html>

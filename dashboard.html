@@ -3,449 +3,539 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-title" content="Resto Élite">
-    <meta name="theme-color" content="#C6A43F">
+    <meta name="apple-mobile-web-app-title" content="Dashboard 7★">
+    <meta name="theme-color" content="#0d0d0d">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
-    <title>Dashboard | Restaurant Élite</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <title>Dashboard | Restaurant 7★</title>
     <style>
-        .dashboard-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
+        :root {
+            --bg: #faf8f5;
+            --bg-dark: #0d0d0d;
+            --surface: #ffffff;
+            --surface-dark: #1a1a1a;
+            --gold: #C6A43F;
+            --gold-light: #f5eedb;
+            --gold-dark: #a8872a;
+            --text: #1a1a1a;
+            --text-dark: #f0ece4;
+            --text-secondary: #6b6b6b;
+            --text-secondary-dark: #a0a0a0;
+            --border: #e8e5df;
+            --border-dark: #2a2a2a;
+            --danger: #d9534f;
+            --success: #27AE60;
+            --info: #3498DB;
+            --warning: #F39C12;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.03);
+            --shadow-md: 0 2px 16px rgba(0,0,0,0.05);
+            --shadow-lg: 0 8px 40px rgba(0,0,0,0.08);
+            --radius-sm: 12px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 60px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --font-serif: 'Playfair Display', 'Georgia', 'Times New Roman', serif;
         }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            transition: background var(--transition), color var(--transition);
         }
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        .stat-value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #C6A43F;
-            margin: 10px 0;
-        }
-        .period-selector {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        .period-btn {
-            padding: 10px 25px;
-            border-radius: 40px;
-            border: none;
-            background: #f0f0f0;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .period-btn.active {
-            background: #C6A43F;
-            color: white;
-        }
-        .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-        .chart-card {
-            background: white;
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        .chart-card h3 {
-            margin-bottom: 20px;
-            color: #1A1A2E;
-        }
-        .nav-bar {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-        .nav-btn {
-            padding: 10px 20px;
-            border-radius: 40px;
-            text-decoration: none;
-            background: #1A1A2E;
-            color: white;
-            transition: all 0.3s;
-        }
-        .nav-btn:hover {
-            background: #C6A43F;
-            color: #1A1A2E;
-        }
-        .tables-section {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            margin-top: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        .tables-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .table-card {
-            background: #f8f8f8;
-            padding: 15px;
-            border-radius: 16px;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        .table-card:hover {
-            background: #e8e8e8;
-        }
-        .table-number-display {
-            font-size: 22px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #C6A43F;
-        }
-        .qr-preview {
-            width: 80px;
-            height: 80px;
-            margin: 10px auto;
-            display: block;
-            cursor: pointer;
-            border-radius: 12px;
-            background: white;
-            padding: 5px;
-            object-fit: contain;
-        }
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 12px;
-            margin: 3px;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        .btn-premium-small {
-            background: #C6A43F;
-            color: #1A1A2E;
-        }
-        .btn-danger-small {
-            background: #E74C3C;
-            color: white;
-        }
-        .add-table-form {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .add-table-form input {
-            padding: 10px;
-            border-radius: 12px;
-            border: 1px solid #ddd;
-            width: 120px;
-        }
-        .logout-btn {
-            background: #E74C3C;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 40px;
-            cursor: pointer;
-        }
-        .top-plats-list {
-            list-style: none;
-            padding: 0;
-        }
-        .top-plats-list li {
+        body.dark { background: var(--bg-dark); color: var(--text-dark); }
+
+        .header {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 28px;
+            height: 68px;
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: all var(--transition);
         }
+        body.dark .header {
+            background: rgba(13,13,13,0.9);
+            border-bottom: 1px solid var(--border-dark);
+        }
+        .logo {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+        .logo span { color: var(--gold); }
+        .header-right { display: flex; align-items: center; gap: 14px; }
+        .role-badge {
+            background: var(--gold-light);
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gold-dark);
+        }
+        body.dark .role-badge { background: #2a1f0a; color: var(--gold); }
+        .btn-logout {
+            background: transparent;
+            border: 1px solid #e0dcd3;
+            color: #999;
+            padding: 8px 18px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all var(--transition);
+        }
+        .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+        body.dark .btn-logout { border-color: #3a3a3a; }
+
+        .nav-bar {
+            display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+            padding: 16px 20px 0; max-width: 1400px; margin: 0 auto;
+        }
+        .nav-btn {
+            padding: 9px 20px; border-radius: 40px; text-decoration: none;
+            font-size: 13px; font-weight: 500; background: var(--surface);
+            color: var(--text-secondary); border: 1px solid var(--border);
+            transition: all var(--transition); letter-spacing: 0.2px;
+        }
+        .nav-btn:hover, .nav-btn.active { border-color: var(--gold); color: var(--gold); }
+        .nav-btn.active { background: var(--gold); color: white; border-color: var(--gold); }
+        body.dark .nav-btn { background: var(--surface-dark); border-color: var(--border-dark); color: var(--text-secondary-dark); }
+
+        .dashboard-container { max-width: 1400px; margin: 0 auto; padding: 20px 24px 60px; }
+
+        .period-selector {
+            display: flex; gap: 8px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap;
+        }
+        .period-btn {
+            padding: 10px 22px; border-radius: 40px; border: 1px solid var(--border);
+            background: var(--surface); cursor: pointer; font-size: 13px; font-weight: 500;
+            transition: all var(--transition); color: var(--text-secondary); font-family: var(--font-sans);
+        }
+        .period-btn.active { background: var(--gold); color: white; border-color: var(--gold); }
+        .period-btn:hover { border-color: var(--gold); color: var(--gold); }
+        body.dark .period-btn { background: var(--surface-dark); border-color: var(--border-dark); color: var(--text-secondary-dark); }
+
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px; margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 24px; text-align: center;
+            box-shadow: var(--shadow-sm); transition: all var(--transition);
+        }
+        .stat-card:hover { border-color: var(--gold); box-shadow: var(--shadow-md); }
+        body.dark .stat-card { background: var(--surface-dark); border-color: var(--border-dark); }
+        .stat-icon { font-size: 28px; margin-bottom: 8px; }
+        .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-secondary); font-weight: 500; margin-bottom: 6px; }
+        .stat-value { font-family: var(--font-serif); font-size: 34px; font-weight: 600; color: var(--gold); line-height: 1.2; transition: all 0.5s ease; }
+        body.dark .stat-label { color: var(--text-secondary-dark); }
+
+        .charts-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px; margin-bottom: 28px;
+        }
+        .chart-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm);
+        }
+        .chart-card h3 { font-family: var(--font-serif); font-size: 18px; margin-bottom: 16px; color: var(--text); }
+        body.dark .chart-card { background: var(--surface-dark); border-color: var(--border-dark); }
+        body.dark .chart-card h3 { color: var(--text-dark); }
+
+        .top-plats-list { list-style: none; padding: 0; }
+        .top-plats-list li {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 0; border-bottom: 1px solid #f5f3ed; font-size: 14px;
+        }
+        body.dark .top-plats-list li { border-bottom: 1px solid #1f1f1f; }
+        .plat-rank {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 28px; height: 28px; border-radius: 50%; font-size: 12px; font-weight: 700;
+            margin-right: 10px;
+        }
+        .rank-1 { background: #FFD700; color: #1a1a1a; }
+        .rank-2 { background: #C0C0C0; color: #1a1a1a; }
+        .rank-3 { background: #CD7F32; color: white; }
+        .rank-other { background: #f0f0f0; color: #666; }
+        .plat-qty { font-weight: 600; color: var(--gold); font-size: 13px; }
+
+        .tables-section {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 28px; box-shadow: var(--shadow-sm);
+        }
+        body.dark .tables-section { background: var(--surface-dark); border-color: var(--border-dark); }
+        .tables-section h2 { font-family: var(--font-serif); font-size: 20px; margin-bottom: 20px; }
+        .tables-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 14px; margin-bottom: 20px;
+        }
+        .table-card {
+            background: #fdfcfa; border: 1px solid var(--border); border-radius: var(--radius-md);
+            padding: 16px; text-align: center; transition: all var(--transition);
+        }
+        .table-card:hover { border-color: var(--gold); box-shadow: var(--shadow-md); }
+        body.dark .table-card { background: #141414; border-color: var(--border-dark); }
+        .table-number { font-size: 20px; font-weight: 600; color: var(--gold); margin-bottom: 10px; font-family: var(--font-serif); }
+        .qr-img { width: 80px; height: 80px; margin: 0 auto 10px; display: block; cursor: pointer; border-radius: 10px; background: white; padding: 4px; }
+        .qr-placeholder { width: 80px; height: 80px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 10px; color: #999; font-size: 11px; }
+        .btn-table { padding: 6px 12px; font-size: 11px; border-radius: 20px; border: 1px solid var(--border); cursor: pointer; transition: all var(--transition); font-family: var(--font-sans); margin: 2px; background: var(--surface); }
+        .btn-table:hover { border-color: var(--gold); }
+        .btn-table-print { background: var(--gold); color: white; border-color: var(--gold); }
+        .btn-table-delete { color: var(--danger); border-color: #f5c6cb; }
+        .btn-table-delete:hover { background: var(--danger); color: white; border-color: var(--danger); }
+        .add-table-form { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+        .add-table-form input {
+            padding: 10px 16px; border-radius: 40px; border: 1px solid var(--border);
+            font-size: 14px; font-family: var(--font-sans); outline: none; width: 140px;
+            transition: all var(--transition);
+        }
+        .add-table-form input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(198,164,63,0.1); }
+        body.dark .add-table-form input { background: var(--surface-dark); border-color: var(--border-dark); color: var(--text-dark); }
+        .btn-add-table {
+            padding: 10px 20px; border-radius: 40px; border: none; background: var(--gold);
+            color: white; cursor: pointer; font-size: 13px; font-weight: 600;
+            transition: all var(--transition); font-family: var(--font-sans);
+        }
+        .btn-add-table:hover { background: var(--gold-dark); }
+
+        .subscription-alert {
+            background: #FFF8E1; border: 1px solid #F39C12; border-radius: var(--radius-md);
+            padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center;
+            gap: 12px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all var(--transition);
+        }
+        .subscription-alert:hover { background: #FFF3CD; }
+        .subscription-alert.warning { background: #FDE8E8; border-color: var(--danger); }
+        body.dark .subscription-alert { background: #2a1f0a; border-color: #F39C12; color: #F39C12; }
+        body.dark .subscription-alert.warning { background: #2a0a0a; border-color: var(--danger); color: #E74C3C; }
+
+        .empty-state { text-align: center; padding: 40px; color: var(--text-secondary); }
+        body.dark .empty-state { color: var(--text-secondary-dark); }
+
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);
+            padding: 12px 20px; box-shadow: var(--shadow-lg); font-size: 13px; font-weight: 500;
+            animation: slideIn 0.3s ease; max-width: 380px;
+        }
+        .toast.success { border-left: 3px solid var(--success); }
+        .toast.warning { border-left: 3px solid var(--warning); }
+        body.dark .toast { background: var(--surface-dark); border-color: var(--border-dark); }
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
         @media (max-width: 768px) {
             .charts-grid { grid-template-columns: 1fr; }
-            .tables-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-        }
-        .refresh-btn {
-            background: #3498DB;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 11px;
-        }
-        .error-placeholder {
-            width: 80px;
-            height: 80px;
-            margin: 10px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f0f0f0;
-            border-radius: 12px;
-            color: #999;
-            font-size: 12px;
+            .tables-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .header { padding: 0 14px; }
+            .stat-value { font-size: 26px; }
         }
     </style>
 </head>
 <body>
-    <header class="header-premium">
-        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; padding: 15px 30px;">
-            <div class="logo">📊 TABLEAU DE BORD</div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <span id="resto-name" style="color: #C6A43F;">Restaurant</span>
-                <span id="user-role" style="background: #C6A43F; padding: 5px 12px; border-radius: 20px; font-size: 12px;">Gérant</span>
-                <button class="logout-btn" id="logout-btn">🚪 Déconnexion</button>
-            </div>
+
+    <header class="header">
+        <div class="logo">📊 <span>Tableau</span> de bord</div>
+        <div class="header-right">
+            <span class="role-badge" id="role-badge">👑 Gérant</span>
+            <span style="font-size: 13px; color: var(--text-secondary);" id="resto-name">Restaurant</span>
+            <button class="btn-logout" id="logout-btn">Quitter</button>
         </div>
     </header>
 
-    <div class="nav-bar">
-        <a href="/dashboard.html" class="nav-btn" style="background: #C6A43F;">📊 Dashboard</a>
-        <a href="/admin.html" class="nav-btn">🍽️ Gestion plats</a>
+    <nav class="nav-bar">
+        <a href="/dashboard.html" class="nav-btn active">📊 Dashboard</a>
+        <a href="/admin.html" class="nav-btn">🍽️ Plats</a>
         <a href="/employes.html" class="nav-btn">👥 Équipe</a>
         <a href="/resto.html" class="nav-btn">👨‍🍳 Cuisine</a>
         <a href="/qrcodes.html" class="nav-btn">📱 QR Codes</a>
         <a href="/subscription.html" class="nav-btn">💰 Abonnement</a>
-        <a href="/transactions.html" class="nav-btn">📜 Historique</a>
-    </div>
+        <a href="/transactions.html" class="nav-btn">📜 Transactions</a>
+    </nav>
 
     <div class="dashboard-container">
+        <div id="subscription-alert-container"></div>
+
         <div class="period-selector">
-            <button class="period-btn active" data-period="day">📅 Aujourd'hui</button>
-            <button class="period-btn" data-period="week">📆 Cette semaine</button>
-            <button class="period-btn" data-period="month">📅 Ce mois</button>
+            <button class="period-btn active" data-period="day">Aujourd'hui</button>
+            <button class="period-btn" data-period="week">Cette semaine</button>
+            <button class="period-btn" data-period="month">Ce mois</button>
         </div>
 
         <div class="stats-grid">
             <div class="stat-card">
-                <div>💰 Chiffre d'affaires</div>
+                <div class="stat-icon">💰</div>
+                <div class="stat-label">Chiffre d'affaires</div>
                 <div class="stat-value" id="ca-total">0 FCFA</div>
             </div>
             <div class="stat-card">
-                <div>📋 Commandes servies</div>
+                <div class="stat-icon">📋</div>
+                <div class="stat-label">Commandes</div>
                 <div class="stat-value" id="nb-commandes">0</div>
             </div>
             <div class="stat-card">
-                <div>🛒 Panier moyen</div>
+                <div class="stat-icon">🛒</div>
+                <div class="stat-label">Panier moyen</div>
                 <div class="stat-value" id="panier-moyen">0 FCFA</div>
             </div>
         </div>
 
         <div class="charts-grid">
             <div class="chart-card">
-                <h3>📈 Évolution des ventes</h3>
-                <canvas id="evolution-chart" width="400" height="250"></canvas>
+                <h3>📈 Évolution du chiffre d'affaires</h3>
+                <canvas id="evolution-chart" height="280"></canvas>
             </div>
             <div class="chart-card">
                 <h3>🏆 Top 10 des plats</h3>
-                <div id="top-plats-container"></div>
+                <div id="top-plats-container">
+                    <div class="empty-state">Chargement…</div>
+                </div>
             </div>
         </div>
 
         <div class="tables-section">
-            <h2>🏷️ Gestion des tables et QR codes</h2>
-            <div style="margin-bottom: 15px; text-align: right;">
-                <button class="refresh-btn" onclick="chargerTables()">🔄 Rafraîchir</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <h2>🏷️ Tables & QR Codes</h2>
+                <button class="btn-table btn-table-print" id="refresh-tables-btn">🔄 Rafraîchir</button>
             </div>
             <div class="tables-grid" id="tables-grid">
-                <div>Chargement des tables...</div>
+                <div class="empty-state">Chargement…</div>
             </div>
             <div class="add-table-form">
-                <input type="number" id="new-table-number" placeholder="Numéro de table" min="1">
-                <button class="btn-premium" id="add-table-btn">➕ Ajouter une table</button>
+                <input type="number" id="new-table-number" placeholder="N° table" min="1" max="999">
+                <button class="btn-add-table" id="add-table-btn">+ Ajouter</button>
             </div>
         </div>
     </div>
 
+    <div class="toast-container" id="toast-container"></div>
+
     <script>
+    (function() {
+        'use strict';
 
-        // Vérifier le statut d'abonnement et afficher une notification
-async function checkSubscriptionStatus() {
-    try {
-        const res = await fetch('/api/restaurant/subscription', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (res.ok) {
-            const data = await res.json();
-            if (data.status === 'trial') {
-                const daysLeft = data.days_left;
-                if (daysLeft <= 3) {
-                    showWarningNotification(`⚠️ Votre essai gratuit se termine dans ${daysLeft} jours ! Abonnez-vous pour continuer.`, daysLeft);
-                } else {
-                    showInfoNotification(`📋 Période d'essai : ${daysLeft} jours restants`);
-                }
-            } else if (data.status === 'active' && data.ends_at) {
-                const endDate = new Date(data.ends_at);
-                const daysLeft = Math.ceil((endDate - new Date()) / (1000 * 60 * 60 * 24));
-                if (daysLeft <= 7) {
-                    showWarningNotification(`⚠️ Votre abonnement se termine dans ${daysLeft} jours ! Pensez à le renouveler.`, daysLeft);
-                }
-            } else if (data.status === 'expired') {
-                window.location.href = '/subscription.html';
+        // ==================== CONFIGURATION ====================
+        const TOKEN_KEY = 'resto_token';
+
+        // ==================== ÉTAT ====================
+        let token, userRole, userId, currentResto;
+        let currentPeriod = 'day';
+        let evolutionChart = null;
+        let pollingTimer = null;
+
+        // ==================== INIT ====================
+        function init() {
+            token = localStorage.getItem(TOKEN_KEY);
+            if (!token) { redirectToLogin(); return; }
+
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                userRole = payload.role;
+                userId = payload.id;
+                currentResto = payload.resto_id;
+            } catch(e) { redirectToLogin(); return; }
+
+            if (userRole !== 'gerant' && userRole !== 'superadmin') {
+                window.location.href = '/resto.html';
+                return;
             }
-        } else if (res.status === 403) {
-            window.location.href = '/subscription.html';
+
+            document.getElementById('role-badge').textContent = userRole === 'superadmin' ? '👑 Super Admin' : '👑 Gérant';
+            document.getElementById('resto-name').textContent = payload.restaurant_name || 'Restaurant';
+
+            initEventListeners();
+            checkSubscription();
+            chargerStats();
+            chargerTables();
+            startPolling();
         }
-    } catch(e) { console.error(e); }
-}
 
-function showInfoNotification(message) {
-    const notif = document.createElement('div');
-    notif.style.cssText = 'position:fixed;top:20px;right:20px;background:#3498DB;color:white;padding:12px 20px;border-radius:40px;z-index:1000;box-shadow:0 5px 15px rgba(0,0,0,0.2);';
-    notif.innerHTML = message;
-    document.body.appendChild(notif);
-    setTimeout(() => notif.remove(), 8000);
-}
-
-function showWarningNotification(message, daysLeft) {
-    const notif = document.createElement('div');
-    notif.style.cssText = 'position:fixed;top:20px;right:20px;background:#F39C12;color:white;padding:12px 20px;border-radius:40px;z-index:1000;box-shadow:0 5px 15px rgba(0,0,0,0.2);cursor:pointer;';
-    notif.innerHTML = `${message} <a href="/subscription.html" style="color:white;text-decoration:underline;margin-left:10px;">Voir les offres →</a>`;
-    document.body.appendChild(notif);
-    setTimeout(() => notif.remove(), 10000);
-}
-
-async function showRemainingTime() {
-  try {
-    const res = await fetch('/api/restaurant/subscription', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await res.json();
-    if (data.ends_at) {
-      const remaining = Math.ceil((new Date(data.ends_at) - new Date()) / 1000);
-      console.log(`⏱️ Temps restant : ${remaining} secondes`);
-    }
-  } catch(e) {}
-}
-
-setInterval(showRemainingTime, 1000);
-
-        async function checkSubscriptionStatus() {
-    try {
-        const res = await fetch('/api/restaurant/subscription', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (res.ok) {
-            const data = await res.json();
-            if (data.status === 'trial' && data.days_left <= 3) {
-                showNotification(`⚠️ Votre essai se termine dans ${data.days_left} jours. Souscrivez un abonnement !`, 'warning');
-            }
-        } else if (res.status === 403) {
-            const error = await res.json();
-            if (error.error === 'expired') {
-                window.location.href = '/subscription.html';
-            }
-        }
-    } catch(e) { console.error(e); }
-}
-
-checkSubscriptionStatus();
-
-        // VÉRIFICATION DU RÔLE - Dashboard accessible uniquement au gérant
-        const token = localStorage.getItem('resto_token');
-        const userRole = localStorage.getItem('resto_role');
-        
-        if (!token) {
+        function redirectToLogin() {
+            localStorage.clear();
             window.location.href = '/login.html';
         }
-        
-        if (userRole !== 'gerant') {
-            // Si ce n'est pas un gérant, rediriger vers resto.html
-            window.location.href = '/resto.html';
+
+        // ==================== ABONNEMENT ====================
+        async function checkSubscription() {
+            try {
+                const res = await fetch('/api/restaurant/subscription', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 403) {
+                    const data = await res.json();
+                    if (data.code === 'SUBSCRIPTION_EXPIRED') {
+                        window.location.href = '/subscription-renew.html';
+                    }
+                    return;
+                }
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const container = document.getElementById('subscription-alert-container');
+
+                    if (data.status === 'trial' && data.days_left !== undefined) {
+                        if (data.days_left <= 3) {
+                            container.innerHTML = `
+                                <div class="subscription-alert warning" onclick="window.location.href='/subscription.html'">
+                                    ⚠️ Votre essai gratuit se termine dans <strong>${data.days_left} jour${data.days_left > 1 ? 's' : ''}</strong>.
+                                    Souscrivez un abonnement pour continuer →
+                                </div>`;
+                        } else {
+                            container.innerHTML = `
+                                <div class="subscription-alert" onclick="window.location.href='/subscription.html'">
+                                    📋 Période d'essai : <strong>${data.days_left} jours</strong> restants
+                                </div>`;
+                        }
+                    } else if (data.status === 'active' && data.ends_at) {
+                        const daysLeft = Math.ceil((new Date(data.ends_at) - new Date()) / (1000 * 60 * 60 * 24));
+                        if (daysLeft <= 7 && daysLeft > 0) {
+                            container.innerHTML = `
+                                <div class="subscription-alert warning" onclick="window.location.href='/subscription.html'">
+                                    ⚠️ Abonnement expire dans <strong>${daysLeft} jour${daysLeft > 1 ? 's' : ''}</strong>. Renouvelez →</div>`;
+                        }
+                    }
+                }
+            } catch(e) { console.error('Erreur vérif abonnement:', e); }
         }
-        
-        // Afficher le rôle
-        const roleSpan = document.getElementById('user-role');
-        if (roleSpan) {
-            if (userRole === 'gerant') roleSpan.textContent = '👑 Gérant';
-            else if (userRole === 'cuisinier') roleSpan.textContent = '👨‍🍳 Cuisinier';
-            else if (userRole === 'serveur') roleSpan.textContent = '🍽️ Serveur';
-        }
-        
-        let currentPeriod = 'day';
-        let currentResto = localStorage.getItem('resto_id') || 1;
-        let evolutionChart;
-        
-        const user = JSON.parse(localStorage.getItem('resto_user') || '{}');
-        if (user.restaurant_name) {
-            document.getElementById('resto-name').innerText = user.restaurant_name;
-        }
-        
+
+        // ==================== STATISTIQUES ====================
         async function chargerStats() {
             try {
                 const res = await fetch(`/api/stats/${currentResto}?periode=${currentPeriod}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+
+                if (res.status === 401 || res.status === 403) {
+                    const data = await res.json().catch(() => ({}));
+                    if (data.code === 'SUBSCRIPTION_EXPIRED') {
+                        window.location.href = '/subscription-renew.html';
+                    } else {
+                        redirectToLogin();
+                    }
+                    return;
+                }
+
                 if (res.ok) {
                     const stats = await res.json();
-                    document.getElementById('ca-total').innerHTML = (stats.caTotal || 0).toLocaleString() + ' FCFA';
-                    document.getElementById('nb-commandes').innerHTML = stats.nbCommandes || 0;
-                    document.getElementById('panier-moyen').innerHTML = Math.round(stats.panierMoyen || 0).toLocaleString() + ' FCFA';
-                    
-                    if (stats.topPlats && stats.topPlats.length) {
-                        const container = document.getElementById('top-plats-container');
-                        container.innerHTML = `
-                            <ul class="top-plats-list">
-                                ${stats.topPlats.slice(0,10).map((plat, index) => `
-                                    <li><span>${index + 1}. 🍽️ ${plat.nom}</span><span>${plat.quantite} vendus</span></li>
-                                `).join('')}
-                            </ul>
-                        `;
-                    } else {
-                        document.getElementById('top-plats-container').innerHTML = '<p>Aucune vente pour cette période</p>';
-                    }
-                    
-                    if (stats.evolution && stats.evolution.length) {
-                        updateEvolutionChart(stats.evolution);
-                    }
-                } else if (res.status === 401 || res.status === 403) {
-                    localStorage.clear();
-                    window.location.href = '/login.html';
+                    document.getElementById('ca-total').textContent = (stats.caTotal || 0).toLocaleString() + ' FCFA';
+                    document.getElementById('nb-commandes').textContent = stats.nbCommandes || 0;
+                    document.getElementById('panier-moyen').textContent = Math.round(stats.panierMoyen || 0).toLocaleString() + ' FCFA';
+                    afficherTopPlats(stats.topPlats || []);
+                    updateEvolutionChart(stats.evolution || []);
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { console.error('Erreur stats:', e); }
         }
-        
+
+        function afficherTopPlats(topPlats) {
+            const container = document.getElementById('top-plats-container');
+            if (!topPlats.length) {
+                container.innerHTML = '<div class="empty-state">🍃 Aucune vente pour cette période</div>';
+                return;
+            }
+            container.innerHTML = `<ul class="top-plats-list">${topPlats.map((plat, i) => {
+                const rankClass = i === 0 ? 'rank-1' : (i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : 'rank-other'));
+                return `<li>
+                    <span><span class="plat-rank ${rankClass}">${i + 1}</span> ${escapeHtml(plat.nom)}</span>
+                    <span class="plat-qty">${plat.quantite} vendu${plat.quantite > 1 ? 's' : ''}</span>
+                </li>`;
+            }).join('')}</ul>`;
+        }
+
         function updateEvolutionChart(evolution) {
-            const ctx = document.getElementById('evolution-chart').getContext('2d');
-            if (evolutionChart) evolutionChart.destroy();
+            const canvas = document.getElementById('evolution-chart');
+            const ctx = canvas.getContext('2d');
+
+            if (evolutionChart) {
+                evolutionChart.destroy();
+                evolutionChart = null;
+            }
+
+            // Générer des données simulées d'évolution si l'API n'en fournit pas
+            const labels = evolution.length ? evolution.map(e => e.date) : getDefaultLabels();
+            const data = evolution.length ? evolution.map(e => e.total) : getDefaultData();
+
             evolutionChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: evolution.map(e => e.date),
+                    labels,
                     datasets: [{
                         label: 'CA (FCFA)',
-                        data: evolution.map(e => e.total),
+                        data,
                         borderColor: '#C6A43F',
-                        backgroundColor: 'rgba(198,164,63,0.1)',
+                        backgroundColor: 'rgba(198,164,63,0.06)',
                         fill: true,
-                        tension: 0.3
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#C6A43F',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 6
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Inter', size: 11 }, color: '#999' }
+                        },
+                        y: {
+                            grid: { color: 'rgba(0,0,0,0.04)' },
+                            ticks: {
+                                font: { family: 'Inter', size: 11 },
+                                color: '#999',
+                                callback: v => v.toLocaleString() + ' F'
+                            }
+                        }
+                    }
                 }
             });
         }
-        
+
+        function getDefaultLabels() {
+            const now = new Date();
+            if (currentPeriod === 'day') {
+                return ['8h', '10h', '12h', '14h', '16h', '18h', '20h', '22h'];
+            } else if (currentPeriod === 'week') {
+                return ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+            } else {
+                return Array.from({length: 4}, (_, i) => {
+                    const d = new Date(now);
+                    d.setDate(d.getDate() - (21 - i * 7));
+                    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+                });
+            }
+        }
+
+        function getDefaultData() {
+            // Données à zéro si pas d'historique
+            return Array(currentPeriod === 'day' ? 8 : (currentPeriod === 'week' ? 7 : 4)).fill(0);
+        }
+
+        // ==================== TABLES ====================
         async function chargerTables() {
             try {
                 const res = await fetch(`/api/tables/${currentResto}`, {
@@ -455,103 +545,178 @@ checkSubscriptionStatus();
                     const tables = await res.json();
                     afficherTables(tables);
                 } else {
-                    document.getElementById('tables-grid').innerHTML = '<p style="color:red;">Erreur chargement tables</p>';
+                    document.getElementById('tables-grid').innerHTML = '<div class="empty-state">Erreur de chargement</div>';
                 }
-            } catch(e) { 
-                console.error(e);
-                document.getElementById('tables-grid').innerHTML = '<p style="color:red;">Erreur réseau</p>';
+            } catch(e) {
+                document.getElementById('tables-grid').innerHTML = '<div class="empty-state">Erreur réseau</div>';
             }
         }
-        
+
+        async function loadQRCode(restoId, tableNumero, imgElement) {
+            try {
+                const res = await fetch(`/api/qrcode/${restoId}/${tableNumero}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.qr) {
+                        imgElement.src = data.qr;
+                        imgElement.style.display = 'block';
+                        const placeholder = imgElement.parentElement.querySelector('.qr-placeholder');
+                        if (placeholder) placeholder.style.display = 'none';
+                    }
+                }
+            } catch(e) {
+                // Garder le placeholder
+            }
+        }
+
         function afficherTables(tables) {
             const container = document.getElementById('tables-grid');
             if (!tables.length) {
-                container.innerHTML = '<p style="color:gray;">Aucune table. Ajoutez-en une !</p>';
+                container.innerHTML = '<div class="empty-state">🍽️ Aucune table. Ajoutez votre première table !</div>';
                 return;
             }
-            
             container.innerHTML = tables.map(table => `
                 <div class="table-card">
-                    <div class="table-number-display">🍽️ Table ${table.numero_table}</div>
-                    <img class="qr-preview" 
-                         src="/api/qrcode-image/${currentResto}/${table.numero_table}?t=${Date.now()}" 
-                         alt="QR Code Table ${table.numero_table}"
-                         onclick="window.open('/api/generate-qr/${currentResto}/${table.numero_table}', '_blank')"
-                         onerror="this.onerror=null; this.parentElement.querySelector('.qr-error').style.display='flex'; this.style.display='none';"
-                         style="cursor: pointer;">
-                    <div class="qr-error" style="display: none; width:80px; height:80px; margin:10px auto; align-items:center; justify-content:center; background:#f0f0f0; border-radius:12px; color:#999; font-size:11px;">
-                        ⚠️ Erreur
+                    <div class="table-number">Table ${table.numero_table}</div>
+                    <div style="position: relative;">
+                        <img class="qr-img" src="" alt="QR Code" style="display: none;" loading="lazy">
+                        <div class="qr-placeholder">⏳</div>
                     </div>
-                    <div>
-                        <button class="btn-small btn-premium-small" onclick="genererQR(${table.numero_table})">🖨️ Imprimer</button>
-                        <button class="btn-small btn-danger-small" onclick="supprimerTable(${table.id})">🗑️ Supprimer</button>
+                    <div style="display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn-table btn-table-print" data-action="print" data-table="${table.numero_table}">🖨️</button>
+                        <button class="btn-table btn-table-delete" data-action="delete" data-id="${table.id}">🗑️</button>
                     </div>
                 </div>
             `).join('');
+
+            // Charger les QR codes
+            container.querySelectorAll('.qr-img').forEach((img, i) => {
+                const table = tables[i];
+                if (table) loadQRCode(currentResto, table.numero_table, img);
+            });
+
+            // Event listeners boutons
+            container.querySelectorAll('button[data-action="print"]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    window.open(`/api/generate-qr/${currentResto}/${btn.dataset.table}`, '_blank');
+                });
+            });
+            container.querySelectorAll('button[data-action="delete"]').forEach(btn => {
+                btn.addEventListener('click', () => supprimerTable(parseInt(btn.dataset.id)));
+            });
         }
-        
-        function genererQR(tableId) {
-            window.open(`/api/generate-qr/${currentResto}/${tableId}`, '_blank');
-        }
-        
+
         async function ajouterTable() {
-            const numeroTable = document.getElementById('new-table-number').value;
-            if (!numeroTable) {
-                alert('Entrez un numéro de table');
+            const input = document.getElementById('new-table-number');
+            const numero = parseInt(input.value);
+            if (!numero || numero < 1 || numero > 999) {
+                showToast('Numéro de table invalide (1-999)', 'warning');
                 return;
             }
             try {
                 const res = await fetch('/api/tables', {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ restoId: currentResto, numeroTable: parseInt(numeroTable) })
+                    body: JSON.stringify({ restoId: currentResto, numeroTable: numero })
                 });
                 if (res.ok) {
-                    document.getElementById('new-table-number').value = '';
+                    input.value = '';
                     chargerTables();
+                    showToast('✅ Table ajoutée', 'success');
                 } else {
-                    alert('Erreur lors de l\'ajout');
+                    const err = await res.json();
+                    showToast(err.error || 'Erreur', 'warning');
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { showToast('Erreur réseau', 'warning'); }
         }
-        
+
         async function supprimerTable(id) {
-            if (!confirm('Supprimer cette table ?')) return;
+            if (!confirm('Supprimer cette table ? Cette action est irréversible.')) return;
             try {
-                const res = await fetch(`/api/tables/${id}`, { 
+                const res = await fetch(`/api/tables/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (res.ok) chargerTables();
-            } catch(e) { console.error(e); }
+                if (res.ok) {
+                    chargerTables();
+                    showToast('Table supprimée', 'success');
+                } else {
+                    const err = await res.json();
+                    showToast(err.message || 'Impossible de supprimer', 'warning');
+                }
+            } catch(e) { showToast('Erreur réseau', 'warning'); }
         }
-        
-        document.querySelectorAll('.period-btn').forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentPeriod = btn.dataset.period;
+
+        // ==================== UTILITAIRES ====================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = String(str);
+            return div.innerHTML;
+        }
+
+        function startPolling() {
+            if (pollingTimer) clearInterval(pollingTimer);
+            pollingTimer = setInterval(() => {
                 chargerStats();
-            };
+                // Re-vérifier l'abonnement toutes les 5 minutes
+                if (Math.random() < 0.1) checkSubscription();
+            }, 30000);
+        }
+
+        // ==================== EVENT LISTENERS ====================
+        function initEventListeners() {
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentPeriod = this.dataset.period;
+                    chargerStats();
+                });
+            });
+
+            document.getElementById('add-table-btn').addEventListener('click', ajouterTable);
+            document.getElementById('refresh-tables-btn').addEventListener('click', chargerTables);
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                if (pollingTimer) clearInterval(pollingTimer);
+                localStorage.clear();
+                window.location.href = '/login.html';
+            });
+
+            // Touche Entrée pour ajouter une table
+            document.getElementById('new-table-number').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') ajouterTable();
+            });
+        }
+
+        // ==================== NETTOYAGE ====================
+        window.addEventListener('beforeunload', () => {
+            if (pollingTimer) clearInterval(pollingTimer);
+            if (evolutionChart) evolutionChart.destroy();
         });
-        
-        document.getElementById('add-table-btn').onclick = ajouterTable;
-        document.getElementById('logout-btn').onclick = () => {
-            localStorage.clear();
-            window.location.href = '/login.html';
-        };
-        
-        // Fonctions globales pour les onclick
-        window.genererQR = genererQR;
-        window.supprimerTable = supprimerTable;
+
+        // ==================== DÉMARRAGE ====================
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Exposer pour compatibilité
         window.chargerTables = chargerTables;
-        
-        chargerStats();
-        chargerTables();
-        setInterval(chargerStats, 30000);
+    })();
     </script>
 </body>
 </html>

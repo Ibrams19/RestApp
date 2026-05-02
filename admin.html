@@ -1,411 +1,404 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta name="apple-mobile-web-app-title" content="Resto Élite">
-    <meta name="theme-color" content="#C6A43F">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="apple-touch-icon" href="/icons/icon-192.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Admin Dashboard | Restaurant</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Gestion Plats 7★">
+    <meta name="theme-color" content="#0d0d0d">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <title>Gestion des plats | Restaurant 7★</title>
     <style>
-        .admin-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px;
+        :root {
+            --bg: #faf8f5; --bg-dark: #0d0d0d; --surface: #fff; --surface-dark: #1a1a1a;
+            --gold: #C6A43F; --gold-dark: #a8872a; --text: #1a1a1a; --text-dark: #f0ece4;
+            --text-secondary: #6b6b6b; --text-secondary-dark: #a0a0a0;
+            --border: #e8e5df; --border-dark: #2a2a2a; --danger: #d9534f; --success: #27AE60;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.03); --shadow-md: 0 2px 16px rgba(0,0,0,0.05);
+            --radius-sm: 12px; --radius-md: 16px; --radius-lg: 24px; --radius-xl: 60px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            --font-serif: 'Playfair Display', 'Georgia', serif;
         }
-        .form-card {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            font-family: inherit;
-        }
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        .plats-table {
-            width: 100%;
-            background: white;
-            border-radius: 20px;
-            overflow-x: auto;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        }
-        .plats-table th, .plats-table td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        .plats-table th {
-            background: #1A1A2E;
-            color: white;
-        }
-        .plat-photo {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
-            object-fit: cover;
-            background: #f0f0f0;
-        }
-        .btn-danger {
-            background: #E74C3C;
-            color: white;
-        }
-        .btn-warning {
-            background: #F39C12;
-            color: white;
-        }
-        .btn-small {
-            padding: 5px 12px;
-            font-size: 12px;
-            margin: 3px;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        .upload-btn {
-            background: #C6A43F;
-            color: #1A1A2E;
-            padding: 8px 16px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-size: 12px;
-            border: none;
-        }
-        .search-bar {
-            margin-bottom: 15px;
-        }
-        .search-bar input {
-            width: 100%;
-            padding: 12px 20px;
-            border-radius: 50px;
-            border: 1px solid #ddd;
-        }
-        .filter-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .filter-btn {
-            padding: 8px 20px;
-            border-radius: 40px;
-            border: none;
-            background: #f0f0f0;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 14px;
-        }
-        .filter-btn.active {
-            background: #C6A43F;
-            color: white;
-        }
-        .nav-bar {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-        .nav-btn {
-            padding: 10px 20px;
-            border-radius: 40px;
-            text-decoration: none;
-            background: #1A1A2E;
-            color: white;
-            transition: all 0.3s;
-        }
-        .nav-btn:hover {
-            background: #C6A43F;
-            color: #1A1A2E;
-        }
-        .stats-info {
-            background: #f8f8f8;
-            padding: 10px 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: var(--font-sans); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; transition: background var(--transition), color var(--transition); }
+        body.dark { background: var(--bg-dark); color: var(--text-dark); }
+
+        .header { background: rgba(255,255,255,0.85); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 0 24px; height: 64px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; transition: all var(--transition); }
+        body.dark .header { background: rgba(13,13,13,0.9); border-bottom: 1px solid var(--border-dark); }
+        .logo { font-family: var(--font-serif); font-size: 19px; font-weight: 600; letter-spacing: -0.3px; }
+        .logo span { color: var(--gold); }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .btn-logout { background: transparent; border: 1px solid #e0dcd3; color: #999; padding: 8px 18px; border-radius: 40px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all var(--transition); }
+        .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+        body.dark .btn-logout { border-color: #3a3a3a; }
+
+        .nav-bar { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 14px 16px 0; max-width: 1200px; margin: 0 auto; }
+        .nav-btn { padding: 9px 18px; border-radius: 40px; text-decoration: none; font-size: 13px; font-weight: 500; background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); transition: all var(--transition); }
+        .nav-btn:hover, .nav-btn.active { border-color: var(--gold); color: var(--gold); }
+        .nav-btn.active { background: var(--gold); color: #fff; border-color: var(--gold); }
+        body.dark .nav-btn { background: var(--surface-dark); border-color: var(--border-dark); color: var(--text-secondary-dark); }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px 24px 60px; }
+
+        .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+        body.dark .section { background: var(--surface-dark); border-color: var(--border-dark); }
+        .section-title { font-family: var(--font-serif); font-size: 20px; margin-bottom: 20px; }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: var(--font-sans); background: #fdfcfa; color: var(--text); transition: all var(--transition); }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(198,164,63,0.07); outline: none; background: #fff; }
+        body.dark .form-input, body.dark .form-select, body.dark .form-textarea { background: var(--surface-dark); border-color: var(--border-dark); color: var(--text-dark); }
+        .form-textarea { resize: vertical; min-height: 70px; }
+        .btn { padding: 11px 22px; border-radius: 40px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--transition); font-family: var(--font-sans); letter-spacing: 0.2px; border: none; }
+        .btn-primary { background: var(--gold); color: #fff; }
+        .btn-primary:hover { background: var(--gold-dark); }
+        .btn-sm { padding: 6px 14px; font-size: 11px; border-radius: 20px; }
+        .btn-danger { background: transparent; color: var(--danger); border: 1px solid #f5c6cb; }
+        .btn-danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+        .btn-warning { background: #FFF8E1; color: #E67E22; border: 1px solid #ffeeba; }
+        .btn-warning:hover { background: #F39C12; color: #fff; border-color: #F39C12; }
+        .btn-success { background: #E8F5E9; color: #27AE60; border: 1px solid #c3e6cb; }
+        .btn-success:hover { background: #27AE60; color: #fff; border-color: #27AE60; }
+
+        .search-bar { margin-bottom: 16px; }
+        .search-input { width: 100%; padding: 11px 18px 11px 40px; border: 1px solid var(--border); border-radius: 40px; font-size: 14px; font-family: var(--font-sans); background: var(--surface); transition: all var(--transition); }
+        .search-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(198,164,63,0.07); outline: none; }
+        .search-wrapper { position: relative; }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 15px; color: #bbb; pointer-events: none; }
+        body.dark .search-input { background: var(--surface-dark); border-color: var(--border-dark); color: var(--text-dark); }
+
+        .filter-bar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .filter-btn { padding: 8px 18px; border-radius: 40px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 12px; font-weight: 500; transition: all var(--transition); color: var(--text-secondary); font-family: var(--font-sans); }
+        .filter-btn.active { background: var(--gold); color: #fff; border-color: var(--gold); }
+        body.dark .filter-btn { background: var(--surface-dark); border-color: var(--border-dark); color: var(--text-secondary-dark); }
+
+        .stats-bar { display: flex; gap: 16px; flex-wrap: wrap; padding: 14px 18px; background: #fdfcfa; border-radius: var(--radius-sm); border: 1px solid var(--border); margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); }
+        body.dark .stats-bar { background: #141414; border-color: var(--border-dark); color: var(--text-secondary-dark); }
+        .stats-bar strong { color: var(--gold); }
+
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #fdfcfa; padding: 14px 16px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); font-weight: 600; border-bottom: 2px solid var(--border); white-space: nowrap; }
+        body.dark th { background: #141414; border-bottom: 2px solid var(--border-dark); color: var(--text-secondary-dark); }
+        td { padding: 12px 16px; border-bottom: 1px solid #f5f3ed; font-size: 13px; vertical-align: middle; }
+        body.dark td { border-bottom: 1px solid #1f1f1f; }
+        tr:hover td { background: #fdfcfa; }
+        body.dark tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .plat-img { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; background: #f0f0f0; }
+        .plat-placeholder { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: #f5f3ed; color: #ccc; font-size: 18px; }
+        body.dark .plat-placeholder { background: #1f1f1f; }
+
+        .badge-status { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-available { background: #E8F5E9; color: #27AE60; }
+        .badge-unavailable { background: #FDE8E8; color: #E74C3C; }
+        body.dark .badge-available { background: #0a2e1a; color: #2ECC71; }
+        body.dark .badge-unavailable { background: #2a0a0a; color: #E74C3C; }
+
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
+        .toast { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 20px; box-shadow: var(--shadow-md); font-size: 13px; font-weight: 500; animation: slideIn 0.3s ease; max-width: 380px; }
+        .toast.success { border-left: 3px solid var(--success); }
+        .toast.error { border-left: 3px solid var(--danger); }
+        body.dark .toast { background: var(--surface-dark); border-color: var(--border-dark); }
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
         @media (max-width: 768px) {
-            .admin-container { padding: 15px; }
-            .plats-table { font-size: 12px; }
-            .plats-table th, .plats-table td { padding: 8px; }
+            .form-row { grid-template-columns: 1fr; }
+            .container { padding: 14px; }
+            .header { padding: 0 14px; }
+            .logo { font-size: 16px; }
+            td, th { padding: 8px 10px; font-size: 12px; }
         }
     </style>
 </head>
 <body>
-    <header class="header-premium">
-        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; padding: 15px 30px;">
-            <div class="logo">👑 ADMIN DASHBOARD</div>
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <span id="user-role" style="background: #C6A43F; padding: 5px 12px; border-radius: 20px; font-size: 12px;">Gérant</span>
-                <select id="resto-select" class="btn-outline" style="padding: 8px 20px;">
-                    <option value="1">Restaurant Test Dakar</option>
-                </select>
-                <button class="logout-btn" id="logout-btn" style="background: #E74C3C; color: white; border: none; padding: 8px 20px; border-radius: 40px; cursor: pointer;">🚪 Déconnexion</button>
-            </div>
+
+    <header class="header">
+        <div class="logo">🍽️ <span>Gestion</span> des plats</div>
+        <div class="header-right">
+            <button class="btn-logout" id="logout-btn">Quitter</button>
         </div>
     </header>
 
-    <div class="nav-bar">
+    <nav class="nav-bar">
         <a href="/dashboard.html" class="nav-btn">📊 Dashboard</a>
-        <a href="/admin.html" class="nav-btn" style="background: #C6A43F;">🍽️ Gestion plats</a>
+        <a href="/admin.html" class="nav-btn active">🍽️ Plats</a>
         <a href="/employes.html" class="nav-btn">👥 Équipe</a>
         <a href="/resto.html" class="nav-btn">👨‍🍳 Cuisine</a>
         <a href="/qrcodes.html" class="nav-btn">📱 QR Codes</a>
         <a href="/subscription.html" class="nav-btn">💰 Abonnement</a>
-    </div>
+    </nav>
 
-    <div class="admin-container">
-        <div class="form-card">
-            <h2>📝 Ajouter un plat</h2>
+    <div class="container">
+        <!-- Formulaire ajout -->
+        <div class="section">
+            <h2 class="section-title">📝 Ajouter un plat</h2>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Nom du plat</label>
-                    <input type="text" id="plat-nom" placeholder="Ex: Yassa Poulet">
+                    <label class="form-label">Nom du plat *</label>
+                    <input type="text" id="plat-nom" class="form-input" placeholder="Ex: Yassa Poulet" required>
                 </div>
                 <div class="form-group">
-                    <label>Prix (FCFA)</label>
-                    <input type="number" id="plat-prix" placeholder="2500">
+                    <label class="form-label">Prix (FCFA) *</label>
+                    <input type="number" id="plat-prix" class="form-input" placeholder="2500" min="100" required>
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
-                    <label>Catégorie</label>
-                    <select id="plat-categorie">
+                    <label class="form-label">Catégorie</label>
+                    <select id="plat-categorie" class="form-select">
                         <option value="Entrée">Entrée</option>
-                        <option value="Plat">Plat</option>
+                        <option value="Plat" selected>Plat</option>
                         <option value="Dessert">Dessert</option>
                         <option value="Boisson">Boisson</option>
+                        <option value="Accompagnement">Accompagnement</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Disponible</label>
-                    <select id="plat-disponible">
+                    <label class="form-label">Statut</label>
+                    <select id="plat-disponible" class="form-select">
                         <option value="true">✅ Disponible</option>
                         <option value="false">❌ Indisponible</option>
                     </select>
                 </div>
             </div>
             <div class="form-group">
-                <label>Description (optionnel)</label>
-                <textarea id="plat-description" rows="2" placeholder="Une description appétissante..."></textarea>
+                <label class="form-label">Description</label>
+                <textarea id="plat-description" class="form-textarea" placeholder="Une description courte et appétissante…" maxlength="500"></textarea>
             </div>
-            <button class="btn-premium" id="ajouter-plat">➕ Ajouter le plat</button>
+            <button class="btn btn-primary" id="btn-ajouter">➕ Ajouter le plat</button>
         </div>
 
+        <!-- Recherche + Filtres -->
         <div class="search-bar">
-            <input type="text" id="search-plat" placeholder="🔍 Rechercher un plat par nom...">
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search-plat" class="search-input" placeholder="Rechercher un plat…">
+            </div>
         </div>
 
         <div class="filter-bar">
-            <button class="filter-btn active" id="filter-all">📋 Tous les plats</button>
-            <button class="filter-btn" id="filter-available">✅ Disponibles</button>
-            <button class="filter-btn" id="filter-unavailable">❌ Indisponibles</button>
+            <button class="filter-btn active" data-filter="all">📋 Tous</button>
+            <button class="filter-btn" data-filter="available">✅ Disponibles</button>
+            <button class="filter-btn" data-filter="unavailable">❌ Indisponibles</button>
         </div>
 
-        <div class="stats-info" id="stats-info">
-            <span>📊 Chargement...</span>
-        </div>
+        <div class="stats-bar" id="stats-bar">📊 Chargement…</div>
 
-        <div style="overflow-x: auto;">
-            <table class="plats-table">
-                <thead>
-                    <tr>
-                        <th>Photo</th>
-                        <th>Nom</th>
-                        <th>Prix</th>
-                        <th>Catégorie</th>
-                        <th>Statut</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="plats-list">
-                    <tr><td colspan="6" style="text-align:center;">Chargement...</td></tr>
-                </tbody>
-            </table>
+        <!-- Table -->
+        <div class="section" style="padding: 0; overflow: hidden;">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Photo</th>
+                            <th>Nom</th>
+                            <th>Prix</th>
+                            <th>Catégorie</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="plats-tbody">
+                        <tr><td colspan="6" style="text-align:center; padding:40px;">Chargement…</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
+    <div class="toast-container" id="toast-container"></div>
+
     <script>
-        // VÉRIFICATION DE L'AUTHENTIFICATION ET DU RÔLE
-        const token = localStorage.getItem('resto_token');
-        const userRole = localStorage.getItem('resto_role');
-        
-        if (!token) {
+    (function() {
+        'use strict';
+
+        const TOKEN_KEY = 'resto_token';
+        let token, userRole, currentResto;
+        let tousLesPlats = [];
+        let currentFilter = 'all';
+
+        // ==================== INIT ====================
+        function init() {
+            token = localStorage.getItem(TOKEN_KEY);
+            if (!token) { redirectToLogin(); return; }
+
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.exp && payload.exp * 1000 < Date.now()) { redirectToLogin(); return; }
+                userRole = payload.role;
+                currentResto = payload.resto_id;
+                if (!currentResto) { redirectToLogin(); return; }
+            } catch(e) { redirectToLogin(); return; }
+
+            if (userRole !== 'gerant' && userRole !== 'superadmin') {
+                window.location.href = '/resto.html';
+                return;
+            }
+
+            initEvents();
+            chargerPlats();
+        }
+
+        function redirectToLogin() {
+            localStorage.clear();
             window.location.href = '/login.html';
         }
-        
-        if (userRole !== 'gerant') {
-            alert('Accès réservé aux gérants');
-            window.location.href = '/resto.html';
+
+        // ==================== EVENTS ====================
+        function initEvents() {
+            document.getElementById('btn-ajouter').addEventListener('click', ajouterPlat);
+            document.getElementById('search-plat').addEventListener('input', debounce(afficherPlats, 250));
+            document.getElementById('logout-btn').addEventListener('click', () => { localStorage.clear(); window.location.href = '/login.html'; });
+
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    afficherPlats();
+                });
+            });
+
+            // Enter dans le formulaire
+            document.getElementById('plat-prix').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') ajouterPlat();
+            });
         }
-        
-        let currentResto = localStorage.getItem('resto_id') || 1;
-        let tousLesPlats = [];
-        let currentFilter = 'all'; // 'all', 'available', 'unavailable'
-        
+
+        // ==================== CHARGEMENT ====================
         async function chargerPlats() {
             try {
                 const res = await fetch(`/api/admin/menu/${currentResto}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                tousLesPlats = await res.json();
-                afficherPlats();
-                mettreAJourStats();
-            } else if (res.status === 401) {
-                localStorage.clear();
-                window.location.href = '/login.html';
-            }
-        } catch(e) { console.error(e); }
-    }
-        
-        function mettreAJourStats() {
-            const total = tousLesPlats.length;
-            const disponibles = tousLesPlats.filter(p => p.disponible === true).length;
-            const indisponibles = tousLesPlats.filter(p => p.disponible === false).length;
-            const statsDiv = document.getElementById('stats-info');
-            statsDiv.innerHTML = `
-                <span>📋 Total: ${total} plats</span>
-                <span>✅ Disponibles: ${disponibles}</span>
-                <span>❌ Indisponibles: ${indisponibles}</span>
-            `;
+                });
+                if (res.status === 401 || res.status === 403) {
+                    const data = await res.json().catch(() => ({}));
+                    if (data.code === 'SUBSCRIPTION_EXPIRED') window.location.href = '/subscription-renew.html';
+                    else redirectToLogin();
+                    return;
+                }
+                if (res.ok) {
+                    tousLesPlats = await res.json();
+                    afficherPlats();
+                }
+            } catch(e) { showToast('Erreur réseau', 'error'); }
         }
-        
+
+        // ==================== AFFICHAGE ====================
         function afficherPlats() {
-            const searchTerm = document.getElementById('search-plat')?.value.toLowerCase() || '';
-            let filtered = tousLesPlats.filter(p => p.nom_plat.toLowerCase().includes(searchTerm));
-            
-            // Appliquer le filtre de disponibilité
-            if (currentFilter === 'available') {
-                filtered = filtered.filter(p => p.disponible === true);
-            } else if (currentFilter === 'unavailable') {
-                filtered = filtered.filter(p => p.disponible === false);
+            const searchTerm = document.getElementById('search-plat').value.toLowerCase();
+            let filtered = tousLesPlats;
+
+            if (searchTerm) {
+                filtered = filtered.filter(p => p.nom_plat.toLowerCase().includes(searchTerm));
             }
-            
-            const tbody = document.getElementById('plats-list');
+            if (currentFilter === 'available') filtered = filtered.filter(p => p.disponible === true);
+            if (currentFilter === 'unavailable') filtered = filtered.filter(p => p.disponible === false);
+
+            // Stats
+            const total = tousLesPlats.length;
+            const dispos = tousLesPlats.filter(p => p.disponible === true).length;
+            const indispos = tousLesPlats.filter(p => p.disponible === false).length;
+            document.getElementById('stats-bar').innerHTML = `
+                <span>📋 <strong>${total}</strong> plats</span>
+                <span>✅ <strong>${dispos}</strong> disponibles</span>
+                <span>❌ <strong>${indispos}</strong> indisponibles</span>
+                ${searchTerm ? `<span>🔍 <strong>${filtered.length}</strong> résultat${filtered.length > 1 ? 's' : ''}</span>` : ''}
+            `;
+
+            const tbody = document.getElementById('plats-tbody');
             if (filtered.length === 0) {
-                let message = 'Aucun plat trouvé';
-                if (currentFilter === 'available') message = 'Aucun plat disponible';
-                if (currentFilter === 'unavailable') message = 'Aucun plat indisponible';
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">${message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-secondary);">🍃 Aucun plat trouvé</td></tr>`;
                 return;
             }
-            
+
             tbody.innerHTML = filtered.map(plat => `
                 <tr>
                     <td style="text-align:center;">
-                        ${plat.photo_url ? 
-                            `<img src="${plat.photo_url}" class="plat-photo" alt="${plat.nom_plat}" style="width:50px;height:50px;object-fit:cover;border-radius:10px;">` : 
-                            `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;background:#f0f0f0;border-radius:10px;">📷</div>`
+                        ${plat.photo_url
+                            ? `<img src="${plat.photo_url}" class="plat-img" alt="${escapeHtml(plat.nom_plat)}">`
+                            : `<div class="plat-placeholder">🍽️</div>`
                         }
-                        <div style="margin-top:5px;">
-                            <button class="btn-small upload-btn" onclick="uploadPhoto(${plat.id})">📷 Ajouter</button>
+                        <div style="margin-top:4px;">
+                            <button class="btn btn-sm" style="background:var(--gold);color:#fff;border:none;" data-action="upload" data-id="${plat.id}">📷</button>
                         </div>
                     </td>
-                    <td><strong>${escapeHtml(plat.nom_plat)}</strong><br><small style="color:gray;">${escapeHtml(plat.description || '')}</small></td>
-                    <td>${plat.prix.toLocaleString()} FCFA</td>
-                    <td>${plat.categorie || '-'}</td>
-                    <td>${plat.disponible ? '<span style="color:#27AE60;">✅ Disponible</span>' : '<span style="color:#E74C3C;">❌ Indisponible</span>'}</td>
                     <td>
-                        <button class="btn-small btn-warning" onclick="toggleDisponibilite(${plat.id}, ${!plat.disponible})">
+                        <strong>${escapeHtml(plat.nom_plat)}</strong>
+                        ${plat.description ? `<br><small style="color:var(--text-secondary);">${escapeHtml(plat.description).substring(0, 60)}${plat.description.length > 60 ? '…' : ''}</small>` : ''}
+                    </td>
+                    <td>${(plat.prix || 0).toLocaleString()} FCFA</td>
+                    <td>${escapeHtml(plat.categorie || '-')}</td>
+                    <td>
+                        <span class="badge-status ${plat.disponible ? 'badge-available' : 'badge-unavailable'}">
+                            ${plat.disponible ? 'Disponible' : 'Indisponible'}
+                        </span>
+                    </td>
+                    <td style="white-space:nowrap;">
+                        <button class="btn btn-sm ${plat.disponible ? 'btn-warning' : 'btn-success'}" data-action="toggle" data-id="${plat.id}" data-status="${!plat.disponible}">
                             ${plat.disponible ? '🔴 Désactiver' : '🟢 Activer'}
                         </button>
-                        ${plat.photo_url ? `<button class="btn-small" style="background:#6b7280;color:white;" onclick="supprimerPhoto(${plat.id})">🗑️ Photo</button>` : ''}
-                        <button class="btn-small btn-danger" onclick="supprimerPlat(${plat.id})">🗑️ Plat</button>
+                        ${plat.photo_url ? `<button class="btn btn-sm btn-danger" data-action="delete-photo" data-id="${plat.id}" style="margin-left:4px;">🗑️</button>` : ''}
+                        <button class="btn btn-sm btn-danger" data-action="delete" data-id="${plat.id}" style="margin-left:4px;">🗑️</button>
                     </td>
                 </tr>
             `).join('');
-        }
-        
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
+
+            // Event listeners sur les boutons
+            tbody.querySelectorAll('button[data-action="upload"]').forEach(btn => {
+                btn.addEventListener('click', () => uploadPhoto(parseInt(btn.dataset.id)));
+            });
+            tbody.querySelectorAll('button[data-action="toggle"]').forEach(btn => {
+                btn.addEventListener('click', () => toggleDisponibilite(parseInt(btn.dataset.id), btn.dataset.status === 'true'));
+            });
+            tbody.querySelectorAll('button[data-action="delete-photo"]').forEach(btn => {
+                btn.addEventListener('click', () => supprimerPhoto(parseInt(btn.dataset.id)));
+            });
+            tbody.querySelectorAll('button[data-action="delete"]').forEach(btn => {
+                btn.addEventListener('click', () => supprimerPlat(parseInt(btn.dataset.id)));
             });
         }
-        
-        function updateFilterButtons(activeId) {
-            ['filter-all', 'filter-available', 'filter-unavailable'].forEach(id => {
-                const btn = document.getElementById(id);
-                if (btn) {
-                    if (id === activeId) {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                }
-            });
-        }
-        
+
+        // ==================== ACTIONS ====================
         async function ajouterPlat() {
-            const nom = document.getElementById('plat-nom').value;
-            const prix = document.getElementById('plat-prix').value;
+            const nom = document.getElementById('plat-nom').value.trim();
+            const prix = parseInt(document.getElementById('plat-prix').value);
             const categorie = document.getElementById('plat-categorie').value;
             const disponible = document.getElementById('plat-disponible').value === 'true';
-            const description = document.getElementById('plat-description').value;
-            
-            if (!nom || !prix) {
-                alert('❌ Veuillez remplir le nom et le prix');
-                return;
-            }
-            
+            const description = document.getElementById('plat-description').value.trim();
+
+            if (!nom || nom.length < 2) { showToast('Nom du plat requis (min 2 caractères)', 'error'); return; }
+            if (!prix || prix < 100) { showToast('Prix minimum : 100 FCFA', 'error'); return; }
+
             try {
                 const res = await fetch('/api/admin/plat', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        restoId: currentResto,
-                        nom_plat: nom,
-                        prix: parseInt(prix),
-                        categorie: categorie,
-                        disponible: disponible,
-                        description: description
-                    })
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ restoId: currentResto, nom_plat: nom, prix, categorie, disponible, description })
                 });
-                
                 if (res.ok) {
-                    alert('✅ Plat ajouté avec succès !');
+                    showToast('✅ Plat ajouté', 'success');
                     document.getElementById('plat-nom').value = '';
                     document.getElementById('plat-prix').value = '';
                     document.getElementById('plat-description').value = '';
+                    document.getElementById('plat-nom').focus();
                     chargerPlats();
                 } else {
-                    const error = await res.json();
-                    alert('❌ Erreur: ' + (error.error || 'Non autorisé'));
+                    const err = await res.json();
+                    showToast(err.message || err.error || 'Erreur', 'error');
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { showToast('Erreur réseau', 'error'); }
         }
-        
+
         function uploadPhoto(platId) {
             const input = document.createElement('input');
             input.type = 'file';
@@ -413,118 +406,79 @@
             input.onchange = async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
-                
+                if (file.size > 5 * 1024 * 1024) { showToast('Image trop volumineuse (max 5 Mo)', 'error'); return; }
+
                 const formData = new FormData();
                 formData.append('photo', file);
-                
                 try {
                     const res = await fetch(`/api/upload-plat-photo/${platId}`, {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${token}` },
-                        body: formData
+                        method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData
                     });
-                    
-                    if (res.ok) {
-                        alert('✅ Photo ajoutée avec succès !');
-                        chargerPlats();
-                    } else {
-                        const error = await res.json();
-                        alert('❌ Erreur: ' + (error.error || 'Upload échoué'));
-                    }
-                } catch(e) { console.error(e); }
+                    if (res.ok) { showToast('✅ Photo ajoutée', 'success'); chargerPlats(); }
+                    else { const err = await res.json(); showToast(err.error || 'Erreur upload', 'error'); }
+                } catch(e) { showToast('Erreur réseau', 'error'); }
             };
             input.click();
         }
-        
+
         async function supprimerPhoto(platId) {
             if (!confirm('Supprimer cette photo ?')) return;
             try {
-                const res = await fetch(`/api/delete-photo/${platId}`, { 
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                const res = await fetch(`/api/delete-photo/${platId}`, {
+                    method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (res.ok) {
-                    alert('✅ Photo supprimée');
-                    chargerPlats();
-                } else {
-                    alert('❌ Erreur lors de la suppression');
-                }
-            } catch(e) { console.error(e); }
+                if (res.ok) { showToast('✅ Photo supprimée', 'success'); chargerPlats(); }
+                else showToast('Erreur suppression', 'error');
+            } catch(e) { showToast('Erreur réseau', 'error'); }
         }
-        
+
         async function toggleDisponibilite(id, nouveauStatut) {
             try {
                 const res = await fetch(`/api/admin/plat/${id}/disponible`, {
                     method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ disponible: nouveauStatut })
                 });
-                if (res.ok) {
-                    chargerPlats();
-                } else {
-                    const error = await res.json();
-                    alert('Erreur: ' + (error.error || 'Action non autorisée'));
-                }
-            } catch(e) { console.error(e); }
+                if (res.ok) { chargerPlats(); }
+                else { const err = await res.json(); showToast(err.error || 'Erreur', 'error'); }
+            } catch(e) { showToast('Erreur réseau', 'error'); }
         }
-        
+
         async function supprimerPlat(id) {
-            if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer ce plat définitivement ?')) return;
+            if (!confirm('Supprimer définitivement ce plat ? Cette action est irréversible.')) return;
             try {
-                const res = await fetch(`/api/admin/plat/${id}`, { 
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                const res = await fetch(`/api/admin/plat/${id}`, {
+                    method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (res.ok) {
-                    alert('✅ Plat supprimé');
-                    chargerPlats();
-                } else {
-                    const error = await res.json();
-                    alert('Erreur: ' + (error.error || 'Non autorisé'));
-                }
-            } catch(e) { console.error(e); }
+                if (res.ok) { showToast('✅ Plat supprimé', 'success'); chargerPlats(); }
+                else { const err = await res.json(); showToast(err.error || 'Erreur', 'error'); }
+            } catch(e) { showToast('Erreur réseau', 'error'); }
         }
-        
-        // Gestion des filtres
-        document.getElementById('filter-all').onclick = () => {
-            currentFilter = 'all';
-            updateFilterButtons('filter-all');
-            afficherPlats();
-        };
-        document.getElementById('filter-available').onclick = () => {
-            currentFilter = 'available';
-            updateFilterButtons('filter-available');
-            afficherPlats();
-        };
-        document.getElementById('filter-unavailable').onclick = () => {
-            currentFilter = 'unavailable';
-            updateFilterButtons('filter-unavailable');
-            afficherPlats();
-        };
-        
-        // Déconnexion
-        document.getElementById('logout-btn').onclick = () => {
-            localStorage.clear();
-            window.location.href = '/login.html';
-        };
-        
-        document.getElementById('ajouter-plat').onclick = ajouterPlat;
-        document.getElementById('search-plat').oninput = () => afficherPlats();
-        document.getElementById('resto-select').onchange = (e) => {
-            currentResto = parseInt(e.target.value);
-            chargerPlats();
-        };
-        
-        // Rendre les fonctions globales pour les onclick
-        window.uploadPhoto = uploadPhoto;
-        window.supprimerPhoto = supprimerPhoto;
-        window.toggleDisponibilite = toggleDisponibilite;
-        window.supprimerPlat = supprimerPlat;
-        
-        chargerPlats();
+
+        // ==================== TOAST ====================
+        function showToast(message, type) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = String(str);
+            return div.innerHTML;
+        }
+
+        function debounce(fn, delay) {
+            let timer;
+            return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); };
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    })();
     </script>
 </body>
 </html>

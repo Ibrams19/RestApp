@@ -3,279 +3,420 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Suivi de commande | Restaurant Élite</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Suivi 7★">
+    <meta name="theme-color" content="#0d0d0d">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <title>Suivi de commande | Restaurant 7★</title>
     <style>
+        :root {
+            --gold: #C6A43F;
+            --gold-light: #f5eedb;
+            --success: #27AE60;
+            --text: #1a1a1a;
+            --text-secondary: #6b6b6b;
+            --border: #e8e5df;
+            --danger: #d9534f;
+            --info: #3498DB;
+            --shadow-lg: 0 8px 40px rgba(0,0,0,0.08);
+            --shadow-xl: 0 20px 60px rgba(0,0,0,0.12);
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 60px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            --font-serif: 'Playfair Display', 'Georgia', serif;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #1A1A2E 0%, #242440 100%);
+            font-family: var(--font-sans);
+            background: #faf8f5;
             min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-        .card {
-            background: white;
-            border-radius: 32px;
-            padding: 30px;
-            margin-bottom: 20px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
-            animation: fadeIn 0.5s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .logo {
-            font-size: 48px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        h1 {
-            text-align: center;
-            color: #1A1A2E;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #6C6C7A;
-            margin-bottom: 30px;
-        }
-        .order-id {
-            background: #F5F5F5;
-            padding: 15px;
-            border-radius: 20px;
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .order-id span {
-            font-family: monospace;
-            font-size: 20px;
-            font-weight: bold;
-            color: #C6A43F;
-        }
-        .timeline {
-            margin: 30px 0;
-        }
-        .step {
             display: flex;
             align-items: center;
-            margin-bottom: 25px;
+            justify-content: center;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 30%, rgba(198,164,63,0.04) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 36px 28px;
+            box-shadow: var(--shadow-xl);
+            animation: fadeUp 0.5s ease;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-area {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo-icon { font-size: 44px; }
+        .resto-name {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 6px;
+            letter-spacing: -0.2px;
+        }
+        .resto-name span { color: var(--gold); }
+
+        .order-id {
+            background: #fdfcfa;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 18px;
+            text-align: center;
+            margin-bottom: 28px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .order-id strong {
+            font-family: monospace;
+            font-size: 18px;
+            color: var(--gold);
+            letter-spacing: 1px;
+        }
+
+        .status-banner {
+            text-align: center;
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 24px;
+            transition: all var(--transition);
+        }
+        .status-en_attente { background: #FFF8E1; color: #E67E22; }
+        .status-cuisine { background: #E3F2FD; color: #2471A3; }
+        .status-pret { background: #E8F5E9; color: #27AE60; }
+        .status-servi { background: #FFF3E0; color: #C6A43F; }
+        .status-paye { background: #F3F4F6; color: #6B7280; }
+
+        .timeline { margin-bottom: 8px; }
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 8px;
             position: relative;
         }
         .step:not(:last-child)::before {
             content: '';
             position: absolute;
-            left: 24px;
-            top: 50px;
+            left: 21px;
+            top: 44px;
             width: 2px;
-            height: 40px;
-            background: #E0E0E0;
+            height: 28px;
+            background: var(--border);
+            transition: background var(--transition);
         }
+        .step.completed::before {
+            background: var(--success);
+        }
+        .step.active::before {
+            background: var(--gold);
+        }
+
         .step-icon {
-            width: 48px;
-            height: 48px;
-            background: #F5F5F5;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
-            margin-right: 20px;
+            font-size: 20px;
+            margin-right: 16px;
+            flex-shrink: 0;
             z-index: 1;
-            transition: all 0.3s;
-        }
-        .step.active .step-icon {
-            background: #C6A43F;
-            box-shadow: 0 0 0 4px rgba(198,164,63,0.3);
+            background: #f5f3ed;
+            transition: all var(--transition);
         }
         .step.completed .step-icon {
-            background: #27AE60;
+            background: var(--success);
+            color: white;
         }
-        .step-content {
-            flex: 1;
+        .step.active .step-icon {
+            background: var(--gold);
+            box-shadow: 0 0 0 6px rgba(198,164,63,0.12);
+            animation: pulse 2s infinite;
         }
-        .step-title {
-            font-weight: bold;
-            font-size: 16px;
-            margin-bottom: 4px;
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 4px rgba(198,164,63,0.12); }
+            50% { box-shadow: 0 0 0 12px rgba(198,164,63,0.04); }
         }
-        .step-time {
-            font-size: 12px;
-            color: #6C6C7A;
-        }
-        .step.active .step-title {
-            color: #C6A43F;
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 8px 20px;
-            border-radius: 40px;
-            font-weight: bold;
-            text-align: center;
-            margin: 20px 0;
-        }
-        .status-en_attente { background: #F39C12; color: white; }
-        .status-cuisine { background: #3498DB; color: white; }
-        .status-pret { background: #27AE60; color: white; }
-        .status-servi { background: #C6A43F; color: #1A1A2E; }
-        .status-paye { background: #6C6C7A; color: white; }
-        .items-list {
-            background: #F9F9F9;
-            border-radius: 20px;
-            padding: 15px;
+
+        .step-content { flex: 1; padding-top: 2px; }
+        .step-title { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+        .step-description { font-size: 12px; color: var(--text-secondary); }
+
+        .items-section {
+            background: #fdfcfa;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px;
             margin-top: 20px;
         }
-        .item {
+        .items-title { font-weight: 600; font-size: 13px; margin-bottom: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .item-line {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #E0E0E0;
+            padding: 8px 0;
+            font-size: 14px;
+            border-bottom: 1px solid #f5f3ed;
         }
-        .item:last-child {
-            border-bottom: none;
+        .item-line:last-child { border-bottom: none; }
+        .item-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0 0;
+            margin-top: 8px;
+            border-top: 2px solid var(--gold);
+            font-weight: 700;
+            font-size: 16px;
         }
+
         .btn-refresh {
             width: 100%;
-            padding: 14px;
-            background: #C6A43F;
-            border: none;
-            border-radius: 40px;
-            color: white;
-            font-weight: bold;
+            padding: 13px;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border);
+            background: transparent;
             cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
             margin-top: 20px;
+            transition: all var(--transition);
+            font-family: var(--font-sans);
         }
-        .error-message {
+        .btn-refresh:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .error-state {
             text-align: center;
-            color: #E74C3C;
-            padding: 20px;
+            padding: 40px 20px;
+            color: var(--text-secondary);
         }
+        .error-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 11px;
+            color: #bbb;
+        }
+
         @media (max-width: 480px) {
-            .card { padding: 20px; }
-            .step-icon { width: 40px; height: 40px; font-size: 20px; margin-right: 15px; }
-            .step:not(:last-child)::before { left: 19px; top: 45px; height: 35px; }
+            .card { padding: 28px 18px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="card" id="suivi-card">
-            <div class="logo">🍽️</div>
-            <h1>Suivi de votre commande</h1>
-            <div class="subtitle">Restaurant Élite</div>
-            
+            <div class="logo-area">
+                <div class="logo-icon">🍽️</div>
+                <div class="resto-name">Restaurant <span>7★</span></div>
+            </div>
+
             <div id="content">
                 <div class="order-id">
-                    🔢 Commande #<span id="commande-id">---</span>
+                    Commande <strong id="commande-id">---</strong>
                 </div>
-                <div id="timeline"></div>
-                <div id="items"></div>
-                <button class="btn-refresh" onclick="chargerSuivi()">🔄 Actualiser</button>
+                <div id="timeline-container"></div>
+                <div id="items-container"></div>
+                <button class="btn-refresh" id="btn-refresh">🔄 Actualiser</button>
             </div>
         </div>
+        <p class="footer-note">Cette page se met à jour automatiquement</p>
     </div>
 
     <script>
-        // Récupérer l'ID de commande depuis l'URL
+    (function() {
+        'use strict';
+
         const urlParams = new URLSearchParams(window.location.search);
         const commandeId = urlParams.get('id');
-        
-        if (!commandeId) {
-            document.getElementById('content').innerHTML = '<div class="error-message">❌ Commande non trouvée.<br>Scannez le QR code sur votre ticket.</div>';
+        let refreshInterval = null;
+        let previousStatus = null;
+
+        // ==================== INIT ====================
+        function init() {
+            if (!commandeId) {
+                document.getElementById('content').innerHTML = `
+                    <div class="error-state">
+                        <div class="error-icon">📱</div>
+                        <p style="font-weight:500;">Commande non trouvée</p>
+                        <p style="font-size:12px;margin-top:4px;">Scannez le QR code sur votre ticket ou utilisez le lien fourni.</p>
+                    </div>`;
+                return;
+            }
+
+            document.getElementById('btn-refresh').addEventListener('click', chargerSuivi);
+            chargerSuivi();
+            startAutoRefresh();
         }
-        
+
+        function startAutoRefresh() {
+            refreshInterval = setInterval(chargerSuivi, 5000);
+        }
+
+        function stopAutoRefresh() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        }
+
+        // ==================== CHARGEMENT ====================
         async function chargerSuivi() {
             try {
                 const res = await fetch(`/api/commande/suivi/${commandeId}`);
                 if (res.ok) {
                     const cmd = await res.json();
+                    
+                    // Notification si statut changé
+                    if (previousStatus && previousStatus !== cmd.statut) {
+                        vibrate();
+                    }
+                    previousStatus = cmd.statut;
+
                     afficherSuivi(cmd);
+
+                    // Arrêter le refresh si commande finalisée
+                    if (cmd.statut === 'paye') {
+                        stopAutoRefresh();
+                        document.getElementById('btn-refresh').style.display = 'none';
+                    }
                 } else {
-                    document.getElementById('content').innerHTML = '<div class="error-message">❌ Commande introuvable. Vérifiez le numéro.</div>';
+                    document.getElementById('content').innerHTML = `
+                        <div class="error-state">
+                            <div class="error-icon">🔍</div>
+                            <p style="font-weight:500;">Commande introuvable</p>
+                            <p style="font-size:12px;margin-top:4px;">Vérifiez le numéro de commande.</p>
+                        </div>`;
+                    stopAutoRefresh();
                 }
             } catch(e) {
                 console.error(e);
-                document.getElementById('content').innerHTML = '<div class="error-message">❌ Erreur de connexion</div>';
+                // Ne pas afficher d'erreur, juste réessayer
             }
         }
-        
+
+        function vibrate() {
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200]);
+            }
+        }
+
+        // ==================== AFFICHAGE ====================
         function afficherSuivi(cmd) {
-            document.getElementById('commande-id').innerText = cmd.id;
-            
-            // Timeline des étapes
+            document.getElementById('commande-id').textContent = cmd.id;
+
             const steps = [
-                { key: 'en_attente', icon: '📝', label: 'Commande reçue', description: 'Le chef a pris votre commande' },
-                { key: 'cuisine', icon: '👨‍🍳', label: 'En préparation', description: 'Votre plat est en cours de cuisson' },
-                { key: 'pret', icon: '✅', label: 'Prêt à servir', description: 'Votre plat est prêt !' },
-                { key: 'servi', icon: '🍽️', label: 'Servi', description: 'Bon appétit !' },
-                { key: 'paye', icon: '💰', label: 'Payé', description: 'Merci et à bientôt !' }
+                { key: 'en_attente', icon: '📝', label: 'Commande reçue', desc: 'Le chef a pris votre commande' },
+                { key: 'cuisine', icon: '👨‍🍳', label: 'En préparation', desc: 'Votre plat est en cours de cuisson' },
+                { key: 'pret', icon: '✅', label: 'Prêt à servir', desc: 'Votre plat est prêt !' },
+                { key: 'servi', icon: '🍽️', label: 'Servi', desc: 'Bon appétit !' },
+                { key: 'paye', icon: '💰', label: 'Terminé', desc: 'Merci et à bientôt !' }
             ];
-            
-            const currentStepIndex = steps.findIndex(s => s.key === cmd.statut);
-            
-            const timelineHtml = `
-                <div class="timeline">
-                    ${steps.map((step, index) => {
-                        let status = '';
-                        if (index < currentStepIndex) status = 'completed';
-                        else if (index === currentStepIndex) status = 'active';
-                        
-                        return `
-                            <div class="step ${status}">
-                                <div class="step-icon">${step.icon}</div>
-                                <div class="step-content">
-                                    <div class="step-title">${step.label}</div>
-                                    <div class="step-time">${step.description}</div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
-            
-            // Statut actuel
-            const statusText = {
+
+            const currentIndex = steps.findIndex(s => s.key === cmd.statut);
+
+            // Timeline
+            const timelineHTML = steps.map((step, i) => {
+                let statusClass = '';
+                if (i < currentIndex) statusClass = 'completed';
+                else if (i === currentIndex) statusClass = 'active';
+                return `
+                    <div class="step ${statusClass}">
+                        <div class="step-icon">${step.icon}</div>
+                        <div class="step-content">
+                            <div class="step-title">${step.label}</div>
+                            <div class="step-description">${step.desc}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Statut banner
+            const statusLabels = {
                 'en_attente': '⏳ En attente de préparation',
                 'cuisine': '🍳 En cours de préparation',
                 'pret': '✅ Votre plat est prêt !',
                 'servi': '🍽️ Bon appétit !',
-                'paye': '💰 Commande terminée'
+                'paye': '💰 Commande terminée — Merci !'
             };
-            
-            const statusHtml = `
-                <div class="status-badge status-${cmd.statut}" style="text-align: center; display: block;">
-                    ${statusText[cmd.statut] || cmd.statut}
+
+            const statusHTML = `
+                <div class="status-banner status-${cmd.statut}">
+                    ${statusLabels[cmd.statut] || cmd.statut}
                 </div>
             `;
-            
-            // Liste des plats
-            const itemsHtml = `
-                <div class="items-list">
-                    <strong>🛒 Votre commande :</strong>
-                    ${cmd.details ? cmd.details.map(d => `
-                        <div class="item">
-                            <span>${d.quantite}x ${d.nom_plat}</span>
-                            <span>${(d.prix_unitaire * d.quantite).toLocaleString()} FCFA</span>
+
+            // Items
+            const itemsHTML = cmd.details && cmd.details.length ? `
+                <div class="items-section">
+                    <div class="items-title">🛒 Votre commande</div>
+                    ${cmd.details.map(d => `
+                        <div class="item-line">
+                            <span>${d.quantite}x ${escapeHtml(d.nom_plat)}</span>
+                            <span>${((d.prix_unitaire || 0) * (d.quantite || 0)).toLocaleString()} FCFA</span>
                         </div>
-                    `).join('') : ''}
-                    <div class="item" style="font-weight: bold;">
+                    `).join('')}
+                    <div class="item-total">
                         <span>Total</span>
                         <span>${(cmd.total || 0).toLocaleString()} FCFA</span>
                     </div>
                 </div>
-            `;
-            
-            document.getElementById('timeline').innerHTML = timelineHtml;
-            document.getElementById('items').innerHTML = statusHtml + itemsHtml;
+            ` : '';
+
+            document.getElementById('timeline-container').innerHTML = statusHTML + `<div class="timeline">${timelineHTML}</div>`;
+            document.getElementById('items-container').innerHTML = itemsHTML;
         }
-        
-        chargerSuivi();
-        // Rafraîchir toutes les 5 secondes
-        setInterval(chargerSuivi, 5000);
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = String(str);
+            return div.innerHTML;
+        }
+
+        // ==================== NETTOYAGE ====================
+        window.addEventListener('beforeunload', stopAutoRefresh);
+
+        // ==================== DÉMARRAGE ====================
+        document.addEventListener('DOMContentLoaded', init);
+    })();
     </script>
 </body>
 </html>

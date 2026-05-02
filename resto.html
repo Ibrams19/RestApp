@@ -3,509 +3,1205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-title" content="Resto Élite">
-    <meta name="theme-color" content="#C6A43F">
+    <meta name="apple-mobile-web-app-title" content="Resto 7★">
+    <meta name="theme-color" content="#0d0d0d">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
-    <title>Espace Cuisine & Service | Restaurant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <title>Cuisine & Service | Restaurant 7★</title>
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: system-ui, sans-serif; background: #f5f5f5; margin: 0; }
-        .header-premium {
-            background: linear-gradient(135deg, #1A1A2E 0%, #242440 100%);
-            padding: 15px 30px;
+        :root {
+            --bg: #faf8f5;
+            --bg-dark: #0d0d0d;
+            --surface: #ffffff;
+            --surface-dark: #1a1a1a;
+            --gold: #C6A43F;
+            --gold-hover: #b39330;
+            --text: #1a1a1a;
+            --text-dark: #f0ece4;
+            --text-secondary: #6b6b6b;
+            --text-secondary-dark: #a0a0a0;
+            --border: #e8e5df;
+            --border-dark: #2a2a2a;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.03);
+            --shadow-md: 0 2px 16px rgba(0,0,0,0.04);
+            --shadow-lg: 0 4px 32px rgba(0,0,0,0.06);
+            --radius-sm: 12px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 60px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --font-serif: 'Playfair Display', 'Georgia', 'Times New Roman', serif;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        body.dark {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        /* ========== HEADER ========== */
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            height: 72px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+            background: rgba(255,255,255,0.85);
+            transition: all var(--transition);
         }
-        .logo { font-size: 24px; font-weight: bold; color: white; }
-        .logo span { color: #C6A43F; }
-        .btn-outline {
+
+        body.dark .header {
+            background: rgba(13,13,13,0.9);
+            border-bottom: 1px solid var(--border-dark);
+        }
+
+        .logo {
+            font-family: var(--font-serif);
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+        }
+        .logo span {
+            color: var(--gold);
+        }
+        .logo-icon {
+            font-size: 26px;
+            margin-right: 4px;
+            vertical-align: -2px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f5f3ed;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text);
+            letter-spacing: 0.3px;
+            transition: all var(--transition);
+        }
+        body.dark .role-badge {
+            background: #252525;
+            color: var(--text-dark);
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all var(--transition);
+            color: var(--text-secondary);
+        }
+        .btn-icon:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+        body.dark .btn-icon {
+            background: var(--surface-dark);
+            border-color: var(--border-dark);
+            color: var(--text-secondary-dark);
+        }
+
+        .btn-logout {
             background: transparent;
-            border: 2px solid #C6A43F;
-            color: #C6A43F;
-            padding: 8px 16px;
+            border: 1px solid #e0dcd3;
+            color: #999;
+            padding: 8px 18px;
             border-radius: 40px;
             cursor: pointer;
-            transition: all 0.3s;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            transition: all var(--transition);
         }
-        .btn-outline:hover {
-            background: #C6A43F;
-            color: #1A1A2E;
+        .btn-logout:hover {
+            border-color: #d9534f;
+            color: #d9534f;
         }
-        .btn-danger-outline {
-            border-color: #E74C3C;
-            color: #E74C3C;
+        body.dark .btn-logout {
+            border-color: #3a3a3a;
+            color: #777;
         }
-        .btn-danger-outline:hover {
-            background: #E74C3C;
-            color: white;
-        }
-        .tabs-premium {
+
+        /* ========== NAVIGATION ========== */
+        .nav-bar {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
             flex-wrap: wrap;
-            padding: 20px;
-            background: white;
-            margin: 20px;
-            border-radius: 60px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        .tab-btn {
-            padding: 10px 25px;
-            border-radius: 40px;
-            border: none;
-            background: #f0f0f0;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        .tab-btn.active {
-            background: #C6A43F;
-            color: white;
-        }
-        .stats-premium {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-            padding: 20px;
-        }
-        .stat-card-premium {
-            background: white;
-            padding: 15px 30px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-        }
-        .stat-number-premium {
-            font-size: 32px;
-            font-weight: 700;
-            color: #C6A43F;
-        }
-        .btn-action {
-            padding: 8px 16px;
-            border-radius: 40px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        .btn-action-primary { background: #3498DB; color: white; }
-        .btn-action-success { background: #27AE60; color: white; }
-        .btn-action-warning { background: #F39C12; color: white; }
-        .btn-action-dark { background: #1A1A2E; color: white; }
-        .btn-action-disabled { background: #bdc3c7; color: #7f8c8d; cursor: not-allowed; }
-        .commandes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-            gap: 25px;
-            padding: 20px;
+            padding: 20px 24px 0;
             max-width: 1400px;
             margin: 0 auto;
         }
-        .commande-card-premium {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            border-left: 5px solid #C6A43F;
-            transition: transform 0.3s;
+
+        .nav-btn {
+            padding: 9px 20px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            background: var(--surface);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            transition: all var(--transition);
+            letter-spacing: 0.2px;
         }
-        .commande-card-premium:hover {
-            transform: translateY(-3px);
+        .nav-btn:hover {
+            border-color: var(--gold);
+            color: var(--gold);
         }
-        .commande-header {
-            background: #1A1A2E;
+        .nav-btn.active {
+            background: var(--gold);
             color: white;
-            padding: 15px 20px;
+            border-color: var(--gold);
+        }
+        body.dark .nav-btn {
+            background: var(--surface-dark);
+            border-color: var(--border-dark);
+            color: var(--text-secondary-dark);
+        }
+
+        /* ========== STATS ========== */
+        .stats-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px 28px;
+            min-width: 130px;
+            text-align: center;
+            transition: all var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+        .stat-card:hover {
+            border-color: var(--gold);
+            box-shadow: var(--shadow-md);
+        }
+        body.dark .stat-card {
+            background: var(--surface-dark);
+            border-color: var(--border-dark);
+        }
+
+        .stat-icon {
+            font-size: 22px;
+            margin-bottom: 6px;
+        }
+        .stat-number {
+            font-family: var(--font-serif);
+            font-size: 40px;
+            font-weight: 600;
+            color: var(--gold);
+            line-height: 1;
+            transition: all 0.5s ease;
+        }
+        .stat-number.pulse {
+            animation: numberPulse 0.6s ease;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+        body.dark .stat-label {
+            color: var(--text-secondary-dark);
+        }
+
+        @keyframes numberPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); color: #27AE60; }
+            100% { transform: scale(1); }
+        }
+
+        /* ========== TABS ========== */
+        .tabs-container {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 8px 24px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .tab-btn {
+            padding: 10px 22px;
+            border-radius: 40px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all var(--transition);
+            color: var(--text-secondary);
+            letter-spacing: 0.2px;
+        }
+        .tab-btn:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+        .tab-btn.active {
+            background: var(--gold);
+            color: white;
+            border-color: var(--gold);
+        }
+        .tab-count {
+            display: inline-block;
+            background: rgba(0,0,0,0.06);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-left: 6px;
+            font-weight: 600;
+        }
+        .tab-btn.active .tab-count {
+            background: rgba(255,255,255,0.25);
+        }
+        body.dark .tab-btn {
+            background: var(--surface-dark);
+            border-color: var(--border-dark);
+            color: var(--text-secondary-dark);
+        }
+
+        /* ========== COMMANDES GRID ========== */
+        .commandes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 20px;
+            padding: 0 24px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .commande-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition);
+            position: relative;
+        }
+        .commande-card:hover {
+            box-shadow: var(--shadow-lg);
+            border-color: #d5cfc0;
+        }
+        .commande-card.urgent {
+            border-left: 4px solid #E74C3C;
+            animation: urgentPulse 2s infinite;
+        }
+        body.dark .commande-card {
+            background: var(--surface-dark);
+            border-color: var(--border-dark);
+        }
+
+        @keyframes urgentPulse {
+            0%, 100% { box-shadow: var(--shadow-sm); }
+            50% { box-shadow: 0 0 0 4px rgba(231, 76, 60, 0.1); }
+        }
+
+        .commande-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
             flex-wrap: wrap;
-            gap: 10px;
+            background: #fdfcfa;
         }
-        .table-number { font-size: 18px; font-weight: 600; }
-        .table-number::before { content: "🍽️ "; }
-        .client-name { 
-            background: #C6A43F; 
-            color: #1A1A2E; 
-            padding: 4px 12px; 
-            border-radius: 40px; 
-            font-size: 12px; 
-            font-weight: bold;
+        body.dark .commande-header {
+            background: #141414;
+            border-bottom: 1px solid var(--border-dark);
         }
-        .statut-badge {
-            padding: 5px 12px;
-            border-radius: 50px;
-            font-size: 12px;
+
+        .table-badge {
+            font-family: var(--font-serif);
+            font-size: 18px;
             font-weight: 600;
+            color: var(--text);
         }
-        .statut-en_attente { background: #F39C12; color: #1A1A2E; }
-        .statut-cuisine { background: #3498DB; color: white; }
-        .statut-pret { background: #27AE60; color: white; }
-        .statut-servi { background: #C6A43F; color: #1A1A2E; }
-        .statut-paye { background: #6C6C7A; color: white; }
-        .nav-bar {
+        .table-badge::before {
+            content: "🍽️ ";
+            font-size: 16px;
+        }
+        body.dark .table-badge {
+            color: var(--text-dark);
+        }
+
+        .client-badge {
+            background: #f5f3ed;
+            color: var(--text);
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        body.dark .client-badge {
+            background: #252525;
+            color: var(--text-dark);
+        }
+
+        .statut-badge {
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .statut-en_attente { background: #FFF8E1; color: #E67E22; }
+        .statut-cuisine { background: #E3F2FD; color: #2471A3; }
+        .statut-pret { background: #E8F5E9; color: #27AE60; }
+        .statut-servi { background: #FFF3E0; color: #C6A43F; }
+        .statut-paye { background: #F3F4F6; color: #6B7280; }
+        body.dark .statut-en_attente { background: #3d2e0a; color: #F39C12; }
+        body.dark .statut-cuisine { background: #0a1e3d; color: #3498DB; }
+        body.dark .statut-pret { background: #0a2e1a; color: #2ECC71; }
+        body.dark .statut-servi { background: #2e1f0a; color: #C6A43F; }
+        body.dark .statut-paye { background: #1a1a1a; color: #999; }
+
+        .commande-body {
+            padding: 20px;
+        }
+
+        .detail-line {
             display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin: 20px;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f5f3ed;
+            font-size: 14px;
+        }
+        body.dark .detail-line {
+            border-bottom: 1px solid #1f1f1f;
+        }
+        .detail-name {
+            font-weight: 500;
+        }
+        .detail-qty {
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        .detail-price {
+            font-weight: 500;
+            color: var(--gold);
+        }
+
+        .commande-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 2px solid var(--gold);
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .commande-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
             flex-wrap: wrap;
         }
-        .nav-btn {
+
+        .btn-action {
             padding: 10px 20px;
             border-radius: 40px;
-            text-decoration: none;
-            background: #1A1A2E;
-            color: white;
-            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            transition: all var(--transition);
+            font-family: var(--font-sans);
         }
-        .nav-btn:hover {
-            background: #C6A43F;
-            color: #1A1A2E;
+        .btn-cuisine { background: #3498DB; color: white; }
+        .btn-cuisine:hover { background: #2980B9; transform: translateY(-1px); }
+        .btn-pret { background: #27AE60; color: white; }
+        .btn-pret:hover { background: #219A52; transform: translateY(-1px); }
+        .btn-servir { background: #F39C12; color: white; }
+        .btn-servir:hover { background: #E67E22; transform: translateY(-1px); }
+        .btn-payer { background: #1A1A2E; color: white; }
+        .btn-payer:hover { background: #2C2C44; transform: translateY(-1px); }
+
+        .commande-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .role-badge {
-            background: #C6A43F;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            color: #1A1A2E;
-            font-weight: bold;
+        .commande-time.urgent-text {
+            color: #E74C3C;
+            font-weight: 600;
         }
-        .fade-in {
-            animation: fadeIn 0.5s ease;
+        body.dark .commande-time {
+            color: var(--text-secondary-dark);
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
         }
-        @media (max-width: 768px) {
-            .commandes-grid { grid-template-columns: 1fr; }
-            .header-premium { flex-direction: column; gap: 15px; text-align: center; }
+        .empty-state-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            opacity: 0.6;
         }
-        .notification-toast {
+        .empty-state-text {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-style: italic;
+            opacity: 0.7;
+        }
+
+        /* ========== TOAST ========== */
+        .toast-container {
             position: fixed;
-            bottom: 20px;
+            top: 20px;
             right: 20px;
-            background: #27AE60;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 40px;
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
+
+        .toast {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 20px;
+            box-shadow: var(--shadow-lg);
+            animation: slideInRight 0.35s ease;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 300px;
+            max-width: 420px;
+        }
+        .toast.success { border-left: 4px solid #27AE60; }
+        .toast.info { border-left: 4px solid #3498DB; }
+        .toast.warning { border-left: 4px solid #F39C12; }
+        .toast.error { border-left: 4px solid #E74C3C; }
+        body.dark .toast {
+            background: var(--surface-dark);
+            border-color: var(--border-dark);
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(120%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(120%); opacity: 0; }
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .header {
+                padding: 0 16px;
+                height: 60px;
+            }
+            .logo {
+                font-size: 18px;
+            }
+            .header-right {
+                gap: 8px;
+            }
+            .role-badge {
+                display: none;
+            }
+            .stats-row {
+                gap: 8px;
+                padding: 12px;
+            }
+            .stat-card {
+                padding: 14px 16px;
+                min-width: 70px;
+                flex: 1;
+            }
+            .stat-number {
+                font-size: 28px;
+            }
+            .commandes-grid {
+                grid-template-columns: 1fr;
+                padding: 0 12px 40px;
+                gap: 12px;
+            }
+            .tabs-container {
+                gap: 4px;
+                padding: 8px 12px 16px;
+            }
+            .tab-btn {
+                padding: 8px 14px;
+                font-size: 11px;
+            }
         }
     </style>
 </head>
 <body>
-    <header class="header-premium">
-        <div class="logo">👨‍🍳 <span>ESPACE STAFF</span></div>
-        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-            <span class="role-badge" id="user-role-badge">Chargement...</span>
-            <select id="resto-select" class="btn-outline" style="padding: 8px 20px;">
-                <option value="1">Restaurant Test Dakar</option>
-            </select>
-            <button class="btn-outline btn-danger-outline" id="logout-btn">🚪 Quitter</button>
+
+    <!-- ==================== HEADER ==================== -->
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon">👨‍🍳</span><span>Cuisine</span> & Service
+        </div>
+        <div class="header-right">
+            <span class="role-badge" id="role-badge">Chargement…</span>
+            <button class="btn-icon" id="theme-toggle" title="Mode sombre">🌙</button>
+            <button class="btn-logout" id="logout-btn">Quitter</button>
         </div>
     </header>
 
-    <!-- Barre de navigation adaptée au rôle -->
-    <div class="nav-bar" id="nav-bar"></div>
+    <!-- ==================== NAVIGATION ==================== -->
+    <nav class="nav-bar" id="nav-bar"></nav>
 
-    <div class="stats-premium">
-        <div class="stat-card-premium">
-            <div>⏳ En attente</div>
-            <div class="stat-number-premium" id="count-attente">0</div>
-            <div style="font-size: 12px; color: #666;">(Cuisine)</div>
+    <!-- ==================== STATS ==================== -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-number" id="count-attente">0</div>
+            <div class="stat-label">En attente</div>
         </div>
-        <div class="stat-card-premium">
-            <div>👨‍🍳 En cuisine</div>
-            <div class="stat-number-premium" id="count-cuisine">0</div>
+        <div class="stat-card">
+            <div class="stat-icon">👨‍🍳</div>
+            <div class="stat-number" id="count-cuisine">0</div>
+            <div class="stat-label">En cuisine</div>
         </div>
-        <div class="stat-card-premium">
-            <div>✅ Prêtes</div>
-            <div class="stat-number-premium" id="count-pret">0</div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-number" id="count-pret">0</div>
+            <div class="stat-label">Prêtes</div>
         </div>
-        <div class="stat-card-premium">
-            <div>🍽️ Servies</div>
-            <div class="stat-number-premium" id="count-servi">0</div>
+        <div class="stat-card">
+            <div class="stat-icon">🍽️</div>
+            <div class="stat-number" id="count-servi">0</div>
+            <div class="stat-label">Servies</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-number" id="count-paye">0</div>
+            <div class="stat-label">Payées</div>
         </div>
     </div>
 
-    <div class="tabs-premium">
-        <button class="tab-btn active" data-status="all">📋 Toutes</button>
-        <button class="tab-btn" data-status="en_attente">⏳ En attente</button>
-        <button class="tab-btn" data-status="cuisine">🍳 En cuisine</button>
-        <button class="tab-btn" data-status="pret">✅ Prêtes</button>
-        <button class="tab-btn" data-status="servi">🍽️ Servies</button>
-        <button class="tab-btn" data-status="paye">💰 Payées</button>
+    <!-- ==================== TABS ==================== -->
+    <div class="tabs-container">
+        <button class="tab-btn active" data-status="all">Toutes<span class="tab-count" id="count-all">0</span></button>
+        <button class="tab-btn" data-status="en_attente">⏳ En attente<span class="tab-count" id="tab-count-attente">0</span></button>
+        <button class="tab-btn" data-status="cuisine">🍳 En cuisine<span class="tab-count" id="tab-count-cuisine">0</span></button>
+        <button class="tab-btn" data-status="pret">✅ Prêtes<span class="tab-count" id="tab-count-pret">0</span></button>
+        <button class="tab-btn" data-status="servi">🍽️ Servies<span class="tab-count" id="tab-count-servi">0</span></button>
+        <button class="tab-btn" data-status="paye">💰 Payées<span class="tab-count" id="tab-count-paye">0</span></button>
     </div>
 
+    <!-- ==================== COMMANDES ==================== -->
     <div class="commandes-grid" id="commandes-grid"></div>
 
+    <!-- ==================== TOAST CONTAINER ==================== -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- ==================== SCRIPTS ==================== -->
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <script>
-        // Vérification de l'authentification
-        const token = localStorage.getItem('resto_token');
-        const userRole = localStorage.getItem('resto_role');
-        
-        if (!token) {
-            window.location.href = '/login.html';
-        }
-        
-        // Afficher le rôle avec icône
-        const roleBadge = document.getElementById('user-role-badge');
-        if (userRole === 'gerant') {
-            roleBadge.innerHTML = '👑 Gérant (accès total)';
-        } else if (userRole === 'cuisinier') {
-            roleBadge.innerHTML = '👨‍🍳 Cuisinier - Prépare les plats';
-        } else if (userRole === 'serveur') {
-            roleBadge.innerHTML = '🍽️ Serveur - Sert et encaisse';
-        } else if (userRole === 'superadmin') {
-            roleBadge.innerHTML = '👑 Super Admin';
-        } else {
-            roleBadge.innerHTML = '📋 Staff';
-        }
-        
-        // Barre de navigation adaptée au rôle
-        const navBar = document.getElementById('nav-bar');
-        if (userRole === 'gerant' || userRole === 'superadmin') {
-            navBar.innerHTML = `
-                <a href="/dashboard.html" class="nav-btn">📊 Dashboard</a>
-                <a href="/admin.html" class="nav-btn">🍽️ Gestion plats</a>
-                <a href="/employes.html" class="nav-btn">👥 Équipe</a>
-                <a href="/resto.html" class="nav-btn" style="background: #C6A43F;">👨‍🍳 Cuisine & Service</a>
-                <a href="/qrcodes.html" class="nav-btn">📱 QR Codes</a>
-                <a href="/subscription.html" class="nav-btn">💰 Abonnement</a>
-            `;
-        } else if (userRole === 'cuisinier') {
-            navBar.innerHTML = `
-                <a href="/resto.html" class="nav-btn" style="background: #C6A43F;">👨‍🍳 Ma cuisine</a>
-                <span style="color: gray; padding: 10px;">👨‍🍳 Rôle: Cuisinier - Vous préparez les plats</span>
-            `;
-        } else if (userRole === 'serveur') {
-            navBar.innerHTML = `
-                <a href="/resto.html" class="nav-btn" style="background: #C6A43F;">🍽️ Mon service</a>
-                <span style="color: gray; padding: 10px;">🍽️ Rôle: Serveur - Vous servez et encaissez</span>
-            `;
-        }
-        
-        let currentResto = localStorage.getItem('resto_id') || 1;
+    (function() {
+        'use strict';
+
+        // ==================== CONFIGURATION ====================
+        const TOKEN_KEY = 'resto_token';
+        const THEME_KEY = 'resto_theme';
+        const POLLING_INTERVAL = 8000; // 8 secondes (plus espacé car WebSocket)
+
+        // ==================== ÉTAT GLOBAL ====================
+        let currentResto = null;
         let currentFilter = 'all';
         let allCommandes = [];
-        const socket = io();
-        
-        socket.emit('join_resto', currentResto);
-        
-        function showNotification(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = 'notification-toast';
-            toast.style.background = type === 'error' ? '#E74C3C' : '#27AE60';
-            toast.innerHTML = message;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-        
-        async function chargerCommandes() {
+        let userRole = null;
+        let userId = null;
+        let pollingTimer = null;
+        let socket = null;
+        let isLoading = false;
+        let previousStats = { en_attente: 0, cuisine: 0, pret: 0, servi: 0, paye: 0 };
+
+        // ==================== INITIALISATION ====================
+        function init() {
+            const token = localStorage.getItem(TOKEN_KEY);
+            if (!token) {
+                redirectToLogin();
+                return;
+            }
+
+            // Décoder le token JWT pour extraire les infos (sans vérifier la signature, juste lecture)
             try {
-                const res = await fetch(`/api/commandes/${currentResto}`);
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                userRole = payload.role;
+                userId = payload.id;
+                currentResto = payload.resto_id;
+
+                if (!currentResto) {
+                    showToast('Erreur : restaurant non associé à ce compte.', 'error');
+                    return;
+                }
+
+                // Sauvegarder pour compatibilité
+                localStorage.setItem('resto_id', currentResto);
+                localStorage.setItem('resto_role', userRole);
+
+            } catch(e) {
+                console.error('Token invalide', e);
+                redirectToLogin();
+                return;
+            }
+
+            // Appliquer le thème
+            applyTheme();
+            initUI();
+            initWebSocket();
+            chargerCommandes();
+            startPolling();
+        }
+
+        function redirectToLogin() {
+            localStorage.clear();
+            window.location.href = '/login.html';
+        }
+
+        // ==================== THÈME SOMBRE ====================
+        function applyTheme() {
+            const saved = localStorage.getItem(THEME_KEY);
+            if (saved === 'dark') {
+                document.body.classList.add('dark');
+                document.getElementById('theme-toggle').textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark');
+                document.getElementById('theme-toggle').textContent = '🌙';
+            }
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+            const isDark = document.body.classList.contains('dark');
+            localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+            document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        // ==================== UI INITIALE ====================
+        function initUI() {
+            // Badge rôle
+            const roleBadge = document.getElementById('role-badge');
+            const roles = {
+                'gerant': '👑 Gérant',
+                'cuisinier': '👨‍🍳 Cuisinier',
+                'serveur': '🍽️ Serveur',
+                'superadmin': '👑 Super Admin'
+            };
+            roleBadge.textContent = roles[userRole] || '📋 Staff';
+
+            // Navigation
+            const navBar = document.getElementById('nav-bar');
+            const navItems = [];
+
+            if (userRole === 'gerant' || userRole === 'superadmin') {
+                navItems.push(
+                    { href: '/dashboard.html', label: '📊 Dashboard' },
+                    { href: '/admin.html', label: '🍽️ Plats' },
+                    { href: '/employes.html', label: '👥 Équipe' },
+                    { href: '/resto.html', label: '👨‍🍳 Cuisine & Service', active: true },
+                    { href: '/qrcodes.html', label: '📱 QR Codes' },
+                    { href: '/subscription.html', label: '💰 Abonnement' }
+                );
+            } else if (userRole === 'cuisinier') {
+                navItems.push(
+                    { href: '/resto.html', label: '👨‍🍳 Ma cuisine', active: true }
+                );
+            } else if (userRole === 'serveur') {
+                navItems.push(
+                    { href: '/resto.html', label: '🍽️ Mon service', active: true }
+                );
+            }
+
+            navBar.innerHTML = navItems.map(item => 
+                `<a href="${item.href}" class="nav-btn${item.active ? ' active' : ''}">${item.label}</a>`
+            ).join('');
+
+            // Event listeners
+            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+            document.getElementById('logout-btn').addEventListener('click', logout);
+
+            // Tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.status;
+                    afficherCommandes();
+                });
+            });
+        }
+
+        function logout() {
+            if (socket) {
+                socket.disconnect();
+            }
+            if (pollingTimer) {
+                clearInterval(pollingTimer);
+            }
+            localStorage.clear();
+            window.location.href = '/login.html';
+        }
+
+        // ==================== WEBSOCKET ====================
+        function initWebSocket() {
+            socket = io({
+                reconnection: true,
+                reconnectionAttempts: 10,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 10000
+            });
+
+            socket.on('connect', () => {
+                console.log('🟢 WebSocket connecté');
+                socket.emit('join_resto', currentResto);
+            });
+
+            socket.on('disconnect', (reason) => {
+                console.warn('🔴 WebSocket déconnecté:', reason);
+                if (reason === 'io server disconnect') {
+                    socket.connect(); // Reconnexion manuelle
+                }
+            });
+
+            socket.on('reconnect', (attemptNumber) => {
+                console.log('🔄 WebSocket reconnecté après', attemptNumber, 'tentatives');
+                socket.emit('join_resto', currentResto);
+                chargerCommandes();
+            });
+
+            socket.on('connect_error', (error) => {
+                console.error('❌ Erreur WebSocket:', error.message);
+            });
+
+            socket.on('nouvelle_commande', (data) => {
+                chargerCommandes();
+                playNotificationSound();
+                showToast(`📣 Nouvelle commande — Table ${data.table_id || '?'}`, 'info');
+            });
+
+            socket.on('statut_change', (data) => {
+                chargerCommandes();
+                const messages = {
+                    'pret': '✅ Un plat est prêt à être servi !',
+                    'cuisine': '🔪 Une commande est en cuisine',
+                    'servi': '🍽️ Un plat a été servi'
+                };
+                if (messages[data.statut]) {
+                    showToast(messages[data.statut], data.statut === 'pret' ? 'success' : 'info');
+                }
+            });
+        }
+
+        function playNotificationSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                osc.frequency.setValueAtTime(1000, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.3);
+            } catch(e) {
+                // Audio non supporté, ignorer
+            }
+        }
+
+        // ==================== POLLING ====================
+        function startPolling() {
+            if (pollingTimer) clearInterval(pollingTimer);
+            pollingTimer = setInterval(() => {
+                if (!socket?.connected) {
+                    chargerCommandes();
+                }
+            }, POLLING_INTERVAL);
+        }
+
+        // ==================== CHARGEMENT COMMANDES ====================
+        async function chargerCommandes() {
+            if (isLoading) return;
+            isLoading = true;
+
+            try {
+                const token = localStorage.getItem(TOKEN_KEY);
+                const res = await fetch(`/api/commandes/${currentResto}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 401) {
+                    redirectToLogin();
+                    return;
+                }
+
+                if (res.status === 403) {
+                    const data = await res.json();
+                    if (data.code === 'SUBSCRIPTION_EXPIRED' || data.error === 'subscription_expired') {
+                        showToast(data.message || 'Abonnement expiré', 'error');
+                        setTimeout(() => {
+                            window.location.href = data.redirect || '/subscription-renew.html';
+                        }, 2000);
+                        return;
+                    }
+                }
+
                 if (res.ok) {
                     allCommandes = await res.json();
                     afficherCommandes();
                     mettreAJourStats();
-                } else if (res.status === 401) {
-                    localStorage.clear();
-                    window.location.href = '/login.html';
                 }
-            } catch(e) { console.error(e); }
-        }
-        
-        socket.on('nouvelle_commande', () => {
-            chargerCommandes();
-            showNotification('📣 Nouvelle commande reçue !', 'success');
-        });
-
-        socket.on('statut_change', (data) => {
-            chargerCommandes();
-            if (data.statut === 'pret') {
-                showNotification('✅ Un plat est prêt à être servi !', 'success');
+            } catch(e) {
+                console.error('Erreur chargement commandes:', e);
+            } finally {
+                isLoading = false;
             }
-        });
-        
-        function mettreAJourStats() {
-            document.getElementById('count-attente').innerText = allCommandes.filter(c => c.statut === 'en_attente').length;
-            document.getElementById('count-cuisine').innerText = allCommandes.filter(c => c.statut === 'cuisine').length;
-            document.getElementById('count-pret').innerText = allCommandes.filter(c => c.statut === 'pret').length;
-            document.getElementById('count-servi').innerText = allCommandes.filter(c => c.statut === 'servi').length;
         }
-        
+
+        // ==================== STATS ====================
+        function mettreAJourStats() {
+            const counts = {
+                en_attente: allCommandes.filter(c => c.statut === 'en_attente').length,
+                cuisine: allCommandes.filter(c => c.statut === 'cuisine').length,
+                pret: allCommandes.filter(c => c.statut === 'pret').length,
+                servi: allCommandes.filter(c => c.statut === 'servi').length,
+                paye: allCommandes.filter(c => c.statut === 'paye').length
+            };
+
+            // Mise à jour des compteurs principaux
+            ['attente', 'cuisine', 'pret', 'servi', 'paye'].forEach(status => {
+                const element = document.getElementById(`count-${status}`);
+                const newValue = counts[status] || 0;
+                const oldValue = parseInt(element.textContent) || 0;
+
+                if (newValue !== oldValue) {
+                    element.textContent = newValue;
+                    element.classList.remove('pulse');
+                    void element.offsetWidth; // Trigger reflow
+                    element.classList.add('pulse');
+                }
+            });
+
+            // Mise à jour des compteurs dans les tabs
+            document.getElementById('tab-count-attente').textContent = counts.en_attente;
+            document.getElementById('tab-count-cuisine').textContent = counts.cuisine;
+            document.getElementById('tab-count-pret').textContent = counts.pret;
+            document.getElementById('tab-count-servi').textContent = counts.servi;
+            document.getElementById('tab-count-paye').textContent = counts.paye;
+            document.getElementById('count-all').textContent = allCommandes.length;
+
+            // Vérifier les alertes (nouvelles commandes en attente)
+            if (counts.en_attente > previousStats.en_attente && userRole === 'cuisinier') {
+                showToast(`⏳ ${counts.en_attente} commande(s) en attente de préparation`, 'warning');
+            }
+
+            previousStats = { ...counts };
+        }
+
+        // ==================== AFFICHAGE ====================
         function getStatutText(statut) {
             const map = {
-                'en_attente': '⏳ En attente cuisine',
-                'cuisine': '🍳 En préparation',
-                'pret': '✅ Prête à servir',
-                'servi': '🍽️ Servie',
-                'paye': '💰 Payée'
+                'en_attente': 'En attente',
+                'cuisine': 'En cuisine',
+                'pret': 'Prête',
+                'servi': 'Servie',
+                'paye': 'Payée'
             };
             return map[statut] || statut;
         }
-        
-        // Définition des actions selon le rôle et le statut
-        function getActionsForCommand(cmd, role) {
-            const statut = cmd.statut;
+
+        function getTimeAgo(dateString) {
+            if (!dateString) return '';
+            const now = new Date();
+            const date = new Date(dateString);
+            const diffMs = now - date;
+            const diffMin = Math.floor(diffMs / 60000);
+
+            if (diffMin < 1) return 'À l\'instant';
+            if (diffMin < 60) return `Il y a ${diffMin} min`;
+            const diffH = Math.floor(diffMin / 60);
+            if (diffH < 24) return `Il y a ${diffH}h${diffMin % 60 > 0 ? ' ' + (diffMin % 60) + 'min' : ''}`;
+            return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function isUrgent(dateString, statut) {
+            if (statut !== 'en_attente' && statut !== 'cuisine') return false;
+            if (!dateString) return false;
+            const diffMin = Math.floor((new Date() - new Date(dateString)) / 60000);
+            return diffMin > 15;
+        }
+
+        function getActionsForCommand(statut, role) {
             const actions = [];
-            
-            if (role === 'cuisinier') {
-                if (statut === 'en_attente') {
-                    actions.push({ label: '👨‍🍳 Cuisiner', action: 'cuisine', class: 'btn-action-primary' });
+
+            const rules = {
+                'cuisinier': {
+                    'en_attente': [{ label: '👨‍🍳 Cuisiner', action: 'cuisine', class: 'btn-cuisine' }],
+                    'cuisine': [{ label: '✅ Plat prêt', action: 'pret', class: 'btn-pret' }]
+                },
+                'serveur': {
+                    'pret': [{ label: '🍽️ Servir', action: 'servi', class: 'btn-servir' }],
+                    'servi': [{ label: '💰 Encaisser', action: 'paye', class: 'btn-payer' }]
+                },
+                'gerant': {
+                    'en_attente': [{ label: '👨‍🍳 Cuisiner', action: 'cuisine', class: 'btn-cuisine' }],
+                    'cuisine': [{ label: '✅ Plat prêt', action: 'pret', class: 'btn-pret' }],
+                    'pret': [{ label: '🍽️ Servir', action: 'servi', class: 'btn-servir' }],
+                    'servi': [{ label: '💰 Encaisser', action: 'paye', class: 'btn-payer' }]
+                },
+                'superadmin': {
+                    'en_attente': [{ label: '👨‍🍳 Cuisiner', action: 'cuisine', class: 'btn-cuisine' }],
+                    'cuisine': [{ label: '✅ Plat prêt', action: 'pret', class: 'btn-pret' }],
+                    'pret': [{ label: '🍽️ Servir', action: 'servi', class: 'btn-servir' }],
+                    'servi': [{ label: '💰 Encaisser', action: 'paye', class: 'btn-payer' }]
                 }
-                if (statut === 'cuisine') {
-                    actions.push({ label: '✅ Plat prêt', action: 'pret', class: 'btn-action-success' });
-                }
-            }
-            
-            if (role === 'serveur') {
-                if (statut === 'pret') {
-                    actions.push({ label: '🍽️ Servir à table', action: 'servi', class: 'btn-action-warning' });
-                }
-                if (statut === 'servi') {
-                    actions.push({ label: '💰 Paiement (caisse)', action: 'paye', class: 'btn-action-dark' });
-                }
-            }
-            
-            if (role === 'gerant' || role === 'superadmin') {
-                if (statut === 'en_attente') {
-                    actions.push({ label: '👨‍🍳 Cuisiner', action: 'cuisine', class: 'btn-action-primary' });
-                }
-                if (statut === 'cuisine') {
-                    actions.push({ label: '✅ Plat prêt', action: 'pret', class: 'btn-action-success' });
-                }
-                if (statut === 'pret') {
-                    actions.push({ label: '🍽️ Servir', action: 'servi', class: 'btn-action-warning' });
-                }
-                if (statut === 'servi') {
-                    actions.push({ label: '💰 Payer', action: 'paye', class: 'btn-action-dark' });
-                }
-            }
-            
-            return actions;
+            };
+
+            return (rules[role] && rules[role][statut]) || [];
         }
-        
-        async function changerStatut(commandeId, nouveauStatut) {
-            try {
-                const res = await fetch(`/api/commande/${commandeId}/statut`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ statut: nouveauStatut, restoId: currentResto })
-                });
-                if (res.ok) {
-                    chargerCommandes();
-                    const messages = {
-                        'cuisine': '🔪 Commande passée en cuisine',
-                        'pret': '✅ Plat prêt à être servi !',
-                        'servi': '🍽️ Plat servi à table',
-                        'paye': '💰 Paiement validé'
-                    };
-                    showNotification(messages[nouveauStatut] || 'Statut mis à jour');
-                }
-            } catch(e) { console.error(e); }
-        }
-        
+
         function afficherCommandes() {
             let filtered = allCommandes;
+
+            // Trier par statut prioritaire puis par date
+            const statusPriority = { 'en_attente': 0, 'cuisine': 1, 'pret': 2, 'servi': 3, 'paye': 4 };
+            filtered.sort((a, b) => {
+                if (statusPriority[a.statut] !== statusPriority[b.statut]) {
+                    return statusPriority[a.statut] - statusPriority[b.statut];
+                }
+                return new Date(a.date_commande) - new Date(b.date_commande);
+            });
+
             if (currentFilter !== 'all') {
-                filtered = allCommandes.filter(c => c.statut === currentFilter);
+                filtered = filtered.filter(c => c.statut === currentFilter);
             }
-            
+
             const container = document.getElementById('commandes-grid');
+
             if (filtered.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:gray; padding:50px;">📭 Aucune commande</div>';
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-text">Aucune commande ${currentFilter !== 'all' ? getStatutText(currentFilter).toLowerCase() : ''}</div>
+                        <div style="margin-top: 8px; font-size: 13px; color: var(--text-secondary);">
+                            ${currentFilter === 'all' ? 'Tout est calme pour le moment.' : 'Les commandes apparaîtront ici.'}
+                        </div>
+                    </div>`;
                 return;
             }
-            
+
             container.innerHTML = filtered.map(cmd => {
-                const actions = getActionsForCommand(cmd, userRole);
-                
+                const actions = getActionsForCommand(cmd.statut, userRole);
+                const urgent = isUrgent(cmd.date_commande, cmd.statut);
+                const timeAgo = getTimeAgo(cmd.date_commande);
+                const statutText = getStatutText(cmd.statut);
+
+                const detailsHTML = cmd.details?.length 
+                    ? cmd.details.map(d => `
+                        <div class="detail-line">
+                            <span>
+                                <span class="detail-name">${escapeHtml(d.nom_plat)}</span>
+                                <span class="detail-qty">×${d.quantite}</span>
+                            </span>
+                            <span class="detail-price">${((d.prix_unitaire || 0) * (d.quantite || 0)).toLocaleString()} FCFA</span>
+                        </div>
+                    `).join('')
+                    : '<div class="detail-line"><span style="color: var(--text-secondary);">Aucun détail</span></div>';
+
+                const actionsHTML = actions.length > 0
+                    ? actions.map(a => 
+                        `<button class="btn-action ${a.class}" data-cmd-id="${cmd.id}" data-action="${a.action}">${a.label}</button>`
+                    ).join('')
+                    : (cmd.statut === 'paye' 
+                        ? '<span style="color: #27AE60; font-size: 13px; font-weight: 500;">✓ Commande finalisée</span>'
+                        : '<span style="color: var(--text-secondary); font-size: 12px;">⏳ En attente de l\'autre équipe</span>');
+
                 return `
-                <div class="commande-card-premium fade-in">
+                <div class="commande-card${urgent ? ' urgent' : ''}">
                     <div class="commande-header">
                         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                            <span class="table-number">Table ${cmd.table_numero || cmd.table_id}</span>
-                            ${cmd.client_nom ? `<span class="client-name">👤 ${escapeHtml(cmd.client_nom)}</span>` : ''}
+                            <span class="table-badge">Table ${cmd.table_numero || cmd.table_id}</span>
+                            ${cmd.client_nom ? `<span class="client-badge">👤 ${escapeHtml(cmd.client_nom)}</span>` : ''}
                         </div>
-                        <span class="statut-badge statut-${cmd.statut}">${getStatutText(cmd.statut)}</span>
+                        <span class="statut-badge statut-${cmd.statut}">${statutText}</span>
                     </div>
-                    <div style="padding: 20px;">
-                        ${cmd.details && cmd.details.length ? cmd.details.map(d => `
-                            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
-                                <span><strong>${d.quantite}x</strong> ${escapeHtml(d.nom_plat)}</span>
-                                <span>${(d.prix_unitaire * d.quantite).toLocaleString()} FCFA</span>
-                            </div>
-                        `).join('') : '<div>Aucun détail</div>'}
-                        <div style="display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 2px solid #C6A43F; font-weight: bold;">
+                    <div class="commande-body">
+                        ${detailsHTML}
+                        <div class="commande-total">
                             <span>Total</span>
                             <span>${(cmd.total || 0).toLocaleString()} FCFA</span>
                         </div>
-                        <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
-                            ${actions.map(action => `
-                                <button class="btn-action ${action.class}" onclick="changerStatut(${cmd.id}, '${action.action}')">${action.label}</button>
-                            `).join('')}
-                            ${actions.length === 0 && cmd.statut !== 'paye' ? `
-                                <span style="color: gray; font-size: 12px;">⏳ En attente de l'autre équipe...</span>
-                            ` : ''}
-                            ${cmd.statut === 'paye' ? `
-                                <span style="color: green; font-size: 12px;">✓ Commande finalisée</span>
-                            ` : ''}
+                        <div class="commande-actions">
+                            ${actionsHTML}
                         </div>
-                        ${cmd.date_commande ? `<div style="margin-top: 15px; font-size: 11px; color: gray;">🕐 ${new Date(cmd.date_commande).toLocaleString()}</div>` : ''}
+                        ${timeAgo ? `<div class="commande-time${urgent ? ' urgent-text' : ''}">🕐 ${timeAgo}${urgent ? ' — Action requise' : ''}</div>` : ''}
                     </div>
-                </div>
-            `}).join('');
-        }
-        
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
+                </div>`;
+            }).join('');
+
+            // Ajouter les event listeners aux boutons
+            container.querySelectorAll('.btn-action').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const cmdId = parseInt(this.dataset.cmdId);
+                    const action = this.dataset.action;
+                    if (cmdId && action) {
+                        changerStatut(cmdId, action, this);
+                    }
+                });
             });
         }
-        
-        document.getElementById('resto-select').onchange = (e) => {
-            currentResto = parseInt(e.target.value);
-            localStorage.setItem('resto_id', currentResto);
-            socket.emit('join_resto', currentResto);
-            chargerCommandes();
-        };
-        
-        document.getElementById('logout-btn').onclick = () => {
-            localStorage.clear();
-            window.location.href = '/login.html';
-        };
-        
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentFilter = btn.dataset.status;
-                afficherCommandes();
-            };
+
+        // ==================== CHANGEMENT STATUT ====================
+        async function changerStatut(commandeId, nouveauStatut, buttonElement) {
+            // Feedback immédiat
+            if (buttonElement) {
+                buttonElement.disabled = true;
+                buttonElement.style.opacity = '0.6';
+            }
+
+            try {
+                const token = localStorage.getItem(TOKEN_KEY);
+                const res = await fetch(`/api/commande/${commandeId}/statut`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        statut: nouveauStatut,
+                        restoId: currentResto
+                    })
+                });
+
+                if (res.ok) {
+                    const messages = {
+                        'cuisine': '🔪 En cuisine',
+                        'pret': '✅ Plat prêt !',
+                        'servi': '🍽️ Servi',
+                        'paye': '💰 Payé'
+                    };
+                    showToast(messages[nouveauStatut] || 'Statut mis à jour', 'success');
+                    chargerCommandes();
+                } else if (res.status === 400) {
+                    const data = await res.json();
+                    showToast(data.message || 'Transition non autorisée', 'warning');
+                } else {
+                    showToast('Erreur lors de la mise à jour', 'error');
+                }
+            } catch(e) {
+                console.error(e);
+                showToast('Erreur réseau', 'error');
+            } finally {
+                if (buttonElement) {
+                    buttonElement.disabled = false;
+                    buttonElement.style.opacity = '1';
+                }
+            }
+        }
+
+        // ==================== TOASTS ====================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // ==================== UTILITAIRES ====================
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ==================== NETTOYAGE ====================
+        window.addEventListener('beforeunload', () => {
+            if (pollingTimer) clearInterval(pollingTimer);
+            if (socket) socket.disconnect();
         });
-        
-        // Rendre la fonction globale pour les onclick
+
+        // ==================== DÉMARRAGE ====================
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Exposer pour compatibilité
         window.changerStatut = changerStatut;
         window.escapeHtml = escapeHtml;
-        
-        chargerCommandes();
-        setInterval(chargerCommandes, 5000);
+    })();
     </script>
 </body>
 </html>

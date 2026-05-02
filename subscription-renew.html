@@ -2,205 +2,37 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Renouvellement - Restaurant Élite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0d0d0d">
+    <title>Renouvellement | Restaurant 7★</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <style>
+        :root { --gold: #C6A43F; --gold-dark: #a8872a; --danger: #d9534f; --text: #1a1a1a; --text-secondary: #6b6b6b; --border: #e8e5df; --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif; --font-serif: 'Playfair Display', 'Georgia', serif; --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1); --radius-md: 16px; --radius-xl: 60px; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #1A1A2E 0%, #242440 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .card {
-            background: white;
-            border-radius: 32px;
-            max-width: 500px;
-            width: 100%;
-            overflow: hidden;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-            animation: fadeIn 0.5s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .header {
-            background: linear-gradient(135deg, #1A1A2E 0%, #242440 100%);
-            padding: 30px;
-            text-align: center;
-        }
-        .header .icon { font-size: 64px; margin-bottom: 15px; }
-        .header h1 { color: white; font-size: 28px; margin-bottom: 10px; }
-        .header p { color: #C6A43F; font-size: 14px; }
-        
-        .alert-box {
-            background: #FEF3C7;
-            border-left: 4px solid #F59E0B;
-            padding: 20px;
-            margin: 30px;
-            border-radius: 16px;
-        }
-        .alert-box .title { font-weight: bold; color: #92400E; margin-bottom: 10px; }
-        .alert-box .message { color: #78350F; font-size: 14px; }
-        
-        .pricing-grid {
-            padding: 0 30px 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .plan-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            border: 2px solid #E2E8F0;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .plan-card:hover {
-            border-color: #C6A43F;
-            transform: translateX(5px);
-        }
-        .plan-card.selected {
-            border-color: #C6A43F;
-            background: #FFFBEB;
-        }
-        .plan-info h3 { font-size: 18px; margin-bottom: 5px; }
-        .plan-info p { font-size: 12px; color: #666; }
-        .plan-price { font-size: 24px; font-weight: bold; color: #C6A43F; }
-        .plan-price small { font-size: 12px; font-weight: normal; }
-        
-        .btn-renew {
-            background: linear-gradient(135deg, #C6A43F 0%, #9E7E2E 100%);
-            color: #1A1A2E;
-            border: none;
-            padding: 16px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 40px;
-            cursor: pointer;
-            margin: 20px 30px 30px;
-            width: calc(100% - 60px);
-            transition: all 0.3s;
-        }
-        .btn-renew:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(198,164,63,0.3); }
-        .btn-renew:disabled { background: #ccc; cursor: not-allowed; }
-        
-        .footer-note {
-            text-align: center;
-            padding: 20px;
-            background: #F8F9FA;
-            font-size: 12px;
-            color: #666;
-        }
+        body { font-family: var(--font-sans); background: #faf8f5; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; -webkit-font-smoothing: antialiased; }
+        body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse at 50% 30%, rgba(198,164,63,0.04) 0%, transparent 60%); pointer-events: none; }
+        .card { position: relative; z-index: 1; background: #fff; border: 1px solid var(--border); border-radius: 28px; padding: 40px 32px; max-width: 440px; width: 100%; text-align: center; box-shadow: 0 8px 40px rgba(0,0,0,0.06); animation: fadeUp 0.5s ease; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .logo-icon { font-size: 56px; margin-bottom: 16px; }
+        h1 { font-family: var(--font-serif); font-size: 24px; font-weight: 600; margin-bottom: 6px; }
+        .subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+        .alert { background: #FDE8E8; border: 1px solid #f5c6cb; border-radius: var(--radius-md); padding: 14px 18px; color: #C0392B; font-size: 13px; font-weight: 500; margin-bottom: 20px; }
+        .btn-primary { display: block; width: 100%; padding: 14px; border-radius: var(--radius-xl); background: var(--gold); color: #fff; border: none; font-size: 15px; font-weight: 600; cursor: pointer; transition: all var(--transition); font-family: var(--font-sans); text-decoration: none; }
+        .btn-primary:hover { background: var(--gold-dark); }
+        .btn-secondary { display: block; width: 100%; margin-top: 12px; padding: 12px; border-radius: var(--radius-xl); background: transparent; border: 1px solid var(--border); color: var(--text-secondary); font-size: 13px; cursor: pointer; transition: all var(--transition); text-decoration: none; text-align: center; }
+        .btn-secondary:hover { border-color: var(--danger); color: var(--danger); }
     </style>
 </head>
 <body>
     <div class="card">
-        <div class="header">
-            <div class="icon">⚠️</div>
-            <h1>Abonnement expiré</h1>
-            <p>Veuillez renouveler votre abonnement pour continuer</p>
-        </div>
-        
-        <div class="alert-box">
-            <div class="title">🔔 Votre accès est bloqué</div>
-            <div class="message">Votre période d'essai ou votre abonnement a expiré. Souscrivez une nouvelle offre pour retrouver l'accès à toutes les fonctionnalités.</div>
-        </div>
-        
-        <div class="pricing-grid">
-            <div class="plan-card" data-plan="monthly" onclick="selectPlan('monthly')">
-                <div class="plan-info">
-                    <h3>📅 Formule Mensuelle</h3>
-                    <p>Accès complet pendant 30 jours</p>
-                </div>
-                <div class="plan-price">25 000 <small>FCFA</small></div>
-            </div>
-            
-            <div class="plan-card" data-plan="quarterly" onclick="selectPlan('quarterly')">
-                <div class="plan-info">
-                    <h3>📆 Formule Trimestrielle</h3>
-                    <p>3 mois - Économisez 15 000 FCFA</p>
-                </div>
-                <div class="plan-price">60 000 <small>FCFA</small></div>
-            </div>
-            
-            <div class="plan-card" data-plan="yearly" onclick="selectPlan('yearly')">
-                <div class="plan-info">
-                    <h3>📅 Formule Annuelle</h3>
-                    <p>12 mois - Économisez 100 000 FCFA</p>
-                </div>
-                <div class="plan-price">200 000 <small>FCFA</small></div>
-            </div>
-        </div>
-        
-        <button class="btn-renew" id="renew-btn" onclick="renouveler()">🔄 Renouveler mon abonnement</button>
-        
-        <div class="footer-note">
-            🔒 Paiement sécurisé • Accès immédiat après validation<br>
-            Support disponible 7j/7
-        </div>
+        <div class="logo-icon">⚠️</div>
+        <h1>Abonnement expiré</h1>
+        <p class="subtitle">Votre période d'essai ou votre abonnement est arrivé à expiration. Renouvelez pour continuer à utiliser le service.</p>
+        <div class="alert">🔒 L'accès à votre espace est temporairement suspendu.</div>
+        <a href="/subscription.html" class="btn-primary">💰 Voir les offres d'abonnement</a>
+        <a href="/login.html" class="btn-secondary">Se déconnecter</a>
     </div>
-
-    <script>
-        let selectedPlan = null;
-        const token = localStorage.getItem('resto_token');
-        
-        if (!token) {
-            window.location.href = '/login.html';
-        }
-        
-        function selectPlan(plan) {
-            selectedPlan = plan;
-            document.querySelectorAll('.plan-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            document.querySelector(`[data-plan="${plan}"]`).classList.add('selected');
-        }
-        
-        async function renouveler() {
-        if (!selectedPlan) {
-            alert('Veuillez sélectionner une formule');
-            return;
-        }
-        
-        const btn = document.getElementById('renew-btn');
-        btn.innerHTML = '⏳ Traitement en cours...';
-        btn.disabled = true;
-        
-        try {
-            const token = localStorage.getItem('resto_token');
-            const response = await fetch('/api/subscription/renew', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ plan: selectedPlan })
-            });
-            
-            const result = await response.json();
-            
-            if (response.ok) {
-                alert(result.message || '✅ Abonnement renouvelé avec succès !');
-                window.location.href = '/dashboard.html';
-            } else {
-                alert('❌ ' + (result.error || result.message || 'Erreur'));
-            }
-        } catch (error) {
-            console.error(error);
-            alert('❌ Erreur de connexion');
-        } finally {
-            btn.innerHTML = '🔄 Renouveler mon abonnement';
-            btn.disabled = false;
-        }
-    }
-    </script>
 </body>
 </html>

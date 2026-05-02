@@ -4,490 +4,544 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Resto Élite">
-    <meta name="theme-color" content="#C6A43F">
-    <title>Abonnements Premium | Restaurant Élite</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="apple-mobile-web-app-title" content="Abonnement 7★">
+    <meta name="theme-color" content="#0d0d0d">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <title>Abonnements | Restaurant 7★</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Poppins', system-ui, sans-serif;
-            background: radial-gradient(ellipse at top, #1A1A2E 0%, #0F0F1A 100%);
-            min-height: 100vh;
-            padding: 40px 20px;
-            position: relative;
+        :root {
+            --gold: #C6A43F;
+            --gold-dark: #a8872a;
+            --success: #27AE60;
+            --danger: #E74C3C;
+            --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            --font-serif: 'Playfair Display', 'Georgia', serif;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
-        /* Effet de particules somptueux */
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-sans);
+            background: #0d0d0d;
+            min-height: 100vh;
+            color: #f0ece4;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Fond décoratif */
         body::before {
             content: '';
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: radial-gradient(circle at 20% 80%, rgba(198,164,63,0.08) 0%, transparent 50%),
-                              radial-gradient(circle at 80% 20%, rgba(198,164,63,0.05) 0%, transparent 50%);
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(198,164,63,0.06) 0%, transparent 55%),
+                radial-gradient(ellipse at 70% 70%, rgba(198,164,63,0.04) 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.015) 0%, transparent 70%);
             pointer-events: none;
             z-index: 0;
         }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-        }
-        
-        /* Bouton retour */
-        .btn-back {
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; position: relative; z-index: 1; }
+
+        /* Retour */
+        .back-link {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            background: rgba(255,255,255,0.08);
-            backdrop-filter: blur(10px);
-            color: #C6A43F;
-            border: 1px solid rgba(198,164,63,0.3);
-            padding: 12px 28px;
-            border-radius: 60px;
-            cursor: pointer;
-            margin-bottom: 40px;
+            gap: 8px;
+            color: #888;
+            text-decoration: none;
+            font-size: 13px;
             font-weight: 500;
-            transition: all 0.3s ease;
-            font-size: 14px;
+            margin-bottom: 40px;
+            transition: all var(--transition);
+            letter-spacing: 0.2px;
         }
-        .btn-back:hover {
-            background: rgba(198,164,63,0.2);
-            border-color: #C6A43F;
-            transform: translateX(-5px);
-        }
-        
+        .back-link:hover { color: var(--gold); }
+
         /* Header */
-        .header {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-        .header .badge {
+        .page-header { text-align: center; margin-bottom: 50px; }
+        .page-badge {
             display: inline-block;
-            background: rgba(198,164,63,0.15);
-            color: #C6A43F;
+            border: 1px solid rgba(198,164,63,0.25);
+            color: var(--gold);
             padding: 6px 18px;
             border-radius: 40px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
             margin-bottom: 20px;
-            backdrop-filter: blur(10px);
         }
-        .header h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 54px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #FFFFFF 0%, #C6A43F 100%);
+        .page-title {
+            font-family: var(--font-serif);
+            font-size: 44px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+            background: linear-gradient(180deg, #fff 0%, #b0a080 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 15px;
         }
-        .header p {
-            color: rgba(255,255,255,0.7);
-            font-size: 18px;
-            max-width: 600px;
+        .page-subtitle {
+            color: #888;
+            font-size: 15px;
+            max-width: 500px;
             margin: 0 auto;
+            line-height: 1.6;
         }
-        
-        /* Grille des offres */
+
+        /* Statut actuel */
+        .status-bar {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px;
+            padding: 20px 28px;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all var(--transition);
+        }
+        .status-bar.trial { border-color: rgba(198,164,63,0.3); background: rgba(198,164,63,0.04); }
+        .status-bar.active { border-color: rgba(39,174,96,0.3); background: rgba(39,174,96,0.04); }
+        .status-bar.expired { border-color: rgba(231,76,60,0.3); background: rgba(231,76,60,0.04); }
+        .status-icon { font-size: 32px; flex-shrink: 0; }
+        .status-info { flex: 1; }
+        .status-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: #888; margin-bottom: 4px; font-weight: 500; }
+        .status-value { font-weight: 500; font-size: 14px; }
+        .status-highlight { color: var(--gold); font-weight: 600; }
+        .status-highlight-danger { color: var(--danger); font-weight: 600; }
+
+        /* Grille */
         .pricing-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-            gap: 35px;
-            margin-bottom: 50px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
         }
-        
+
         .pricing-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-            backdrop-filter: blur(20px);
-            border-radius: 32px;
-            padding: 40px 32px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 24px;
+            padding: 36px 28px;
             text-align: center;
-            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.05);
             position: relative;
-            border: 1px solid rgba(198,164,63,0.2);
-            cursor: pointer;
+            cursor: default;
+            display: flex;
+            flex-direction: column;
         }
         .pricing-card:hover {
-            transform: translateY(-15px);
-            border-color: rgba(198,164,63,0.5);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3), 0 0 0 1px rgba(198,164,63,0.2);
+            transform: translateY(-8px);
+            border-color: rgba(198,164,63,0.3);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            background: rgba(255,255,255,0.04);
         }
-        .pricing-card.recommended {
-            border: 2px solid #C6A43F;
-            box-shadow: 0 10px 40px rgba(198,164,63,0.2);
+        .pricing-card.featured {
+            border: 1px solid rgba(198,164,63,0.35);
+            background: rgba(198,164,63,0.04);
+            box-shadow: 0 8px 32px rgba(198,164,63,0.06);
         }
-        .pricing-card.recommended::before {
-            content: "⭐ RECOMMANDÉ";
+        .pricing-card.featured::before {
+            content: "⭐ Recommandé";
             position: absolute;
-            top: -14px;
+            top: -13px;
             left: 50%;
             transform: translateX(-50%);
             background: linear-gradient(135deg, #C6A43F 0%, #D4AF37 100%);
-            color: #1A1A2E;
-            padding: 6px 20px;
-            border-radius: 40px;
+            color: #0d0d0d;
+            padding: 6px 16px;
+            border-radius: 30px;
             font-size: 11px;
             font-weight: 700;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             white-space: nowrap;
         }
-        
-        .plan-icon {
-            font-size: 56px;
-            margin-bottom: 20px;
-        }
-        .plan-name {
-            font-family: 'Playfair Display', serif;
-            font-size: 26px;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 10px;
-        }
-        .plan-price {
-            font-size: 44px;
-            font-weight: 800;
-            color: #C6A43F;
-            margin: 25px 0 10px;
-        }
-        .plan-price small {
-            font-size: 14px;
-            font-weight: 500;
-            color: rgba(255,255,255,0.6);
-        }
-        .saving-badge {
-            background: rgba(39,174,96,0.15);
+
+        .plan-icon { font-size: 44px; margin-bottom: 16px; }
+        .plan-name { font-family: var(--font-serif); font-size: 22px; font-weight: 600; margin-bottom: 6px; color: #fff; }
+        .plan-price { font-size: 42px; font-weight: 800; color: var(--gold); margin: 20px 0 4px; letter-spacing: -1px; }
+        .plan-price small { font-size: 13px; font-weight: 400; color: #888; }
+        .plan-saving {
+            display: inline-block;
+            background: rgba(39,174,96,0.1);
             color: #2ECC71;
-            padding: 5px 12px;
-            border-radius: 40px;
+            padding: 4px 12px;
+            border-radius: 30px;
             font-size: 11px;
             font-weight: 600;
-            display: inline-block;
-            margin-bottom: 20px;
+            margin: 8px 0 16px;
         }
-        .features {
+
+        .features-list {
             list-style: none;
-            margin: 25px 0;
             text-align: left;
+            margin: 20px 0;
+            flex: 1;
         }
-        .features li {
-            padding: 10px 0;
-            color: rgba(255,255,255,0.7);
-            font-size: 14px;
+        .features-list li {
+            padding: 9px 0;
+            color: #999;
+            font-size: 13px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
         }
-        .features li::before {
+        .features-list li::before {
             content: "✓";
-            color: #C6A43F;
-            font-weight: bold;
-            font-size: 16px;
-        }
-        
-        .btn-subscribe {
-            background: linear-gradient(135deg, #C6A43F 0%, #9E7E2E 100%);
-            color: #1A1A2E;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 60px;
+            color: var(--gold);
             font-weight: 700;
-            font-size: 16px;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .btn-plan {
+            width: 100%;
+            padding: 14px;
+            border-radius: 50px;
+            border: 1px solid var(--gold);
+            background: transparent;
+            color: var(--gold);
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
-            width: 100%;
-            transition: all 0.3s ease;
+            transition: all var(--transition);
+            font-family: var(--font-sans);
+            letter-spacing: 0.3px;
             margin-top: 20px;
-            position: relative;
-            overflow: hidden;
         }
-        .btn-subscribe::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s ease;
+        .btn-plan:hover { background: var(--gold); color: #0d0d0d; }
+        .btn-plan.current { border-color: #555; color: #666; cursor: not-allowed; }
+        .btn-plan.current:hover { background: transparent; color: #666; }
+        .btn-plan:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Modale confirmation */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+            z-index: 200; display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px); opacity: 0; pointer-events: none;
+            transition: opacity var(--transition);
         }
-        .btn-subscribe:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(198,164,63,0.4);
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal-dialog {
+            background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 24px;
+            padding: 32px 28px; max-width: 400px; width: 90%; text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
         }
-        .btn-subscribe:hover::before {
-            left: 100%;
+        .modal-icon { font-size: 48px; margin-bottom: 16px; }
+        .modal-title { font-family: var(--font-serif); font-size: 22px; margin-bottom: 8px; color: #fff; }
+        .modal-text { color: #999; font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
+        .modal-price { font-size: 28px; font-weight: 700; color: var(--gold); margin-bottom: 20px; }
+        .modal-actions { display: flex; gap: 10px; }
+        .modal-btn {
+            flex: 1; padding: 12px; border-radius: 40px; font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all var(--transition); font-family: var(--font-sans);
+            border: none; letter-spacing: 0.2px;
         }
-        
-        /* Statut actuel */
-        .current-status {
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 25px 35px;
-            margin-top: 40px;
-            text-align: center;
-            border: 1px solid rgba(198,164,63,0.2);
+        .modal-btn-cancel { background: rgba(255,255,255,0.06); color: #999; border: 1px solid #333; }
+        .modal-btn-cancel:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .modal-btn-confirm { background: var(--gold); color: #0d0d0d; }
+        .modal-btn-confirm:hover { background: var(--gold-dark); }
+
+        /* Toast */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+        .toast {
+            background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 16px;
+            padding: 14px 20px; font-size: 13px; font-weight: 500; color: #f0ece4;
+            animation: slideIn 0.3s ease; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
         }
-        .current-status .status-icon { font-size: 32px; margin-bottom: 10px; }
-        .current-status .status-text { font-size: 16px; color: rgba(255,255,255,0.8); }
-        .current-status .status-highlight { color: #C6A43F; font-weight: 700; }
-        
-        /* Animation fade in */
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .pricing-card { animation: fadeInUp 0.6s ease forwards; }
-        .pricing-card:nth-child(1) { animation-delay: 0.1s; }
-        .pricing-card:nth-child(2) { animation-delay: 0.2s; }
-        .pricing-card:nth-child(3) { animation-delay: 0.3s; }
-        
-        /* Responsive */
+        .toast.success { border-left: 3px solid var(--success); }
+        .toast.error { border-left: 3px solid var(--danger); }
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
         @media (max-width: 768px) {
-            .header h1 { font-size: 36px; }
-            .pricing-grid { grid-template-columns: 1fr; gap: 25px; }
-            .pricing-card { padding: 30px 20px; }
-            .btn-back { margin-bottom: 25px; }
+            .page-title { font-size: 32px; }
+            .pricing-grid { grid-template-columns: 1fr; gap: 20px; }
+            .pricing-card { padding: 28px 20px; }
+            .plan-price { font-size: 34px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <button class="btn-back" onclick="window.location.href='/dashboard.html'">
-            ← Retour au tableau de bord
-        </button>
-        
-        <div class="header">
-            <div class="badge">✦ EXCELLENCE & SAVOIR-FAIRE ✦</div>
-            <h1>Nos formules d'abonnement</h1>
-            <p>Des solutions adaptées à vos besoins, pour une gestion d'excellence</p>
+        <a href="/dashboard.html" class="back-link">← Retour au tableau de bord</a>
+
+        <div class="page-header">
+            <div class="page-badge">Excellence & Savoir-faire</div>
+            <h1 class="page-title">Nos formules</h1>
+            <p class="page-subtitle">Des solutions pensées pour les restaurants d'exception, sans engagement.</p>
         </div>
-        
-        <div id="current-status" class="current-status">
-            <div class="status-icon">✨</div>
-            <div class="status-text">Chargement de votre situation...</div>
+
+        <!-- Statut actuel -->
+        <div class="status-bar" id="status-bar">
+            <div class="status-icon" id="status-icon">✨</div>
+            <div class="status-info">
+                <div class="status-label">Votre situation</div>
+                <div class="status-value" id="status-text">Chargement…</div>
+            </div>
         </div>
-        
+
+        <!-- Grille -->
         <div class="pricing-grid">
-            <!-- Formule Mensuelle -->
+            <!-- Mensuel -->
             <div class="pricing-card">
                 <div class="plan-icon">💎</div>
-                <div class="plan-name">Formule Essentielle</div>
-                <div class="plan-price">25 000 <small>FCFA/mois</small></div>
-                <ul class="features">
+                <div class="plan-name">Essentielle</div>
+                <div class="plan-price">25 000 <small>FCFA / mois</small></div>
+                <ul class="features-list">
                     <li>Accès illimité à toutes les fonctionnalités</li>
                     <li>Support prioritaire 7j/7</li>
                     <li>Mises à jour gratuites</li>
-                    <li>Sans engagement, résiliable à tout moment</li>
+                    <li>Sans engagement</li>
                 </ul>
-                <button class="btn-subscribe" data-plan="monthly" data-price="25000">
-                    Je choisis cette formule
+                <button class="btn-plan" data-plan="monthly" data-amount="25000" data-name="Essentielle">
+                    Choisir cette formule
                 </button>
             </div>
-            
-            <!-- Formule Trimestrielle (Recommandée) -->
-            <div class="pricing-card recommended">
+
+            <!-- Trimestriel -->
+            <div class="pricing-card featured">
                 <div class="plan-icon">🏆</div>
-                <div class="plan-name">Formule Prestige</div>
-                <div class="plan-price">60 000 <small>FCFA/3 mois</small></div>
-                <div class="saving-badge">✨ Économisez 15 000 FCFA ✨</div>
-                <ul class="features">
+                <div class="plan-name">Prestige</div>
+                <div class="plan-price">60 000 <small>FCFA / 3 mois</small></div>
+                <div class="plan-saving">Économisez 15 000 FCFA</div>
+                <ul class="features-list">
                     <li>Accès illimité à toutes les fonctionnalités</li>
                     <li>Support prioritaire 7j/7</li>
                     <li>Mises à jour gratuites</li>
                     <li>3 mois pour le prix de 2</li>
-                    <li>+ Accès anticipé aux nouveautés</li>
+                    <li>Accès anticipé aux nouveautés</li>
                 </ul>
-                <button class="btn-subscribe" data-plan="quarterly" data-price="60000">
-                    Je choisis cette formule
+                <button class="btn-plan" data-plan="quarterly" data-amount="60000" data-name="Prestige">
+                    Choisir cette formule
                 </button>
             </div>
-            
-            <!-- Formule Annuelle -->
+
+            <!-- Annuel -->
             <div class="pricing-card">
                 <div class="plan-icon">👑</div>
-                <div class="plan-name">Formule Impériale</div>
-                <div class="plan-price">200 000 <small>FCFA/an</small></div>
-                <div class="saving-badge">✨ Économisez 100 000 FCFA ✨</div>
-                <ul class="features">
+                <div class="plan-name">Impériale</div>
+                <div class="plan-price">200 000 <small>FCFA / an</small></div>
+                <div class="plan-saving">Économisez 100 000 FCFA</div>
+                <ul class="features-list">
                     <li>Accès illimité à toutes les fonctionnalités</li>
-                    <li>Support VIP dédié 24h/24</li>
+                    <li>Support VIP 24h/24</li>
                     <li>Mises à jour gratuites</li>
                     <li>2 mois offerts</li>
-                    <li>+ Assistance personnalisée</li>
-                    <li>+ Pack de bienvenue offert</li>
+                    <li>Assistance personnalisée</li>
+                    <li>Pack de bienvenue offert</li>
                 </ul>
-                <button class="btn-subscribe" data-plan="yearly" data-price="200000">
-                    Je choisis cette formule
+                <button class="btn-plan" data-plan="yearly" data-amount="200000" data-name="Impériale">
+                    Choisir cette formule
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Modale confirmation -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-dialog">
+            <div class="modal-icon">💳</div>
+            <div class="modal-title" id="modal-title">Confirmer la souscription</div>
+            <div class="modal-text" id="modal-text">Vous allez souscrire à la formule.</div>
+            <div class="modal-price" id="modal-price">0 FCFA</div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" id="modal-cancel">Annuler</button>
+                <button class="modal-btn modal-btn-confirm" id="modal-confirm">Confirmer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast-container" id="toast-container"></div>
+
     <script>
-        const token = localStorage.getItem('resto_token');
-        if (!token) {
-            window.location.href = '/login.html';
-        }
-        
-        // Gestionnaire des clics sur les boutons
-        document.querySelectorAll('.btn-subscribe').forEach(btn => {
-            btn.addEventListener('click', async function(e) {
-                e.stopPropagation();
-                const plan = this.getAttribute('data-plan');
-                const price = parseInt(this.getAttribute('data-price'));
-                await initierPaiement(plan, price, this);
-            });
-        });
-        
-        async function initierPaiement(plan, price, button) {
-            const planName = plan === 'monthly' ? 'Formule Essentielle' : (plan === 'quarterly' ? 'Formule Prestige' : 'Formule Impériale');
-            
-            if (!confirm(`✨ Souscription à la ${planName}\n\nMontant : ${price.toLocaleString()} FCFA\n\nSouhaitez-vous continuer ?`)) return;
-            
-            const originalText = button.innerHTML;
-            button.innerHTML = '⏳ Traitement en cours...';
-            button.disabled = true;
-            
+    (function() {
+        'use strict';
+
+        const TOKEN_KEY = 'resto_token';
+        let token, currentPlan = null;
+        let isProcessing = false;
+
+        // ==================== INIT ====================
+        function init() {
+            token = localStorage.getItem(TOKEN_KEY);
+            if (!token) { window.location.href = '/login.html'; return; }
+
+            // Vérifier validité token
             try {
-                const response = await fetch('/api/subscription/renew', {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ plan })
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    // Afficher une notification élégante
-                    showNotification('success', `✅ ${result.message || 'Abonnement activé avec succès !'}`);
-                    setTimeout(() => {
-                        window.location.href = '/dashboard.html';
-                    }, 2000);
-                } else {
-                    showNotification('error', `❌ ${result.error || result.message || 'Erreur lors du paiement'}`);
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.exp && payload.exp * 1000 < Date.now()) {
+                    localStorage.clear();
+                    window.location.href = '/login.html';
+                    return;
                 }
             } catch(e) {
-                console.error(e);
-                showNotification('error', '❌ Erreur de connexion au serveur');
-            } finally {
-                button.innerHTML = originalText;
-                button.disabled = false;
+                localStorage.clear();
+                window.location.href = '/login.html';
+                return;
             }
+
+            getCurrentSubscription();
+            initButtons();
+            initModal();
         }
-        
+
+        // ==================== STATUT ACTUEL ====================
         async function getCurrentSubscription() {
+            const statusBar = document.getElementById('status-bar');
+            const statusIcon = document.getElementById('status-icon');
+            const statusText = document.getElementById('status-text');
+
             try {
                 const res = await fetch('/api/restaurant/subscription', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+
+                if (res.status === 401) {
+                    localStorage.clear();
+                    window.location.href = '/login.html';
+                    return;
+                }
+
                 const data = await res.json();
-                const statusDiv = document.querySelector('.current-status');
-                
+
                 if (data.status === 'trial') {
-                    statusDiv.innerHTML = `
-                        <div class="status-icon">🎁</div>
-                        <div class="status-text">
-                            <span class="status-highlight">Période d'essai gratuite</span><br>
-                            ${data.days_left} jours restants. Profitez pleinement de notre solution !
-                        </div>
-                    `;
+                    statusBar.className = 'status-bar trial';
+                    statusIcon.textContent = '🎁';
+                    statusText.innerHTML = `<span class="status-highlight">Période d'essai</span> · ${data.days_left || '?'} jour${data.days_left > 1 ? 's' : ''} restant${data.days_left > 1 ? 's' : ''}`;
                 } else if (data.status === 'active') {
-                    const endDate = data.ends_at ? new Date(data.ends_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'prochainement';
-                    statusDiv.innerHTML = `
-                        <div class="status-icon">🏅</div>
-                        <div class="status-text">
-                            <span class="status-highlight">Abonnement actif</span><br>
-                            Valable jusqu'au ${endDate}. Merci pour votre confiance !
-                        </div>
-                    `;
-                    statusDiv.style.background = 'rgba(39,174,96,0.1)';
-                    statusDiv.style.borderColor = 'rgba(39,174,96,0.3)';
+                    statusBar.className = 'status-bar active';
+                    statusIcon.textContent = '✅';
+                    const endDate = data.ends_at ? new Date(data.ends_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A';
+                    statusText.innerHTML = `<span class="status-highlight">Abonnement actif</span> · Valable jusqu'au ${endDate}`;
+                    disableAllButtons();
                 } else if (data.status === 'expired') {
-                    statusDiv.innerHTML = `
-                        <div class="status-icon">⚠️</div>
-                        <div class="status-text">
-                            <span class="status-highlight" style="color: #E74C3C;">Abonnement expiré</span><br>
-                            Veuillez souscrire une offre pour continuer à profiter de nos services.
-                        </div>
-                    `;
-                    statusDiv.style.background = 'rgba(231,76,60,0.1)';
-                    statusDiv.style.borderColor = 'rgba(231,76,60,0.3)';
+                    statusBar.className = 'status-bar expired';
+                    statusIcon.textContent = '⚠️';
+                    statusText.innerHTML = `<span class="status-highlight-danger">Abonnement expiré</span> · Souscrivez pour continuer`;
                 } else {
-                    statusDiv.innerHTML = `
-                        <div class="status-icon">🌟</div>
-                        <div class="status-text">
-                            Bienvenue chez Restaurant Élite !<br>
-                            Choisissez l'offre qui correspond le mieux à votre activité.
-                        </div>
-                    `;
+                    statusBar.className = 'status-bar';
+                    statusIcon.textContent = '✨';
+                    statusText.textContent = 'Choisissez une formule pour commencer';
                 }
             } catch(e) {
-                console.error(e);
-                const statusDiv = document.querySelector('.current-status');
-                statusDiv.innerHTML = `
-                    <div class="status-icon">🌟</div>
-                    <div class="status-text">
-                        Bienvenue chez Restaurant Élite !<br>
-                        Choisissez l'offre qui correspond le mieux à votre activité.
-                    </div>
-                `;
+                statusText.textContent = 'Impossible de vérifier votre statut.';
             }
         }
-        
-        // Notification élégante
-        function showNotification(type, message) {
-            const notif = document.createElement('div');
-            notif.style.cssText = `
-                position: fixed;
-                top: 30px;
-                right: 30px;
-                background: ${type === 'success' ? 'linear-gradient(135deg, #27AE60, #1E8449)' : 'linear-gradient(135deg, #E74C3C, #C0392B)'};
-                color: white;
-                padding: 15px 25px;
-                border-radius: 50px;
-                font-weight: 500;
-                z-index: 9999;
-                animation: slideIn 0.3s ease;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-                backdrop-filter: blur(10px);
-            `;
-            notif.innerHTML = message;
-            document.body.appendChild(notif);
-            
+
+        function disableAllButtons() {
+            document.querySelectorAll('.btn-plan').forEach(btn => {
+                btn.disabled = true;
+                btn.textContent = 'Déjà abonné';
+                btn.classList.add('current');
+            });
+        }
+
+        // ==================== BOUTONS ====================
+        function initButtons() {
+            document.querySelectorAll('.btn-plan:not(.current)').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (isProcessing) return;
+                    const plan = this.dataset.plan;
+                    const amount = parseInt(this.dataset.amount);
+                    const name = this.dataset.name;
+                    openConfirmModal(plan, amount, name);
+                });
+            });
+        }
+
+        // ==================== MODALE ====================
+        function initModal() {
+            document.getElementById('modal-cancel').addEventListener('click', closeModal);
+            document.getElementById('modal-confirm').addEventListener('click', confirmSubscription);
+            document.getElementById('modal-overlay').addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeModal();
+            });
+        }
+
+        function openConfirmModal(plan, amount, name) {
+            currentPlan = { plan, amount, name };
+            document.getElementById('modal-title').textContent = `Formule ${name}`;
+            document.getElementById('modal-text').textContent = 'Vous allez souscrire à cette formule. La simulation de paiement sera immédiate.';
+            document.getElementById('modal-price').textContent = `${amount.toLocaleString()} FCFA`;
+            document.getElementById('modal-overlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.remove('open');
+            document.body.style.overflow = '';
+            currentPlan = null;
+        }
+
+        // ==================== SOUSCRIPTION ====================
+        async function confirmSubscription() {
+            if (!currentPlan || isProcessing) return;
+            isProcessing = true;
+
+            const confirmBtn = document.getElementById('modal-confirm');
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Traitement…';
+
+            try {
+                const res = await fetch('/api/subscription/renew', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ plan: currentPlan.plan })
+                });
+
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    closeModal();
+                    showToast(`✅ ${data.message || 'Abonnement activé avec succès !'}`, 'success');
+                    setTimeout(() => {
+                        window.location.href = '/dashboard.html';
+                    }, 2000);
+                } else {
+                    showToast(data.message || data.error || 'Erreur lors du paiement.', 'error');
+                }
+            } catch(e) {
+                showToast('Erreur de connexion au serveur.', 'error');
+            } finally {
+                isProcessing = false;
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Confirmer';
+            }
+        }
+
+        // ==================== TOAST ====================
+        function showToast(message, type) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
             setTimeout(() => {
-                notif.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => notif.remove(), 300);
-            }, 3000);
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
         }
-        
-        // Ajout des animations
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            @keyframes slideOut {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
-        
-        getCurrentSubscription();
+
+        // ==================== DÉMARRAGE ====================
+        document.addEventListener('DOMContentLoaded', init);
+    })();
     </script>
 </body>
 </html>

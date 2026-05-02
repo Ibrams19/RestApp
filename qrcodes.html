@@ -2,112 +2,315 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Codes | Restaurant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="QR Codes 7★">
+    <meta name="theme-color" content="#0d0d0d">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <title>QR Codes | Restaurant 7★</title>
     <style>
+        :root {
+            --bg: #faf8f5; --bg-dark: #0d0d0d; --surface: #fff; --surface-dark: #1a1a1a;
+            --gold: #C6A43F; --gold-dark: #a8872a; --text: #1a1a1a; --text-dark: #f0ece4;
+            --text-secondary: #6b6b6b; --text-secondary-dark: #a0a0a0;
+            --border: #e8e5df; --border-dark: #2a2a2a;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.03); --shadow-md: 0 2px 16px rgba(0,0,0,0.05); --shadow-lg: 0 8px 40px rgba(0,0,0,0.08);
+            --radius-sm: 12px; --radius-md: 16px; --radius-lg: 24px; --radius-xl: 60px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            --font-serif: 'Playfair Display', 'Georgia', serif;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: system-ui, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-        }
-        h1 { text-align: center; margin-bottom: 30px; color: #1A1A2E; }
-        .qr-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .qr-card {
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .qr-card h3 {
-            color: #C6A43F;
-            margin-bottom: 15px;
-        }
-        .qr-img {
-            width: 150px;
-            height: 150px;
-            margin: 10px auto;
-            display: block;
-        }
-        button {
-            background: #C6A43F;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-        .nav-bar {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-        .nav-btn {
-            padding: 10px 20px;
-            border-radius: 40px;
-            text-decoration: none;
-            background: #1A1A2E;
-            color: white;
+        body { font-family: var(--font-sans); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; transition: background var(--transition), color var(--transition); }
+        body.dark { background: var(--bg-dark); color: var(--text-dark); }
+
+        .header { background: rgba(255,255,255,0.85); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 0 24px; height: 64px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; transition: all var(--transition); }
+        body.dark .header { background: rgba(13,13,13,0.9); border-bottom: 1px solid var(--border-dark); }
+        .logo { font-family: var(--font-serif); font-size: 19px; font-weight: 600; letter-spacing: -0.3px; }
+        .logo span { color: var(--gold); }
+        .btn-logout { background: transparent; border: 1px solid #e0dcd3; color: #999; padding: 8px 18px; border-radius: 40px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all var(--transition); }
+        .btn-logout:hover { border-color: var(--danger); color: #d9534f; }
+
+        .nav-bar { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; padding: 14px 16px 0; max-width: 1200px; margin: 0 auto; }
+        .nav-btn { padding: 9px 18px; border-radius: 40px; text-decoration: none; font-size: 13px; font-weight: 500; background: var(--surface); color: var(--text-secondary); border: 1px solid var(--border); transition: all var(--transition); }
+        .nav-btn:hover, .nav-btn.active { border-color: var(--gold); color: var(--gold); }
+        .nav-btn.active { background: var(--gold); color: #fff; border-color: var(--gold); }
+        body.dark .nav-btn { background: var(--surface-dark); border-color: var(--border-dark); color: var(--text-secondary-dark); }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px 24px 60px; }
+
+        .page-header { margin-bottom: 28px; }
+        .page-title { font-family: var(--font-serif); font-size: 26px; margin-bottom: 6px; }
+        .page-subtitle { color: var(--text-secondary); font-size: 14px; }
+
+        .toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }
+        .btn-toolbar { padding: 9px 18px; border-radius: 40px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all var(--transition); font-family: var(--font-sans); border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); }
+        .btn-toolbar:hover { border-color: var(--gold); color: var(--gold); }
+        .btn-toolbar.primary { background: var(--gold); color: #fff; border-color: var(--gold); }
+        .btn-toolbar.primary:hover { background: var(--gold-dark); }
+        body.dark .btn-toolbar { background: var(--surface-dark); border-color: var(--border-dark); color: var(--text-secondary-dark); }
+
+        .qr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .qr-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px 20px; text-align: center; box-shadow: var(--shadow-sm); transition: all var(--transition); }
+        .qr-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-3px); border-color: #d5cfc0; }
+        body.dark .qr-card { background: var(--surface-dark); border-color: var(--border-dark); }
+        .qr-table-num { font-family: var(--font-serif); font-size: 28px; font-weight: 600; color: var(--gold); margin-bottom: 4px; }
+        .qr-table-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-secondary); margin-bottom: 16px; }
+        .qr-img { width: 160px; height: 160px; margin: 0 auto 16px; display: block; border-radius: 12px; background: white; padding: 8px; border: 1px solid #f0f0f0; }
+        .qr-url { font-size: 10px; color: #bbb; word-break: break-all; margin-bottom: 16px; line-height: 1.4; max-height: 28px; overflow: hidden; }
+        .card-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+        .btn-sm { padding: 7px 14px; border-radius: 20px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all var(--transition); font-family: var(--font-sans); border: 1px solid var(--border); background: var(--surface); }
+        .btn-sm:hover { border-color: var(--gold); }
+        .btn-print { background: var(--gold); color: #fff; border-color: var(--gold); }
+        .btn-print:hover { background: var(--gold-dark); }
+        body.dark .btn-sm { background: var(--surface-dark); border-color: var(--border-dark); }
+
+        .loading-state { grid-column: 1 / -1; text-align: center; padding: 60px; color: var(--text-secondary); }
+        body.dark .loading-state { color: var(--text-secondary-dark); }
+        .spinner { display: inline-block; width: 30px; height: 30px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
+        .toast { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px 20px; box-shadow: var(--shadow-md); font-size: 13px; font-weight: 500; animation: slideIn 0.3s ease; max-width: 380px; }
+        .toast.success { border-left: 3px solid #27AE60; }
+        body.dark .toast { background: var(--surface-dark); border-color: var(--border-dark); }
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        @media (max-width: 768px) {
+            .qr-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; }
+            .qr-img { width: 120px; height: 120px; }
         }
     </style>
 </head>
 <body>
-    <div class="nav-bar">
+
+    <header class="header">
+        <div class="logo">📱 <span>QR</span> Codes</div>
+        <button class="btn-logout" id="logout-btn">Quitter</button>
+    </header>
+
+    <nav class="nav-bar">
         <a href="/dashboard.html" class="nav-btn">📊 Dashboard</a>
         <a href="/admin.html" class="nav-btn">🍽️ Plats</a>
+        <a href="/employes.html" class="nav-btn">👥 Équipe</a>
         <a href="/resto.html" class="nav-btn">👨‍🍳 Cuisine</a>
-        <a href="/qrcodes.html" class="nav-btn" style="background: #C6A43F; color:#1A1A2E;">📱 QR Codes</a>
-    </div>
-    
-    <h1>📱 QR Codes par table</h1>
-    <div class="qr-grid" id="qr-grid">
-        <div style="text-align:center;">Chargement...</div>
+        <a href="/qrcodes.html" class="nav-btn active">📱 QR Codes</a>
+        <a href="/subscription.html" class="nav-btn">💰 Abonnement</a>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">QR Codes par table</h1>
+            <p class="page-subtitle">Imprimez et placez ces QR codes sur vos tables pour le menu digital</p>
+        </div>
+
+        <div class="toolbar">
+            <button class="btn-toolbar primary" id="btn-refresh">🔄 Rafraîchir</button>
+            <button class="btn-toolbar" id="btn-print-all">🖨️ Tout imprimer</button>
+            <span style="font-size:12px;color:var(--text-secondary);margin-left:8px;" id="table-count"></span>
+        </div>
+
+        <div class="qr-grid" id="qr-grid">
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p style="margin-top:12px;">Chargement des QR codes…</p>
+            </div>
+        </div>
     </div>
 
+    <div class="toast-container" id="toast-container"></div>
+
     <script>
-        const tables = [1, 2, 3, 4, 5];
-        const baseUrl = window.location.origin;
-        
-        async function chargerQRCodes() {
-            const container = document.getElementById('qr-grid');
-            container.innerHTML = '';
-            
-            for (const tableId of tables) {
-                try {
-                    const res = await fetch(`${baseUrl}/api/generate-qr/1/${tableId}`);
-                    if (res.ok) {
-                        const html = await res.text();
-                        // Extraire l'image du QR code
-                        const match = html.match(/img src="([^"]+)"/);
-                        const qrSrc = match ? match[1] : '';
-                        
-                        container.innerHTML += `
-                            <div class="qr-card">
-                                <h3>🍽️ TABLE ${tableId}</h3>
-                                <img class="qr-img" src="${qrSrc}" alt="QR Code Table ${tableId}">
-                                <button onclick="window.open('${baseUrl}/api/generate-qr/1/${tableId}', '_blank')">🖨️ Imprimer</button>
-                                <p style="font-size: 11px; margin-top: 10px; word-break: break-all;">${baseUrl}/menu.html?resto=1&table=${tableId}</p>
-                            </div>
-                        `;
-                    }
-                } catch(e) {
-                    console.error(e);
-                    container.innerHTML += `<div class="qr-card"><h3>🍽️ TABLE ${tableId}</h3><p style="color:red;">Erreur chargement</p></div>`;
+    (function() {
+        'use strict';
+
+        const TOKEN_KEY = 'resto_token';
+        const PUBLIC_URL = window.location.origin;
+        let token, userRole, currentResto;
+
+        // ==================== INIT ====================
+        function init() {
+            token = localStorage.getItem(TOKEN_KEY);
+            if (!token) { redirectToLogin(); return; }
+
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.exp && payload.exp * 1000 < Date.now()) { redirectToLogin(); return; }
+                userRole = payload.role;
+                currentResto = payload.resto_id;
+                if (!currentResto) { redirectToLogin(); return; }
+            } catch(e) { redirectToLogin(); return; }
+
+            if (userRole !== 'gerant' && userRole !== 'superadmin') {
+                window.location.href = '/resto.html';
+                return;
+            }
+
+            initEvents();
+            chargerTables();
+        }
+
+        function redirectToLogin() {
+            localStorage.clear();
+            window.location.href = '/login.html';
+        }
+
+        // ==================== EVENTS ====================
+        function initEvents() {
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                localStorage.clear();
+                window.location.href = '/login.html';
+            });
+            document.getElementById('btn-refresh').addEventListener('click', chargerTables);
+            document.getElementById('btn-print-all').addEventListener('click', imprimerTout);
+        }
+
+        // ==================== CHARGEMENT ====================
+        async function chargerTables() {
+            const grid = document.getElementById('qr-grid');
+            grid.innerHTML = '<div class="loading-state"><div class="spinner"></div><p style="margin-top:12px;">Chargement…</p></div>';
+
+            try {
+                const res = await fetch(`/api/tables/${currentResto}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 401 || res.status === 403) {
+                    redirectToLogin();
+                    return;
                 }
+
+                if (res.ok) {
+                    const tables = await res.json();
+                    document.getElementById('table-count').textContent = `${tables.length} table${tables.length > 1 ? 's' : ''}`;
+                    afficherQRCodes(tables);
+                }
+            } catch(e) {
+                grid.innerHTML = '<div class="loading-state">❌ Erreur de chargement</div>';
             }
         }
-        
-        chargerQRCodes();
+
+        // ==================== AFFICHAGE ====================
+        async function afficherQRCodes(tables) {
+            const grid = document.getElementById('qr-grid');
+
+            if (!tables.length) {
+                grid.innerHTML = `
+                    <div class="loading-state" style="grid-column:1/-1;">
+                        <div style="font-size:48px;margin-bottom:12px;opacity:0.5;">📱</div>
+                        <p>Aucune table configurée</p>
+                        <p style="font-size:12px;color:var(--text-secondary);margin-top:4px;">
+                            Ajoutez des tables depuis le <a href="/dashboard.html" style="color:var(--gold);">Dashboard</a>
+                        </p>
+                    </div>`;
+                return;
+            }
+
+            grid.innerHTML = tables.map(table => `
+                <div class="qr-card">
+                    <div class="qr-table-label">TABLE</div>
+                    <div class="qr-table-num">${table.numero_table}</div>
+                    <img class="qr-img" src="" alt="QR Code Table ${table.numero_table}" id="qr-${table.numero_table}">
+                    <div class="qr-url">${PUBLIC_URL}/menu.html?resto=${currentResto}&table=${table.numero_table}</div>
+                    <div class="card-actions">
+                        <button class="btn-sm btn-print" data-table="${table.numero_table}">🖨️ Imprimer</button>
+                        <button class="btn-sm" data-table="${table.numero_table}" data-action="copy">📋 Copier lien</button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Charger les QR codes
+            for (const table of tables) {
+                try {
+                    const res = await fetch(`/api/qrcode/${currentResto}/${table.numero_table}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        const img = document.getElementById(`qr-${table.numero_table}`);
+                        if (img && data.qr) img.src = data.qr;
+                    }
+                } catch(e) { /* ignorer */ }
+            }
+
+            // Event listeners
+            grid.querySelectorAll('.btn-print').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    window.open(`/api/generate-qr/${currentResto}/${btn.dataset.table}`, '_blank');
+                });
+            });
+
+            grid.querySelectorAll('[data-action="copy"]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const url = `${PUBLIC_URL}/menu.html?resto=${currentResto}&table=${btn.dataset.table}`;
+                    navigator.clipboard.writeText(url).then(() => {
+                        showToast('✅ Lien copié !', 'success');
+                    }).catch(() => {
+                        prompt('Copiez ce lien :', url);
+                    });
+                });
+            });
+        }
+
+        // ==================== IMPRIMER TOUT ====================
+        function imprimerTout() {
+            const tables = document.querySelectorAll('.qr-card');
+            if (!tables.length) return;
+
+            let printHTML = `
+                <html><head><meta charset="UTF-8"><title>QR Codes - Restaurant</title>
+                <style>
+                    body { font-family: Georgia, serif; text-align: center; padding: 20px; }
+                    .print-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+                    .print-card { border: 1px solid #ddd; border-radius: 16px; padding: 16px; page-break-inside: avoid; }
+                    .print-table { font-size: 24px; font-weight: bold; color: #C6A43F; margin-bottom: 8px; }
+                    img { width: 140px; height: 140px; }
+                    @media print { .print-grid { grid-template-columns: repeat(2, 1fr); } }
+                </style></head><body>
+                <h1 style="margin-bottom:20px;">🍽️ Menu Digital - QR Codes</h1>
+                <div class="print-grid">
+            `;
+
+            tables.forEach(card => {
+                const tableNum = card.querySelector('.qr-table-num').textContent;
+                const imgSrc = card.querySelector('.qr-img').src;
+                const url = card.querySelector('.qr-url').textContent;
+                printHTML += `
+                    <div class="print-card">
+                        <div class="print-table">Table ${tableNum}</div>
+                        <img src="${imgSrc}" alt="QR Code Table ${tableNum}">
+                        <p style="font-size:10px;color:#999;">${url}</p>
+                    </div>
+                `;
+            });
+
+            printHTML += '</div></body></html>';
+
+            const win = window.open('', '_blank');
+            win.document.write(printHTML);
+            win.document.close();
+            setTimeout(() => win.print(), 500);
+        }
+
+        // ==================== TOAST ====================
+        function showToast(message, type) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    })();
     </script>
 </body>
 </html>
