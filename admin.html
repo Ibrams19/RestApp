@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Gestion Plats 7★">
+    <meta name="apple-mobile-web-app-title" content="Gestion du menu">
     <meta name="theme-color" content="#0d0d0d">
     <link rel="manifest" href="/manifest.json">
     <link rel="apple-touch-icon" href="/icons/icon-192.png">
@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <title>Gestion des plats | Gestion du menu</title>
+    <title>Gestion du menu | RestApp 7★</title>
     <style>
         :root {
             --bg: #faf8f5; --bg-dark: #0d0d0d; --surface: #fff; --surface-dark: #1a1a1a;
@@ -122,7 +122,7 @@
 <body>
 
     <header class="header">
-        <div class="logo">🍽️ <span>Gestion</span> des plats</div>
+        <div class="logo">📋 <span>Gestion</span> du menu</div>
         <div class="header-right">
             <button class="btn-logout" id="logout-btn">Quitter</button>
         </div>
@@ -130,7 +130,7 @@
 
     <nav class="nav-bar">
         <a href="/dashboard.html" class="nav-btn">📊 Dashboard</a>
-        <a href="/admin.html" class="nav-btn active">🍽️ Plats</a>
+        <a href="/admin.html" class="nav-btn active">📋 Menu</a>
         <a href="/employes.html" class="nav-btn">👥 Équipe</a>
         <a href="/resto.html" class="nav-btn">👨‍🍳 Cuisine</a>
         <a href="/qrcodes.html" class="nav-btn">📱 QR Codes</a>
@@ -140,11 +140,11 @@
     <div class="container">
         <!-- Formulaire ajout -->
         <div class="section">
-            <h2 class="section-title">📝 Ajouter un plat</h2>
+            <h2 class="section-title">📝 Ajouter un article</h2>
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">Nom du plat *</label>
-                    <input type="text" id="plat-nom" class="form-input" placeholder="Ex: Yassa Poulet" required>
+                    <label class="form-label">Nom de l'article *</label>
+                    <input type="text" id="plat-nom" class="form-input" placeholder="Ex: Yassa Poulet, Crêpe Nutella..." required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Prix (FCFA) *</label>
@@ -159,6 +159,9 @@
                         <option value="Plat" selected>Plat</option>
                         <option value="Dessert">Dessert</option>
                         <option value="Boisson">Boisson</option>
+                        <option value="Pâtisserie">Pâtisserie</option>
+                        <option value="Crêpe">Crêpe</option>
+                        <option value="Glace">Glace</option>
                         <option value="Accompagnement">Accompagnement</option>
                     </select>
                 </div>
@@ -174,14 +177,14 @@
                 <label class="form-label">Description</label>
                 <textarea id="plat-description" class="form-textarea" placeholder="Une description courte et appétissante…" maxlength="500"></textarea>
             </div>
-            <button class="btn btn-primary" id="btn-ajouter">➕ Ajouter le plat</button>
+            <button class="btn btn-primary" id="btn-ajouter">➕ Ajouter l'article</button>
         </div>
 
         <!-- Recherche + Filtres -->
         <div class="search-bar">
             <div class="search-wrapper">
                 <span class="search-icon">🔍</span>
-                <input type="text" id="search-plat" class="search-input" placeholder="Rechercher un plat…">
+                <input type="text" id="search-plat" class="search-input" placeholder="Rechercher un article...">
             </div>
         </div>
 
@@ -223,7 +226,7 @@
 
         const TOKEN_KEY = 'resto_token';
         let token, userRole, currentResto;
-        let tousLesPlats = [];
+        let tousLesArticles = [];
         let currentFilter = 'all';
 
         // ==================== INIT ====================
@@ -245,7 +248,7 @@
             }
 
             initEvents();
-            chargerPlats();
+            chargerArticles();
         }
 
         function redirectToLogin() {
@@ -255,8 +258,8 @@
 
         // ==================== EVENTS ====================
         function initEvents() {
-            document.getElementById('btn-ajouter').addEventListener('click', ajouterPlat);
-            document.getElementById('search-plat').addEventListener('input', debounce(afficherPlats, 250));
+            document.getElementById('btn-ajouter').addEventListener('click', ajouterArticle);
+            document.getElementById('search-plat').addEventListener('input', debounce(afficherArticles, 250));
             document.getElementById('logout-btn').addEventListener('click', () => { localStorage.clear(); window.location.href = '/login.html'; });
 
             document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -264,18 +267,17 @@
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     currentFilter = this.dataset.filter;
-                    afficherPlats();
+                    afficherArticles();
                 });
             });
 
-            // Enter dans le formulaire
             document.getElementById('plat-prix').addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') ajouterPlat();
+                if (e.key === 'Enter') ajouterArticle();
             });
         }
 
         // ==================== CHARGEMENT ====================
-        async function chargerPlats() {
+        async function chargerArticles() {
             try {
                 const res = await fetch(`/api/admin/menu/${currentResto}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -287,16 +289,16 @@
                     return;
                 }
                 if (res.ok) {
-                    tousLesPlats = await res.json();
-                    afficherPlats();
+                    tousLesArticles = await res.json();
+                    afficherArticles();
                 }
             } catch(e) { showToast('Erreur réseau', 'error'); }
         }
 
         // ==================== AFFICHAGE ====================
-        function afficherPlats() {
+        function afficherArticles() {
             const searchTerm = document.getElementById('search-plat').value.toLowerCase();
-            let filtered = tousLesPlats;
+            let filtered = tousLesArticles;
 
             if (searchTerm) {
                 filtered = filtered.filter(p => p.nom_plat.toLowerCase().includes(searchTerm));
@@ -304,56 +306,54 @@
             if (currentFilter === 'available') filtered = filtered.filter(p => p.disponible === true);
             if (currentFilter === 'unavailable') filtered = filtered.filter(p => p.disponible === false);
 
-            // Stats
-            const total = tousLesPlats.length;
-            const dispos = tousLesPlats.filter(p => p.disponible === true).length;
-            const indispos = tousLesPlats.filter(p => p.disponible === false).length;
+            const total = tousLesArticles.length;
+            const dispos = tousLesArticles.filter(p => p.disponible === true).length;
+            const indispos = tousLesArticles.filter(p => p.disponible === false).length;
             document.getElementById('stats-bar').innerHTML = `
-                <span>📋 <strong>${total}</strong> plats</span>
-                <span>✅ <strong>${dispos}</strong> disponibles</span>
-                <span>❌ <strong>${indispos}</strong> indisponibles</span>
+                <span>📋 <strong>${total}</strong> article${total > 1 ? 's' : ''}</span>
+                <span>✅ <strong>${dispos}</strong> disponible${dispos > 1 ? 's' : ''}</span>
+                <span>❌ <strong>${indispos}</strong> indisponible${indispos > 1 ? 's' : ''}</span>
                 ${searchTerm ? `<span>🔍 <strong>${filtered.length}</strong> résultat${filtered.length > 1 ? 's' : ''}</span>` : ''}
             `;
 
             const tbody = document.getElementById('plats-tbody');
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-secondary);">🍃 Aucun plat trouvé</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text-secondary);">🍃 Aucun article trouvé</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = filtered.map(plat => `
+            tbody.innerHTML = filtered.map(article => `
                 <tr>
                     <td style="text-align:center;">
-                        ${plat.photo_url
-                            ? `<img src="${plat.photo_url}" class="plat-img" alt="${escapeHtml(plat.nom_plat)}">`
-                            : `<div class="plat-placeholder">🍽️</div>`
+                        ${article.photo_url
+                            ? `<img src="${article.photo_url}" class="plat-img" alt="${escapeHtml(article.nom_plat)}">`
+                            : `<div class="plat-placeholder">📷</div>`
                         }
                         <div style="margin-top:4px;">
-                            <button class="btn btn-sm" style="background:var(--gold);color:#fff;border:none;" data-action="upload" data-id="${plat.id}">📷</button>
+                            <button class="btn btn-sm" style="background:var(--gold);color:#fff;border:none;" data-action="upload" data-id="${article.id}">📷</button>
                         </div>
                     </td>
                     <td>
-                        <strong>${escapeHtml(plat.nom_plat)}</strong>
-                        ${plat.description ? `<br><small style="color:var(--text-secondary);">${escapeHtml(plat.description).substring(0, 60)}${plat.description.length > 60 ? '…' : ''}</small>` : ''}
+                        <strong>${escapeHtml(article.nom_plat)}</strong>
+                        ${article.description ? `<br><small style="color:var(--text-secondary);">${escapeHtml(article.description).substring(0, 60)}${article.description.length > 60 ? '…' : ''}</small>` : ''}
                     </td>
-                    <td>${(plat.prix || 0).toLocaleString()} FCFA</td>
-                    <td>${escapeHtml(plat.categorie || '-')}</td>
+                    <td>${(article.prix || 0).toLocaleString()} FCFA</td>
+                    <td>${escapeHtml(article.categorie || '-')}</td>
                     <td>
-                        <span class="badge-status ${plat.disponible ? 'badge-available' : 'badge-unavailable'}">
-                            ${plat.disponible ? 'Disponible' : 'Indisponible'}
+                        <span class="badge-status ${article.disponible ? 'badge-available' : 'badge-unavailable'}">
+                            ${article.disponible ? 'Disponible' : 'Indisponible'}
                         </span>
                     </td>
                     <td style="white-space:nowrap;">
-                        <button class="btn btn-sm ${plat.disponible ? 'btn-warning' : 'btn-success'}" data-action="toggle" data-id="${plat.id}" data-status="${!plat.disponible}">
-                            ${plat.disponible ? '🔴 Désactiver' : '🟢 Activer'}
+                        <button class="btn btn-sm ${article.disponible ? 'btn-warning' : 'btn-success'}" data-action="toggle" data-id="${article.id}" data-status="${!article.disponible}">
+                            ${article.disponible ? '🔴 Désactiver' : '🟢 Activer'}
                         </button>
-                        ${plat.photo_url ? `<button class="btn btn-sm btn-danger" data-action="delete-photo" data-id="${plat.id}" style="margin-left:4px;">🗑️</button>` : ''}
-                        <button class="btn btn-sm btn-danger" data-action="delete" data-id="${plat.id}" style="margin-left:4px;">🗑️</button>
+                        ${article.photo_url ? `<button class="btn btn-sm btn-danger" data-action="delete-photo" data-id="${article.id}" style="margin-left:4px;">🗑️</button>` : ''}
+                        <button class="btn btn-sm btn-danger" data-action="delete" data-id="${article.id}" style="margin-left:4px;">🗑️</button>
                     </td>
                 </tr>
             `).join('');
 
-            // Event listeners sur les boutons
             tbody.querySelectorAll('button[data-action="upload"]').forEach(btn => {
                 btn.addEventListener('click', () => uploadPhoto(parseInt(btn.dataset.id)));
             });
@@ -364,19 +364,19 @@
                 btn.addEventListener('click', () => supprimerPhoto(parseInt(btn.dataset.id)));
             });
             tbody.querySelectorAll('button[data-action="delete"]').forEach(btn => {
-                btn.addEventListener('click', () => supprimerPlat(parseInt(btn.dataset.id)));
+                btn.addEventListener('click', () => supprimerArticle(parseInt(btn.dataset.id)));
             });
         }
 
         // ==================== ACTIONS ====================
-        async function ajouterPlat() {
+        async function ajouterArticle() {
             const nom = document.getElementById('plat-nom').value.trim();
             const prix = parseInt(document.getElementById('plat-prix').value);
             const categorie = document.getElementById('plat-categorie').value;
             const disponible = document.getElementById('plat-disponible').value === 'true';
             const description = document.getElementById('plat-description').value.trim();
 
-            if (!nom || nom.length < 2) { showToast('Nom du plat requis (min 2 caractères)', 'error'); return; }
+            if (!nom || nom.length < 2) { showToast("Nom de l'article requis (min 2 caractères)", 'error'); return; }
             if (!prix || prix < 100) { showToast('Prix minimum : 100 FCFA', 'error'); return; }
 
             try {
@@ -386,12 +386,12 @@
                     body: JSON.stringify({ restoId: currentResto, nom_plat: nom, prix, categorie, disponible, description })
                 });
                 if (res.ok) {
-                    showToast('✅ Plat ajouté', 'success');
+                    showToast('✅ Article ajouté', 'success');
                     document.getElementById('plat-nom').value = '';
                     document.getElementById('plat-prix').value = '';
                     document.getElementById('plat-description').value = '';
                     document.getElementById('plat-nom').focus();
-                    chargerPlats();
+                    chargerArticles();
                 } else {
                     const err = await res.json();
                     showToast(err.message || err.error || 'Erreur', 'error');
@@ -399,7 +399,7 @@
             } catch(e) { showToast('Erreur réseau', 'error'); }
         }
 
-        function uploadPhoto(platId) {
+        function uploadPhoto(articleId) {
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/jpeg,image/png,image/webp';
@@ -411,23 +411,23 @@
                 const formData = new FormData();
                 formData.append('photo', file);
                 try {
-                    const res = await fetch(`/api/upload-plat-photo/${platId}`, {
+                    const res = await fetch(`/api/upload-plat-photo/${articleId}`, {
                         method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData
                     });
-                    if (res.ok) { showToast('✅ Photo ajoutée', 'success'); chargerPlats(); }
+                    if (res.ok) { showToast('✅ Photo ajoutée', 'success'); chargerArticles(); }
                     else { const err = await res.json(); showToast(err.error || 'Erreur upload', 'error'); }
                 } catch(e) { showToast('Erreur réseau', 'error'); }
             };
             input.click();
         }
 
-        async function supprimerPhoto(platId) {
+        async function supprimerPhoto(articleId) {
             if (!confirm('Supprimer cette photo ?')) return;
             try {
-                const res = await fetch(`/api/delete-photo/${platId}`, {
+                const res = await fetch(`/api/delete-photo/${articleId}`, {
                     method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (res.ok) { showToast('✅ Photo supprimée', 'success'); chargerPlats(); }
+                if (res.ok) { showToast('✅ Photo supprimée', 'success'); chargerArticles(); }
                 else showToast('Erreur suppression', 'error');
             } catch(e) { showToast('Erreur réseau', 'error'); }
         }
@@ -439,18 +439,18 @@
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ disponible: nouveauStatut })
                 });
-                if (res.ok) { chargerPlats(); }
+                if (res.ok) { chargerArticles(); }
                 else { const err = await res.json(); showToast(err.error || 'Erreur', 'error'); }
             } catch(e) { showToast('Erreur réseau', 'error'); }
         }
 
-        async function supprimerPlat(id) {
-            if (!confirm('Supprimer définitivement ce plat ? Cette action est irréversible.')) return;
+        async function supprimerArticle(id) {
+            if (!confirm("Supprimer définitivement cet article ? Cette action est irréversible.")) return;
             try {
                 const res = await fetch(`/api/admin/plat/${id}`, {
                     method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (res.ok) { showToast('✅ Plat supprimé', 'success'); chargerPlats(); }
+                if (res.ok) { showToast('✅ Article supprimé', 'success'); chargerArticles(); }
                 else { const err = await res.json(); showToast(err.error || 'Erreur', 'error'); }
             } catch(e) { showToast('Erreur réseau', 'error'); }
         }

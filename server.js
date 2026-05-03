@@ -75,7 +75,7 @@ const VALID_TRANSITIONS = {
 };
 
 const VALID_ROLES = ['gerant', 'serveur', 'superadmin'];
-const VALID_CATEGORIES = ['Entrée', 'Plat', 'Dessert', 'Boisson', 'Accompagnement'];
+const VALID_CATEGORIES = ['Entrée', 'Plat', 'Dessert', 'Boisson', 'Accompagnement', 'Pâtisserie', 'Crêpe', 'Glace'];
 
 function validateEmail(email) {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
