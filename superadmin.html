@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin | Restaurant 7★</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #0d0d0d; color: #f0ece4; min-height: 100vh; padding: 30px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { font-size: 28px; margin-bottom: 8px; }
+        .subtitle { color: #888; margin-bottom: 30px; font-size: 14px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 30px; }
+        .stat-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; text-align: center; }
+        .stat-value { font-size: 32px; font-weight: 700; color: #C6A43F; }
+        .stat-label { font-size: 12px; color: #888; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+        table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.03); border-radius: 16px; overflow: hidden; }
+        th { text-align: left; padding: 14px 18px; background: rgba(255,255,255,0.06); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #C6A43F; }
+        td { padding: 12px 18px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-active { background: rgba(39,174,96,0.2); color: #2ECC71; }
+        .badge-trial { background: rgba(198,164,63,0.2); color: #C6A43F; }
+        .badge-expired { background: rgba(231,76,60,0.2); color: #E74C3C; }
+        .btn-logout { background: transparent; border: 1px solid #333; color: #888; padding: 8px 18px; border-radius: 40px; cursor: pointer; margin-bottom: 20px; display: inline-block; text-decoration: none; font-size: 13px; }
+        .btn-logout:hover { border-color: #E74C3C; color: #E74C3C; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="#" onclick="localStorage.clear();location.href='/login.html'" class="btn-logout">🚪 Quitter</a>
+    <h1>👑 Super Admin</h1>
+    <p class="subtitle">Vue d'ensemble de tous les restaurants</p>
+
+    <div class="stats" id="stats-container">
+        <div class="stat-card"><div class="stat-value" id="nb-restos">-</div><div class="stat-label">Restaurants</div></div>
+        <div class="stat-card"><div class="stat-value" id="nb-commandes">-</div><div class="stat-label">Commandes totales</div></div>
+        <div class="stat-card"><div class="stat-value" id="ca-total">-</div><div class="stat-label">CA Global (FCFA)</div></div>
+    </div>
+
+    <table>
+        <thead>
+            <tr><th>Restaurant</th><th>Statut</th><th>Expire le</th><th>Employés</th></tr>
+        </thead>
+        <tbody id="restos-tbody">
+            <tr><td colspan="4" style="text-align:center;padding:30px;">Chargement…</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+(async function() {
+    var token = localStorage.getItem('resto_token');
+    if (!token) { location.href = '/login.html'; return; }
+
+    try {
+        var payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.role !== 'superadmin') { location.href = '/dashboard.html'; return; }
+    } catch(e) { location.href = '/login.html'; return; }
+
+    try {
+        var [restosRes, statsRes] = await Promise.all([
+            fetch('/api/superadmin/restaurants', { headers: { 'Authorization': 'Bearer ' + token } }),
+            fetch('/api/superadmin/stats', { headers: { 'Authorization': 'Bearer ' + token } })
+        ]);
+
+        var restos = await restosRes.json();
+        var stats = await statsRes.json();
+
+        document.getElementById('nb-restos').textContent = stats.nbRestaurants || 0;
+        document.getElementById('nb-commandes').textContent = stats.nbCommandes || 0;
+        document.getElementById('ca-total').textContent = (stats.caTotal || 0).toLocaleString();
+
+        var tbody = document.getElementById('restos-tbody');
+        if (!restos.length) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;">Aucun restaurant</td></tr>';
+        } else {
+            tbody.innerHTML = restos.map(function(r) {
+                var statusClass = r.subscription_status === 'active' ? 'badge-active' : (r.subscription_status === 'trial' ? 'badge-trial' : 'badge-expired');
+                var statusLabel = r.subscription_status === 'active' ? 'Actif' : (r.subscription_status === 'trial' ? 'Essai' : 'Expiré');
+                var endDate = r.subscription_ends_at ? new Date(r.subscription_ends_at).toLocaleDateString('fr-FR') : (r.trial_ends_at ? new Date(r.trial_ends_at).toLocaleDateString('fr-FR') : '-');
+                return '<tr>' +
+                    '<td><strong>' + (r.nom || 'Sans nom') + '</strong></td>' +
+                    '<td><span class="badge ' + statusClass + '">' + statusLabel + '</span></td>' +
+                    '<td>' + endDate + '</td>' +
+                    '<td>' + (r.profiles?.[0]?.count || 0) + '</td>' +
+                '</tr>';
+            }).join('');
+        }
+    } catch(e) {
+        console.error(e);
+        document.getElementById('restos-tbody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;">Erreur de chargement</td></tr>';
+    }
+})();
+</script>
+</body>
+</html>
