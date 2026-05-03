@@ -840,7 +840,7 @@ app.post('/api/commande-manuelle', authMiddleware, async (req, res) => {
       table_id: tableIdFinal, 
       client_nom: name, 
       total: Math.round(Number(total)),
-      statut: 'paye',
+      statut: 'en_attente',
       source: commandeSource
     })
     .select()

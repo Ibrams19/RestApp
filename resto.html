@@ -179,7 +179,7 @@
             </div>
             <div style="display:flex;gap:10px;">
                 <button id="cr-cancel" style="flex:1;padding:12px;border-radius:40px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:13px;font-family:var(--font-sans);">Annuler</button>
-                <button id="cr-submit" style="flex:2;padding:12px;border-radius:40px;border:none;background:var(--gold);color:white;font-weight:600;cursor:pointer;font-size:14px;font-family:var(--font-sans);">✅ Enregistrer & Imprimer reçu</button>
+                <button id="cr-submit" style="flex:2;padding:12px;border-radius:40px;border:none;background:var(--gold);color:white;font-weight:600;cursor:pointer;font-size:14px;font-family:var(--font-sans);">✅ Enregistrer la commande</button>
             </div>
         </div>
     </div>
@@ -286,7 +286,13 @@
         async function changerStatut(id,ns,btn){
             if(btn){btn.disabled=true;btn.style.opacity='0.6';}
             try{const t=localStorage.getItem(TOKEN_KEY);const r=await fetch(`/api/commande/${id}/statut`,{method:'PUT',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify({statut:ns,restoId:currentResto})});
-                if(r.ok){const m={cuisine:'🔪 En cuisine',pret:'✅ Plat prêt !',servi:'🍽️ Servi',paye:'💰 Payé'};showToast(m[ns]||'Statut mis à jour','success');chargerCommandes();}
+                if(r.ok){
+                const m={cuisine:'🔪 En cuisine',pret:'✅ Plat prêt !',servi:'🍽️ Servi',paye:'💰 Payé'};
+                showToast(m[ns]||'Statut mis à jour','success');
+                if(ns==='paye'){
+                    const cmd=allCommandes.find(c=>c.id===id);
+                    if(cmd)genererRecu(cmd.client_nom||'Client',cmd.table_numero||cmd.table_id,cmd.details||[],cmd.total||0,cmd.id);
+                };chargerCommandes();}
                 else if(r.status===400){const d=await r.json();showToast(d.message||'Transition non autorisée','warning');}
                 else{showToast('Erreur','error');}
             }catch(e){showToast('Erreur réseau','error');}finally{if(btn){btn.disabled=false;btn.style.opacity='1';}}
@@ -330,7 +336,7 @@
             const items=crPanier.map(i=>({menuId:i.menuId,quantite:i.quantite,prix:i.prix,nom:i.nom})),total=crPanier.reduce((s,i)=>s+(i.prix*i.quantite),0);
             const btn=document.getElementById('cr-submit');btn.disabled=true;btn.textContent='Enregistrement...';
             try{const t=localStorage.getItem(TOKEN_KEY);const r=await fetch('/api/commande-manuelle',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify({restoId:currentResto,tableId:parseInt(table),clientName:client,items,total,source:'manuelle'})});
-                if(r.ok){const d=await r.json();showToast('✅ Commande enregistrée !','success');genererRecu(client,table,items,total,d.commande_id);fermerCommandeRapide();chargerCommandes();}
+                if(r.ok){const d=await r.json();showToast('✅ Commande enregistrée ! Paiement à encaisser.','success');fermerCommandeRapide();chargerCommandes();}
                 else{const e=await r.json();showToast(e.error||'Erreur','error');}
             }catch(e){showToast('Erreur réseau','error');}finally{btn.disabled=false;btn.textContent='✅ Enregistrer & Imprimer reçu';}
         }
