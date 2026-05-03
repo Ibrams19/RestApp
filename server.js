@@ -1513,24 +1513,33 @@ app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
 app.get('/api/superadmin/restaurants', checkRole(['superadmin']), async (req, res) => {
   const { data, error } = await supabase
     .from('restaurants')
-    .select('*, profiles(count)')
+    .select('*, profiles(email)')
     .order('created_at', { ascending: false });
 
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+  
+  // Formater pour extraire l'email du gérant
+  const formatted = data.map(r => ({
+    ...r,
+    email_gerant: r.profiles?.length > 0 ? r.profiles[0]?.email : null
+  }));
+  
+  res.json(formatted);
 });
 
 app.get('/api/superadmin/stats', checkRole(['superadmin']), async (req, res) => {
   const { data: restaurants } = await supabase.from('restaurants').select('id, nom, subscription_status');
-  const { data: totalCommandes } = await supabase.from('commandes').select('id', { count: 'exact' });
+  const { count: nbCommandes } = await supabase.from('commandes').select('*', { count: 'exact', head: true });
   const { data: transactions } = await supabase.from('transactions').select('amount').eq('status', 'paid');
+  const { count: nbEmployes } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).neq('role', 'superadmin');
 
   const caTotal = transactions?.reduce((s, t) => s + (t.amount || 0), 0) || 0;
 
   res.json({
     nbRestaurants: restaurants?.length || 0,
-    nbCommandes: totalCommandes?.length || 0,
+    nbCommandes: nbCommandes || 0,
     caTotal,
+    nbEmployes: nbEmployes || 0,
     restaurants: restaurants || []
   });
 });
