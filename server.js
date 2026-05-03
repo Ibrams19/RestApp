@@ -402,6 +402,7 @@ app.post('/api/register', async (req, res) => {
       telephone: telephone ? sanitizeString(telephone) : null, 
       adresse: adresse ? sanitizeString(adresse) : null, 
       actif: true, 
+      type_etablissement: req.body.typeEtablissement || 'Restaurant',
       subscription_status: 'trial', 
       trial_ends_at: trialEndsAt.toISOString()
     })

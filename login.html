@@ -331,14 +331,31 @@
             <!-- Formulaire Inscription -->
             <form id="register-form" style="display: none;" autocomplete="on">
                 <div class="form-group">
-                    <label class="form-label" for="register-nom">Nom du restaurant *</label>
+                    <label class="form-label" for="register-type">Type d'établissement *</label>
+                    <select id="register-type" class="form-input" required>
+                        <option value="">Choisissez votre type d'établissement…</option>
+                        <option value="Restaurant">🍽️ Restaurant</option>
+                        <option value="Fast-food">🍔 Fast-food</option>
+                        <option value="Pizzeria">🍕 Pizzeria</option>
+                        <option value="Snack">🥪 Snack / Gargote</option>
+                        <option value="Café">☕ Café / Cafétéria</option>
+                        <option value="Glacier">🍦 Glacier / Pâtisserie</option>
+                        <option value="Grillade">🥩 Grillade / Dibiterie</option>
+                        <option value="Bar">🍺 Bar / Lounge</option>
+                        <option value="Food truck">🚚 Food truck</option>
+                        <option value="Traiteur">📦 Traiteur / Vente à emporter</option>
+                        <option value="Autre">🏷️ Autre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="register-nom">Nom de l'établissement *</label>
                     <input type="text" id="register-nom" class="form-input"
-                        placeholder="Le Ndiollé" required>
+                        placeholder="Ex: Le DAKAR, Speed Burger..." required>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="register-email">Email du gérant *</label>
                     <input type="email" id="register-email" class="form-input"
-                        placeholder="contact@monrestaurant.com" autocomplete="email" required>
+                        placeholder="contact@monetablissement.com" autocomplete="email" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="register-password">Mot de passe *</label>
@@ -550,6 +567,7 @@
                         email,
                         motDePasse: password,
                         nomRestaurant: nom,
+                        typeEtablissement: document.getElementById('register-type').value || 'Restaurant',
                         telephone: telephone || null,
                         adresse: adresse || null
                     })
