@@ -203,7 +203,13 @@
         function init() {
             const token = localStorage.getItem(TOKEN_KEY);
             if(!token){redirectToLogin();return;}
-            try{const p=JSON.parse(atob(token.split('.')[1]));userRole=p.role;userId=p.id;currentResto=p.resto_id;if(!currentResto){showToast('Erreur compte','error');return;}localStorage.setItem('resto_id',currentResto);localStorage.setItem('resto_role',userRole);}catch(e){redirectToLogin();return;}
+            try{
+                const p=JSON.parse(atob(token.split('.')[1]));
+                userRole=p.role;userId=p.id;currentResto=p.resto_id;
+                window.restoName = p.restaurant_name || 'Mon établissement';
+                if(!currentResto){showToast('Erreur compte','error');return;}
+                localStorage.setItem('resto_id',currentResto);localStorage.setItem('resto_role',userRole);
+            }catch(e){redirectToLogin();return;}
             applyTheme();initUI();initWebSocket();chargerCommandes();startPolling();
         }
         function redirectToLogin(){localStorage.clear();window.location.href='/login.html';}
@@ -332,7 +338,8 @@
         // ==================== REÇU ====================
         function genererRecu(client,table,items,total,commandeId){
             const now=new Date(),ds=now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}),hs=now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-            document.getElementById('recu-print').innerHTML=`<div style="text-align:center;margin-bottom:16px;"><div style="font-size:20px;font-weight:bold;">🍽️ Restaurant 7★</div><div style="font-size:11px;color:#888;">${ds} à ${hs}</div><div style="font-size:11px;color:#888;">Commande #${commandeId}</div></div><div style="border-top:1px dashed #ddd;border-bottom:1px dashed #ddd;padding:8px 0;margin-bottom:10px;font-size:12px;color:#666;">Table : ${table} &nbsp;|&nbsp; Client : ${escapeHtml(client)}</div><table style="width:100%;font-size:12px;margin-bottom:10px;">${items.map(i=>`<tr><td style="padding:3px 0;">${escapeHtml(i.nom)} ×${i.quantite}</td><td style="text-align:right;">${(i.prix*i.quantite).toLocaleString()} F</td></tr>`).join('')}</table><div style="border-top:2px solid #000;padding-top:8px;display:flex;justify-content:space-between;font-size:16px;font-weight:bold;"><span>TOTAL</span><span>${total.toLocaleString()} FCFA</span></div><div style="text-align:center;margin-top:16px;font-size:11px;color:#888;">Merci de votre visite !<br>À bientôt ⭐</div><div style="display:flex;gap:8px;margin-top:16px;"><button onclick="window.print()" style="flex:1;padding:10px;background:#C6A43F;color:white;border:none;border-radius:20px;font-weight:600;cursor:pointer;">🖨️ Imprimer</button><button onclick="document.getElementById('modal-recu').style.display='none'" style="flex:1;padding:10px;background:#f0f0f0;border:none;border-radius:20px;cursor:pointer;">Fermer</button></div>`;
+            const nomEtablissement = window.restoName || 'Mon établissement';
+            document.getElementById('recu-print').innerHTML=`<div style="text-align:center;margin-bottom:16px;"><div style="font-size:22px;font-weight:bold;">🍽️ ${escapeHtml(nomEtablissement)}</div><div style="font-size:11px;color:#888;">${ds} à ${hs}</div><div style="font-size:11px;color:#888;">Commande #${commandeId}</div></div><div style="border-top:1px dashed #ddd;border-bottom:1px dashed #ddd;padding:8px 0;margin-bottom:10px;font-size:12px;color:#666;">Table : ${table} &nbsp;|&nbsp; Client : ${escapeHtml(client)}</div><table style="width:100%;font-size:12px;margin-bottom:10px;">${items.map(i=>`<tr><td style="padding:3px 0;">${escapeHtml(i.nom)} ×${i.quantite}</td><td style="text-align:right;">${(i.prix*i.quantite).toLocaleString()} F</td></tr>`).join('')}</table><div style="border-top:2px solid #000;padding-top:8px;display:flex;justify-content:space-between;font-size:16px;font-weight:bold;"><span>TOTAL</span><span>${total.toLocaleString()} FCFA</span></div><div style="text-align:center;margin-top:16px;font-size:11px;color:#888;">Merci de votre visite !<br>À bientôt ⭐</div><div style="display:flex;gap:8px;margin-top:16px;"><button onclick="window.print()" style="flex:1;padding:10px;background:#C6A43F;color:white;border:none;border-radius:20px;font-weight:600;cursor:pointer;">🖨️ Imprimer</button><button onclick="document.getElementById('modal-recu').style.display='none'" style="flex:1;padding:10px;background:#f0f0f0;border:none;border-radius:20px;cursor:pointer;">Fermer</button></div>`;
             document.getElementById('modal-recu').style.display='flex';
         }
 

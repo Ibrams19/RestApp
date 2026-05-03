@@ -1154,7 +1154,7 @@ app.post('/api/admin/plat', checkRole(['gerant', 'superadmin']), async (req, res
   res.json({ success: true, data });
 });
 
-app.get('/api/admin/menu/:restoId', checkRole(['gerant', 'superadmin']), async (req, res) => {
+app.get('/api/admin/menu/:restoId', checkRole(['gerant', 'serveur', 'superadmin']), async (req, res) => {
   const targetRestoId = req.params.restoId || req.user.resto_id;
   const { data, error } = await supabase
     .from('menus')
