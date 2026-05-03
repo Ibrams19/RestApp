@@ -1294,7 +1294,7 @@ app.get('/api/stats/:restoId', checkRole(['gerant', 'superadmin']), async (req, 
 });
 
 // Tables
-app.get('/api/tables/:restoId', checkRole(['gerant', 'superadmin']), async (req, res) => {
+app.get('/api/tables/:restoId', checkRole(['gerant', 'serveur', 'superadmin']), async (req, res) => {
   const targetRestoId = req.params.restoId || req.user.resto_id;
   const { data, error } = await supabase
     .from('tables')
