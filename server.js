@@ -1535,6 +1535,28 @@ app.get('/api/superadmin/stats', checkRole(['superadmin']), async (req, res) => 
   });
 });
 
+// Supprimer un restaurant (superadmin)
+app.post('/api/superadmin/delete-restaurant', checkRole(['superadmin']), async (req, res) => {
+  const { resto_id } = req.body;
+  if (!resto_id) return res.status(400).json({ error: 'resto_id requis' });
+
+  try {
+    await supabase.from('commande_details').delete().eq('commande_id', null); // skip
+    await supabase.from('commandes').delete().eq('resto_id', resto_id);
+    await supabase.from('menus').delete().eq('resto_id', resto_id);
+    await supabase.from('tables').delete().eq('resto_id', resto_id);
+    await supabase.from('transactions').delete().eq('resto_id', resto_id);
+    await supabase.from('profiles').delete().eq('resto_id', resto_id);
+    await supabase.from('restaurants').delete().eq('id', resto_id);
+
+    logSecurity('INFO', 'Restaurant supprimé par superadmin', { resto_id });
+    res.json({ success: true, message: 'Restaurant supprimé' });
+  } catch(e) {
+    logSecurity('ERROR', 'Erreur suppression restaurant', { error: e.message });
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ==================== WEBSOCKETS ====================
 io.on('connection', (socket) => {
   logSecurity('INFO', 'Client WebSocket connecté', { socketId: socket.id });

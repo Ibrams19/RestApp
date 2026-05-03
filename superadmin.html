@@ -2,53 +2,187 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0d0d0d">
     <title>Super Admin | Restaurant 7★</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #0d0d0d; --surface: #1a1a1a; --gold: #C6A43F; --gold-dark: #a8872a;
+            --text: #f0ece4; --text-secondary: #a0a0a0; --border: #2a2a2a;
+            --danger: #E74C3C; --success: #27AE60; --warning: #F39C12;
+            --shadow-lg: 0 8px 40px rgba(0,0,0,0.3);
+            --radius-md: 16px; --radius-lg: 24px; --radius-xl: 60px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --font-serif: 'Playfair Display', 'Georgia', serif;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #0d0d0d; color: #f0ece4; min-height: 100vh; padding: 30px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        h1 { font-size: 28px; margin-bottom: 8px; }
-        .subtitle { color: #888; margin-bottom: 30px; font-size: 14px; }
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 30px; }
-        .stat-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; text-align: center; }
-        .stat-value { font-size: 32px; font-weight: 700; color: #C6A43F; }
-        .stat-label { font-size: 12px; color: #888; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
-        table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.03); border-radius: 16px; overflow: hidden; }
-        th { text-align: left; padding: 14px 18px; background: rgba(255,255,255,0.06); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #C6A43F; }
-        td { padding: 12px 18px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
-        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-        .badge-active { background: rgba(39,174,96,0.2); color: #2ECC71; }
-        .badge-trial { background: rgba(198,164,63,0.2); color: #C6A43F; }
-        .badge-expired { background: rgba(231,76,60,0.2); color: #E74C3C; }
-        .btn-logout { background: transparent; border: 1px solid #333; color: #888; padding: 8px 18px; border-radius: 40px; cursor: pointer; margin-bottom: 20px; display: inline-block; text-decoration: none; font-size: 13px; }
-        .btn-logout:hover { border-color: #E74C3C; color: #E74C3C; }
+        body { font-family: var(--font-sans); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+        
+        .header { background: rgba(13,13,13,0.95); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 0 28px; height: 68px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .logo { font-family: var(--font-serif); font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+        .logo span { color: var(--gold); }
+        .header-right { display: flex; align-items: center; gap: 14px; }
+        .badge-superadmin { background: rgba(198,164,63,0.15); color: var(--gold); padding: 6px 14px; border-radius: 40px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; }
+        .btn-logout { background: transparent; border: 1px solid #333; color: #888; padding: 8px 18px; border-radius: 40px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all var(--transition); }
+        .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+
+        .container { max-width: 1300px; margin: 0 auto; padding: 30px 24px 60px; }
+        .page-title { font-family: var(--font-serif); font-size: 30px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.5px; }
+        .page-subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 30px; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 30px; }
+        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 22px 20px; text-align: center; transition: all var(--transition); }
+        .stat-card:hover { border-color: var(--gold); }
+        .stat-icon { font-size: 26px; margin-bottom: 6px; }
+        .stat-value { font-family: var(--font-serif); font-size: 34px; font-weight: 600; color: var(--gold); line-height: 1.1; }
+        .stat-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; font-weight: 500; }
+
+        .section-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+        .section-title { font-family: var(--font-serif); font-size: 20px; }
+        .btn-add { padding: 10px 20px; border-radius: 40px; background: var(--gold); color: #0d0d0d; border: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--transition); font-family: var(--font-sans); display: flex; align-items: center; gap: 6px; }
+        .btn-add:hover { background: #D4AF37; }
+
+        .table-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 14px 18px; background: rgba(255,255,255,0.03); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); font-weight: 600; border-bottom: 2px solid var(--border); }
+        td { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; vertical-align: middle; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        .resto-name { font-weight: 600; color: #fff; }
+        .resto-date { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+        .badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px; }
+        .badge-active { background: rgba(39,174,96,0.15); color: #2ECC71; }
+        .badge-trial { background: rgba(198,164,63,0.15); color: #C6A43F; }
+        .badge-expired { background: rgba(231,76,60,0.15); color: #E74C3C; }
+        .btn-sm { padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all var(--transition); font-family: var(--font-sans); border: 1px solid #333; background: transparent; color: #888; margin: 2px; }
+        .btn-sm:hover { border-color: #888; color: #fff; }
+        .btn-sm.danger { color: var(--danger); border-color: rgba(231,76,60,0.3); }
+        .btn-sm.danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+        .empty-state { text-align: center; padding: 50px; color: var(--text-secondary); }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity var(--transition); }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal-dialog { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px 24px; max-width: 440px; width: 90%; box-shadow: var(--shadow-lg); }
+        .modal-title { font-family: var(--font-serif); font-size: 20px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-input { width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 12px; font-size: 14px; font-family: var(--font-sans); background: #0d0d0d; color: var(--text); transition: all var(--transition); }
+        .form-input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 0 3px rgba(198,164,63,0.1); }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .btn-cancel { padding: 9px 20px; border-radius: 40px; background: transparent; border: 1px solid #333; color: #888; cursor: pointer; font-size: 13px; font-family: var(--font-sans); }
+        .btn-confirm { padding: 9px 20px; border-radius: 40px; background: var(--gold); color: #0d0d0d; border: none; cursor: pointer; font-size: 13px; font-weight: 600; font-family: var(--font-sans); }
+        .btn-confirm:hover { background: #D4AF37; }
+
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
+        .toast { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 20px; font-size: 13px; font-weight: 500; color: var(--text); animation: slideIn 0.3s ease; max-width: 380px; box-shadow: var(--shadow-lg); }
+        .toast.success { border-left: 3px solid var(--success); }
+        .toast.error { border-left: 3px solid var(--danger); }
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        @media (max-width: 768px) {
+            .header { padding: 0 14px; }
+            .container { padding: 20px 14px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            td, th { padding: 10px 12px; font-size: 12px; }
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <a href="#" onclick="localStorage.clear();location.href='/login.html'" class="btn-logout">🚪 Quitter</a>
-    <h1>👑 Super Admin</h1>
-    <p class="subtitle">Vue d'ensemble de tous les restaurants</p>
 
-    <div class="stats" id="stats-container">
-        <div class="stat-card"><div class="stat-value" id="nb-restos">-</div><div class="stat-label">Restaurants</div></div>
-        <div class="stat-card"><div class="stat-value" id="nb-commandes">-</div><div class="stat-label">Commandes totales</div></div>
-        <div class="stat-card"><div class="stat-value" id="ca-total">-</div><div class="stat-label">CA Global (FCFA)</div></div>
+<header class="header">
+    <div class="logo">👑 <span>Super</span> Admin</div>
+    <div class="header-right">
+        <span class="badge-superadmin">Super Admin</span>
+        <button class="btn-logout" id="logout-btn">Quitter</button>
+    </div>
+</header>
+
+<div class="container">
+    <h1 class="page-title">Panneau d'administration</h1>
+    <p class="page-subtitle">Gérez tous les restaurants de la plateforme</p>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">🏪</div>
+            <div class="stat-value" id="nb-restos">-</div>
+            <div class="stat-label">Restaurants</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📋</div>
+            <div class="stat-value" id="nb-commandes">-</div>
+            <div class="stat-label">Commandes totales</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value" id="ca-total">-</div>
+            <div class="stat-label">CA Global (FCFA)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value" id="nb-employes">-</div>
+            <div class="stat-label">Employés totaux</div>
+        </div>
     </div>
 
-    <table>
-        <thead>
-            <tr><th>Restaurant</th><th>Statut</th><th>Expire le</th><th>Employés</th></tr>
-        </thead>
-        <tbody id="restos-tbody">
-            <tr><td colspan="4" style="text-align:center;padding:30px;">Chargement…</td></tr>
-        </tbody>
-    </table>
+    <div class="section-header">
+        <h2 class="section-title">🏪 Tous les restaurants</h2>
+        <button class="btn-add" id="btn-add-resto">➕ Ajouter un restaurant</button>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Restaurant</th>
+                    <th>Gérant</th>
+                    <th>Statut</th>
+                    <th>Expire le</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="restos-tbody">
+                <tr><td colspan="5" class="empty-state">Chargement…</td></tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
+<!-- Modal Ajout Restaurant -->
+<div class="modal-overlay" id="modal-add">
+    <div class="modal-dialog">
+        <h3 class="modal-title">➕ Ajouter un restaurant</h3>
+        <div class="form-group">
+            <label class="form-label">Nom du restaurant</label>
+            <input type="text" class="form-input" id="add-nom" placeholder="Le Ndiollé" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Email du gérant</label>
+            <input type="email" class="form-input" id="add-email" placeholder="contact@restaurant.com" required>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Mot de passe</label>
+            <input type="password" class="form-input" id="add-password" placeholder="Minimum 8 caractères" required minlength="8">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Téléphone</label>
+            <input type="text" class="form-input" id="add-tel" placeholder="+221 77 000 00 00">
+        </div>
+        <div class="modal-actions">
+            <button class="btn-cancel" id="btn-cancel-add">Annuler</button>
+            <button class="btn-confirm" id="btn-confirm-add">Créer</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
 <script>
-(async function() {
+(function() {
+    'use strict';
     var token = localStorage.getItem('resto_token');
     if (!token) { location.href = '/login.html'; return; }
 
@@ -57,39 +191,136 @@
         if (payload.role !== 'superadmin') { location.href = '/dashboard.html'; return; }
     } catch(e) { location.href = '/login.html'; return; }
 
-    try {
-        var [restosRes, statsRes] = await Promise.all([
-            fetch('/api/superadmin/restaurants', { headers: { 'Authorization': 'Bearer ' + token } }),
-            fetch('/api/superadmin/stats', { headers: { 'Authorization': 'Bearer ' + token } })
-        ]);
+    // ==================== CHARGEMENT ====================
+    async function chargerDonnees() {
+        try {
+            var [restosRes, statsRes] = await Promise.all([
+                fetch('/api/superadmin/restaurants', { headers: { 'Authorization': 'Bearer ' + token } }),
+                fetch('/api/superadmin/stats', { headers: { 'Authorization': 'Bearer ' + token } })
+            ]);
+            var restos = await restosRes.json();
+            var stats = await statsRes.json();
 
-        var restos = await restosRes.json();
-        var stats = await statsRes.json();
+            document.getElementById('nb-restos').textContent = stats.nbRestaurants || 0;
+            document.getElementById('nb-commandes').textContent = stats.nbCommandes || 0;
+            document.getElementById('ca-total').textContent = (stats.caTotal || 0).toLocaleString();
 
-        document.getElementById('nb-restos').textContent = stats.nbRestaurants || 0;
-        document.getElementById('nb-commandes').textContent = stats.nbCommandes || 0;
-        document.getElementById('ca-total').textContent = (stats.caTotal || 0).toLocaleString();
+            var tbody = document.getElementById('restos-tbody');
+            if (!restos.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun restaurant trouvé</td></tr>';
+            } else {
+                tbody.innerHTML = restos.map(function(r) {
+                    var statusClass = r.subscription_status === 'active' ? 'badge-active' : (r.subscription_status === 'trial' ? 'badge-trial' : 'badge-expired');
+                    var statusLabel = r.subscription_status === 'active' ? 'Actif' : (r.subscription_status === 'trial' ? 'Essai' : 'Expiré');
+                    var endDate = r.subscription_ends_at ? new Date(r.subscription_ends_at).toLocaleDateString('fr-FR') : (r.trial_ends_at ? new Date(r.trial_ends_at).toLocaleDateString('fr-FR') : '-');
+                    return '<tr>' +
+                        '<td><span class="resto-name">' + (r.nom || 'Sans nom') + '</span><br><span class="resto-date">Créé le ' + (r.created_at ? new Date(r.created_at).toLocaleDateString('fr-FR') : '?') + '</span></td>' +
+                        '<td style="color:var(--text-secondary);">' + (r.email_gerant || '-') + '</td>' +
+                        '<td><span class="badge ' + statusClass + '">' + statusLabel + '</span></td>' +
+                        '<td>' + endDate + '</td>' +
+                        '<td><button class="btn-sm danger" data-action="delete" data-id="' + r.id + '" data-nom="' + (r.nom || 'Sans nom') + '">🗑️ Supprimer</button></td>' +
+                    '</tr>';
+                }).join('');
 
-        var tbody = document.getElementById('restos-tbody');
-        if (!restos.length) {
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;">Aucun restaurant</td></tr>';
-        } else {
-            tbody.innerHTML = restos.map(function(r) {
-                var statusClass = r.subscription_status === 'active' ? 'badge-active' : (r.subscription_status === 'trial' ? 'badge-trial' : 'badge-expired');
-                var statusLabel = r.subscription_status === 'active' ? 'Actif' : (r.subscription_status === 'trial' ? 'Essai' : 'Expiré');
-                var endDate = r.subscription_ends_at ? new Date(r.subscription_ends_at).toLocaleDateString('fr-FR') : (r.trial_ends_at ? new Date(r.trial_ends_at).toLocaleDateString('fr-FR') : '-');
-                return '<tr>' +
-                    '<td><strong>' + (r.nom || 'Sans nom') + '</strong></td>' +
-                    '<td><span class="badge ' + statusClass + '">' + statusLabel + '</span></td>' +
-                    '<td>' + endDate + '</td>' +
-                    '<td>' + (r.profiles?.[0]?.count || 0) + '</td>' +
-                '</tr>';
-            }).join('');
+                // Event listeners sur boutons supprimer
+                tbody.querySelectorAll('[data-action="delete"]').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        supprimerRestaurant(this.dataset.id, this.dataset.nom);
+                    });
+                });
+            }
+        } catch(e) {
+            console.error(e);
+            document.getElementById('restos-tbody').innerHTML = '<tr><td colspan="5" class="empty-state">Erreur de chargement</td></tr>';
         }
-    } catch(e) {
-        console.error(e);
-        document.getElementById('restos-tbody').innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;">Erreur de chargement</td></tr>';
     }
+
+    // ==================== SUPPRIMER ====================
+    async function supprimerRestaurant(id, nom) {
+        if (!confirm('⚠️ Supprimer définitivement "' + nom + '" ?\n\nToutes les données (plats, commandes, employés) seront effacées. Cette action est irréversible.')) return;
+
+        try {
+            // Supprimer via Supabase directement (DELETE cascade si configuré)
+            var res1 = await fetch('/api/superadmin/delete-restaurant', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ resto_id: id })
+            });
+            
+            if (res1.ok || res1.status === 404) {
+                showToast('✅ Restaurant supprimé', 'success');
+                chargerDonnees();
+            } else {
+                // Fallback : supprimer directement
+                showToast('⚠️ Utilisez le SQL pour supprimer ce restaurant', 'error');
+            }
+        } catch(e) {
+            showToast('Erreur réseau', 'error');
+        }
+    }
+
+    // ==================== AJOUTER ====================
+    async function ajouterRestaurant() {
+        var nom = document.getElementById('add-nom').value.trim();
+        var email = document.getElementById('add-email').value.trim();
+        var password = document.getElementById('add-password').value;
+        var tel = document.getElementById('add-tel').value.trim();
+
+        if (!nom || !email || !password) { showToast('Remplissez tous les champs obligatoires', 'error'); return; }
+        if (password.length < 8) { showToast('Mot de passe : 8 caractères minimum', 'error'); return; }
+
+        try {
+            var res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: email,
+                    motDePasse: password,
+                    nomRestaurant: nom,
+                    telephone: tel || null
+                })
+            });
+            var data = await res.json();
+            if (res.ok) {
+                showToast('✅ Restaurant créé avec succès', 'success');
+                closeModal('modal-add');
+                document.getElementById('add-nom').value = '';
+                document.getElementById('add-email').value = '';
+                document.getElementById('add-password').value = '';
+                document.getElementById('add-tel').value = '';
+                chargerDonnees();
+            } else {
+                showToast(data.message || data.error || 'Erreur', 'error');
+            }
+        } catch(e) {
+            showToast('Erreur réseau', 'error');
+        }
+    }
+
+    // ==================== MODALE ====================
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+    // ==================== TOAST ====================
+    function showToast(message, type) {
+        var container = document.getElementById('toast-container');
+        var toast = document.createElement('div');
+        toast.className = 'toast ' + type;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(function() { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(function() { toast.remove(); }, 300); }, 3000);
+    }
+
+    // ==================== EVENTS ====================
+    document.getElementById('logout-btn').addEventListener('click', function() { localStorage.clear(); location.href = '/login.html'; });
+    document.getElementById('btn-add-resto').addEventListener('click', function() { openModal('modal-add'); });
+    document.getElementById('btn-cancel-add').addEventListener('click', function() { closeModal('modal-add'); });
+    document.getElementById('btn-confirm-add').addEventListener('click', ajouterRestaurant);
+    document.getElementById('modal-add').addEventListener('click', function(e) { if (e.target === this) closeModal('modal-add'); });
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal('modal-add'); });
+
+    chargerDonnees();
+    setInterval(chargerDonnees, 60000);
 })();
 </script>
 </body>
