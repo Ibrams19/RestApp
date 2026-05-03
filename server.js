@@ -1514,7 +1514,7 @@ app.get('/api/superadmin/restaurants', checkRole(['superadmin']), async (req, re
   const { data, error } = await supabase
     .from('restaurants')
     .select('*, profiles(email)')
-    .order('created_at', { ascending: false });
+    .order('id', { ascending: false });
 
   if (error) return res.status(500).json({ error: error.message });
   
