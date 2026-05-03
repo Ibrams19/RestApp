@@ -749,7 +749,6 @@
             const roleBadge = document.getElementById('role-badge');
             const roles = {
                 'gerant': '👑 Gérant',
-                'cuisinier': '👨‍🍳 Cuisinier',
                 'serveur': '🍽️ Serveur',
                 'superadmin': '👑 Super Admin'
             };
@@ -767,10 +766,6 @@
                     { href: '/resto.html', label: '👨‍🍳 Cuisine & Service', active: true },
                     { href: '/qrcodes.html', label: '📱 QR Codes' },
                     { href: '/subscription.html', label: '💰 Abonnement' }
-                );
-            } else if (userRole === 'cuisinier') {
-                navItems.push(
-                    { href: '/resto.html', label: '👨‍🍳 Ma cuisine', active: true }
                 );
             } else if (userRole === 'serveur') {
                 navItems.push(
@@ -999,34 +994,19 @@
             return diffMin > 15;
         }
 
-        function getActionsForCommand(statut, role) {
-            const actions = [];
+            function getActionsForCommand(statut, role) {
+                const actions = [];
 
-            const rules = {
-                'cuisinier': {
-                    'en_attente': [{ label: '👨‍🍳 Cuisiner', action: 'cuisine', class: 'btn-cuisine' }],
-                    'cuisine': [{ label: '✅ Plat prêt', action: 'pret', class: 'btn-pret' }]
-                },
-                'serveur': {
-                    'pret': [{ label: '🍽️ Servir', action: 'servi', class: 'btn-servir' }],
-                    'servi': [{ label: '💰 Encaisser', action: 'paye', class: 'btn-payer' }]
-                },
-                'gerant': {
-                    'en_attente': [{ label: '👨‍🍳 Cuisiner', action: 'cuisine', class: 'btn-cuisine' }],
-                    'cuisine': [{ label: '✅ Plat prêt', action: 'pret', class: 'btn-pret' }],
-                    'pret': [{ label: '🍽️ Servir', action: 'servi', class: 'btn-servir' }],
-                    'servi': [{ label: '💰 Encaisser', action: 'paye', class: 'btn-payer' }]
-                },
-                'superadmin': {
-                    'en_attente': [{ label: '👨‍🍳 Cuisiner', action: 'cuisine', class: 'btn-cuisine' }],
-                    'cuisine': [{ label: '✅ Plat prêt', action: 'pret', class: 'btn-pret' }],
-                    'pret': [{ label: '🍽️ Servir', action: 'servi', class: 'btn-servir' }],
-                    'servi': [{ label: '💰 Encaisser', action: 'paye', class: 'btn-payer' }]
+                // Serveur, gérant et superadmin peuvent tout faire
+                if (role === 'serveur' || role === 'gerant' || role === 'superadmin') {
+                    if (statut === 'en_attente') actions.push({ label: '👨‍🍳 En cuisine', action: 'cuisine', class: 'btn-cuisine' });
+                    if (statut === 'cuisine') actions.push({ label: '✅ Plat prêt', action: 'pret', class: 'btn-pret' });
+                    if (statut === 'pret') actions.push({ label: '🍽️ Servir', action: 'servi', class: 'btn-servir' });
+                    if (statut === 'servi') actions.push({ label: '💰 Encaisser', action: 'paye', class: 'btn-payer' });
                 }
-            };
 
-            return (rules[role] && rules[role][statut]) || [];
-        }
+                return actions;
+            }
 
         function afficherCommandes() {
             let filtered = allCommandes;
