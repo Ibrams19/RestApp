@@ -449,16 +449,6 @@ app.post('/api/register', async (req, res) => {
     });
   }
 
-  // Création menu par défaut avec photos vides
-  const platsParDefaut = [
-    { resto_id: restaurant.id, nom_plat: 'Yassa Poulet', prix: 2500, categorie: 'Plat', disponible: true, description: 'Poulet mariné au citron et oignons, accompagné de riz blanc' },
-    { resto_id: restaurant.id, nom_plat: 'Thieboudienne', prix: 3000, categorie: 'Plat', disponible: true, description: 'Riz au poisson, légumes et sauce tomate épicée' },
-    { resto_id: restaurant.id, nom_plat: 'Mafé', prix: 2800, categorie: 'Plat', disponible: true, description: 'Ragoût de viande à la pâte d\'arachide' },
-    { resto_id: restaurant.id, nom_plat: 'Jus de Bissap', prix: 500, categorie: 'Boisson', disponible: true, description: 'Boisson rafraîchissante aux fleurs d\'hibiscus' },
-    { resto_id: restaurant.id, nom_plat: 'Ngata', prix: 1500, categorie: 'Dessert', disponible: true, description: 'Beignet sucré à la noix de coco' }
-  ];
-  await supabase.from('menus').insert(platsParDefaut);
-
   const token = jwt.sign(
     { id: profile.id, email, resto_id: restaurant.id, restaurant_name: restaurant.nom, role: 'gerant' },
     JWT_SECRET,
