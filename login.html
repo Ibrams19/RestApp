@@ -386,7 +386,9 @@
 
                 // Rediriger selon le rôle
                 const role = payload.role;
-                if (role === 'gerant' || role === 'superadmin') {
+                if (role === 'superadmin') {
+                    window.location.href = '/superadmin.html';
+                } else if (role === 'gerant') {
                     window.location.href = '/dashboard.html';
                 } else {
                     window.location.href = '/resto.html';
@@ -456,12 +458,14 @@
         }
 
         function redirectAfterLogin(role) {
-            if (role === 'gerant' || role === 'superadmin') {
+            if (role === 'superadmin') {
+                 window.location.href = '/superadmin.html';
+             } else if (role === 'gerant') {
                 window.location.href = '/dashboard.html';
             } else {
-                window.location.href = '/resto.html';
-            }
+                 window.location.href = '/resto.html';
         }
+}
 
         // ==================== LOGIN ====================
         async function login(e) {
