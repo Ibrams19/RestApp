@@ -30,6 +30,9 @@ app.use(helmet({
 }));
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
+app.get('/', (req, res) => {
+  res.redirect('/login.html');
+});
 app.use(express.static(__dirname));
 app.use(express.static('frontend/client'));
 app.use(morgan(':date[iso] :method :url :status :response-time ms - :remote-addr'));
