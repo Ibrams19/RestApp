@@ -354,7 +354,7 @@
                 userRole = payload.role;
                 userId = payload.id;
                 currentResto = payload.resto_id;
-                document.getElementById('resto-name').textContent = payload.restaurant_name || 'Restaurant';
+                document.getElementById('resto-name').textContent = decodeURIComponent(escape(payload.restaurant_name || 'Restaurant'));
             } catch(e) { redirectToLogin(); return; }
 
             if (userRole !== 'gerant' && userRole !== 'superadmin') {

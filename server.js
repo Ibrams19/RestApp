@@ -397,7 +397,7 @@ app.post('/api/register', async (req, res) => {
   const { data: restaurant, error: restoError } = await supabase
     .from('restaurants')
     .insert({ 
-      nom: sanitizeString(nomRestaurant), 
+      nom: Buffer.from(sanitizeString(nomRestaurant), 'latin1').toString('utf8'), 
       slug, 
       telephone: telephone ? sanitizeString(telephone) : null, 
       adresse: adresse ? sanitizeString(adresse) : null, 
