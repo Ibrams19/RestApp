@@ -805,6 +805,78 @@ app.post('/api/commande', commandLimiter, async (req, res) => {
   });
 });
 
+// Commande manuelle (serveur)
+app.post('/api/commande-manuelle', authMiddleware, async (req, res) => {
+  const { restoId, tableId, clientName, items, total, source } = req.body;
+  
+  if (!restoId || !tableId || !items || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: 'Commande invalide' });
+  }
+
+  if (total === undefined || isNaN(total) || Number(total) < 0) {
+    return res.status(400).json({ error: 'Montant total invalide' });
+  }
+
+  const name = clientName ? sanitizeString(clientName).substring(0, 50) : 'Client';
+  const commandeSource = source || 'manuelle';
+
+  // Chercher l'ID réel de la table
+  let tableIdFinal = tableId;
+  const tableIdNum = parseInt(tableId);
+  if (!isNaN(tableIdNum) && tableIdNum <= 100) {
+    const { data: tableByNumero } = await supabase
+      .from('tables')
+      .select('id')
+      .eq('resto_id', restoId)
+      .eq('numero_table', tableIdNum)
+      .single();
+    if (tableByNumero) tableIdFinal = tableByNumero.id;
+  }
+
+  const { data: commande, error: commandeError } = await supabase
+    .from('commandes')
+    .insert({ 
+      resto_id: restoId, 
+      table_id: tableIdFinal, 
+      client_nom: name, 
+      total: Math.round(Number(total)),
+      statut: 'paye',
+      source: commandeSource
+    })
+    .select()
+    .single();
+
+  if (commandeError) {
+    logSecurity('ERROR', 'Erreur commande manuelle', { error: commandeError.message });
+    return res.status(500).json({ error: 'Erreur création commande' });
+  }
+
+  // Ajouter les détails
+  for (const item of items) {
+    await supabase.from('commande_details').insert({
+      commande_id: commande.id,
+      menu_id: item.menuId || null,
+      quantite: Math.min(parseInt(item.quantite) || 1, 99),
+      prix_unitaire: Math.round(Number(item.prix) || 0),
+      nom_plat: sanitizeString(item.nom || 'Plat').substring(0, 100)
+    });
+  }
+
+  io.to(`resto_${restoId}`).emit('nouvelle_commande', {
+    commande_id: commande.id,
+    table_id: tableId,
+    client_name: name,
+    items: items.map(i => ({ nom: sanitizeString(i.nom || ''), quantite: parseInt(i.quantite) || 1 })),
+    total: Math.round(Number(total)),
+    statut: 'paye',
+    source: commandeSource
+  });
+
+  logSecurity('INFO', 'Commande manuelle créée', { restoId, commandeId: commande.id, source: commandeSource });
+
+  res.json({ success: true, commande_id: commande.id, message: 'Commande enregistrée !' });
+});
+
 // Modification statut commande
 app.put('/api/commande/:id/statut', apiLimiter, async (req, res) => {
   const { id } = req.params;
@@ -1159,7 +1231,7 @@ app.get('/api/stats/:restoId', checkRole(['gerant', 'superadmin']), async (req, 
 
   let query = supabase
     .from('commandes')
-    .select('id, total, date_commande')
+    .select('id, total, date_commande, source, statut')
     .eq('resto_id', targetRestoId)
     .eq('statut', 'paye');
 
@@ -1177,6 +1249,14 @@ app.get('/api/stats/:restoId', checkRole(['gerant', 'superadmin']), async (req, 
   const caTotal = commandes?.reduce((s, c) => s + (c.total || 0), 0) || 0;
   const nbCommandes = commandes?.length || 0;
   const panierMoyen = nbCommandes > 0 ? Math.round(caTotal / nbCommandes) : 0;
+
+  // Répartition par source
+  const caQR = commandes?.filter(c => c.source === 'qr_code').reduce((s, c) => s + (c.total || 0), 0) || 0;
+  const caManuel = commandes?.filter(c => c.source === 'manuelle' || !c.source).reduce((s, c) => s + (c.total || 0), 0) || 0;
+  const caDistance = commandes?.filter(c => c.source === 'a_distance' || c.source === 'telephone').reduce((s, c) => s + (c.total || 0), 0) || 0;
+  const nbQR = commandes?.filter(c => c.source === 'qr_code').length || 0;
+  const nbManuel = commandes?.filter(c => c.source === 'manuelle' || !c.source).length || 0;
+  const nbDistance = commandes?.filter(c => c.source === 'a_distance' || c.source === 'telephone').length || 0;
 
   // Top plats
   const commandeIds = commandes?.map(c => c.id) || [];
@@ -1202,7 +1282,13 @@ app.get('/api/stats/:restoId', checkRole(['gerant', 'superadmin']), async (req, 
   res.json({ 
     caTotal: Math.round(caTotal), 
     nbCommandes, 
-    panierMoyen, 
+    panierMoyen,
+    caQR: Math.round(caQR),
+    caManuel: Math.round(caManuel),
+    caDistance: Math.round(caDistance),
+    nbQR,
+    nbManuel,
+    nbDistance,
     topPlats 
   });
 });

@@ -605,6 +605,9 @@
             <span class="logo-icon">👨‍🍳</span><span>Cuisine</span> & Service
         </div>
         <div class="header-right">
+        <button class="btn-commande-rapide" id="btn-commande-rapide" style="background:#27AE60;color:white;border:none;padding:10px 18px;border-radius:40px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-sans);display:flex;align-items:center;gap:6px;">
+            ⚡ Commande rapide
+            </button>
             <span class="role-badge" id="role-badge">Chargement…</span>
             <button class="btn-icon" id="theme-toggle" title="Mode sombre">🌙</button>
             <button class="btn-logout" id="logout-btn">Quitter</button>
@@ -655,6 +658,45 @@
 
     <!-- ==================== COMMANDES ==================== -->
     <div class="commandes-grid" id="commandes-grid"></div>
+
+    <!-- ==================== MODALE COMMANDE RAPIDE ==================== -->
+    <div class="modal-overlay" id="modal-commande-rapide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:28px 24px;max-width:500px;width:90%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);">
+            <h3 style="font-family:var(--font-serif);font-size:20px;margin-bottom:20px;">⚡ Commande rapide</h3>
+            
+            <div style="margin-bottom:16px;">
+                <label style="font-size:12px;font-weight:500;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;">Table *</label>
+                <select id="cr-table" style="width:100%;padding:11px;border:1px solid var(--border);border-radius:12px;font-size:14px;font-family:var(--font-sans);background:#fdfcfa;margin-top:4px;">
+                    <option value="">Sélectionnez une table...</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="font-size:12px;font-weight:500;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;">Client (optionnel)</label>
+                <input type="text" id="cr-client" placeholder="Nom du client" style="width:100%;padding:11px;border:1px solid var(--border);border-radius:12px;font-size:14px;font-family:var(--font-sans);background:#fdfcfa;margin-top:4px;" maxlength="30">
+            </div>
+
+            <div id="cr-items" style="margin-bottom:16px;">
+                <div class="cr-item-row" style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
+                    <input type="text" class="cr-nom" placeholder="Plat" style="flex:2;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--font-sans);background:#fdfcfa;">
+                    <input type="number" class="cr-qte" placeholder="Qté" value="1" min="1" style="width:55px;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;text-align:center;font-family:var(--font-sans);background:#fdfcfa;">
+                    <input type="number" class="cr-prix" placeholder="Prix" style="width:90px;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--font-sans);background:#fdfcfa;">
+                    <button type="button" class="cr-remove" style="background:#FDE8E8;color:#E74C3C;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:16px;display:none;">×</button>
+                </div>
+            </div>
+            <button type="button" id="cr-add-item" style="background:transparent;border:1px dashed var(--border);padding:8px;border-radius:12px;width:100%;cursor:pointer;font-size:13px;color:var(--text-secondary);font-family:var(--font-sans);margin-bottom:16px;">+ Ajouter un plat</button>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-top:2px solid var(--gold);font-weight:700;font-size:18px;margin-bottom:16px;">
+                <span>Total</span>
+                <span id="cr-total" style="color:var(--gold);">0 FCFA</span>
+            </div>
+
+            <div style="display:flex;gap:10px;">
+                <button id="cr-cancel" style="flex:1;padding:12px;border-radius:40px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:13px;font-family:var(--font-sans);">Annuler</button>
+                <button id="cr-submit" style="flex:2;padding:12px;border-radius:40px;border:none;background:var(--gold);color:white;font-weight:600;cursor:pointer;font-size:14px;font-family:var(--font-sans);">✅ Enregistrer (payé)</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ==================== TOAST CONTAINER ==================== -->
     <div class="toast-container" id="toast-container"></div>
@@ -790,6 +832,12 @@
                     afficherCommandes();
                 });
             });
+                        // Bouton commande rapide
+            document.getElementById('btn-commande-rapide').addEventListener('click', ouvrirCommandeRapide);
+            document.getElementById('cr-cancel').addEventListener('click', fermerCommandeRapide);
+            document.getElementById('cr-submit').addEventListener('click', validerCommandeRapide);
+            document.getElementById('cr-add-item').addEventListener('click', ajouterLignePlat);
+            document.getElementById('cr-items').addEventListener('input', calculerTotalRapide);
         }
 
         function logout() {
@@ -1160,6 +1208,140 @@
                 setTimeout(() => toast.remove(), 300);
             }, 3500);
         }
+
+        // ==================== COMMANDE RAPIDE ====================
+async function ouvrirCommandeRapide() {
+    // Charger les tables
+    try {
+        const token = localStorage.getItem(TOKEN_KEY);
+        const res = await fetch(`/api/tables/${currentResto}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            const tables = await res.json();
+            const select = document.getElementById('cr-table');
+            select.innerHTML = '<option value="">Sélectionnez une table...</option>' +
+                tables.map(t => `<option value="${t.numero_table}">🍽️ Table ${t.numero_table}</option>`).join('');
+        }
+    } catch(e) {}
+
+    document.getElementById('modal-commande-rapide').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function fermerCommandeRapide() {
+    document.getElementById('modal-commande-rapide').style.display = 'none';
+    document.body.style.overflow = '';
+    // Réinitialiser
+    document.getElementById('cr-items').innerHTML = `
+        <div class="cr-item-row" style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
+            <input type="text" class="cr-nom" placeholder="Plat" style="flex:2;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--font-sans);background:#fdfcfa;">
+            <input type="number" class="cr-qte" placeholder="Qté" value="1" min="1" style="width:55px;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;text-align:center;font-family:var(--font-sans);background:#fdfcfa;">
+            <input type="number" class="cr-prix" placeholder="Prix" style="width:90px;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--font-sans);background:#fdfcfa;">
+            <button type="button" class="cr-remove" style="background:#FDE8E8;color:#E74C3C;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:16px;display:none;">×</button>
+        </div>`;
+    document.getElementById('cr-client').value = '';
+    document.getElementById('cr-total').textContent = '0 FCFA';
+}
+
+function ajouterLignePlat() {
+    const container = document.getElementById('cr-items');
+    const row = document.createElement('div');
+    row.className = 'cr-item-row';
+    row.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;align-items:center;';
+    row.innerHTML = `
+        <input type="text" class="cr-nom" placeholder="Plat" style="flex:2;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--font-sans);background:#fdfcfa;">
+        <input type="number" class="cr-qte" placeholder="Qté" value="1" min="1" style="width:55px;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;text-align:center;font-family:var(--font-sans);background:#fdfcfa;">
+        <input type="number" class="cr-prix" placeholder="Prix" style="width:90px;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--font-sans);background:#fdfcfa;">
+        <button type="button" class="cr-remove" style="background:#FDE8E8;color:#E74C3C;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:16px;">×</button>
+    `;
+    container.appendChild(row);
+    
+    // Afficher tous les boutons de suppression
+    document.querySelectorAll('.cr-remove').forEach(b => b.style.display = 'block');
+    
+    // Event sur le bouton supprimer
+    row.querySelector('.cr-remove').addEventListener('click', function() {
+        row.remove();
+        // Cacher les boutons s'il n'en reste qu'un
+        if (document.querySelectorAll('.cr-item-row').length <= 1) {
+            document.querySelectorAll('.cr-remove').forEach(b => b.style.display = 'none');
+        }
+        calculerTotalRapide();
+    });
+    
+    // Events sur les champs
+    row.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', calculerTotalRapide);
+    });
+}
+
+function calculerTotalRapide() {
+    let total = 0;
+    document.querySelectorAll('.cr-item-row').forEach(row => {
+        const qte = parseInt(row.querySelector('.cr-qte')?.value) || 0;
+        const prix = parseInt(row.querySelector('.cr-prix')?.value) || 0;
+        total += qte * prix;
+    });
+    document.getElementById('cr-total').textContent = total.toLocaleString() + ' FCFA';
+}
+
+async function validerCommandeRapide() {
+    const table = document.getElementById('cr-table').value;
+    const client = document.getElementById('cr-client').value.trim() || 'Client';
+    
+    if (!table) { showToast('Veuillez sélectionner une table', 'error'); return; }
+
+    const items = [];
+    document.querySelectorAll('.cr-item-row').forEach(row => {
+        const nom = row.querySelector('.cr-nom')?.value.trim();
+        const qte = parseInt(row.querySelector('.cr-qte')?.value) || 1;
+        const prix = parseInt(row.querySelector('.cr-prix')?.value) || 0;
+        if (nom) items.push({ nom, quantite: qte, prix });
+    });
+
+    if (items.length === 0) { showToast('Ajoutez au moins un plat', 'error'); return; }
+
+    const total = items.reduce((s, i) => s + (i.prix * i.quantite), 0);
+    if (total <= 0) { showToast('Le total doit être supérieur à 0', 'error'); return; }
+
+    const btn = document.getElementById('cr-submit');
+    btn.disabled = true;
+    btn.textContent = 'Enregistrement...';
+
+    try {
+        const token = localStorage.getItem(TOKEN_KEY);
+        const res = await fetch('/api/commande-manuelle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                restoId: currentResto,
+                tableId: parseInt(table),
+                clientName: client,
+                items,
+                total,
+                source: 'manuelle'
+            })
+        });
+
+        if (res.ok) {
+            showToast('✅ Commande enregistrée !', 'success');
+            fermerCommandeRapide();
+            chargerCommandes();
+        } else {
+            const data = await res.json();
+            showToast(data.error || 'Erreur', 'error');
+        }
+    } catch(e) {
+        showToast('Erreur réseau', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '✅ Enregistrer (payé)';
+    }
+}
 
         // ==================== UTILITAIRES ====================
         function escapeHtml(str) {
