@@ -179,7 +179,8 @@
             </div>
             <div style="display:flex;gap:10px;">
                 <button id="cr-cancel" style="flex:1;padding:12px;border-radius:40px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:13px;font-family:var(--font-sans);">Annuler</button>
-                <button id="cr-submit" style="flex:2;padding:12px;border-radius:40px;border:none;background:var(--gold);color:white;font-weight:600;cursor:pointer;font-size:14px;font-family:var(--font-sans);">✅ Enregistrer la commande</button>
+                <button id="cr-submit" style="flex:1;padding:12px;border-radius:40px;border:none;background:var(--gold);color:white;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font-sans);">👨‍🍳 En cuisine</button>
+                <button id="cr-submit-direct" style="flex:1;padding:12px;border-radius:40px;border:none;background:#27AE60;color:white;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font-sans);">🍽️ Servi directement</button>
             </div>
         </div>
     </div>
@@ -229,6 +230,7 @@
             document.getElementById('cr-cancel').addEventListener('click',fermerCommandeRapide);
             document.getElementById('cr-close-top').addEventListener('click',fermerCommandeRapide);
             document.getElementById('cr-submit').addEventListener('click',validerCommandeRapide);
+            document.getElementById('cr-submit-direct').addEventListener('click', function(){ validerCommandeRapide('servi'); });
             document.getElementById('cr-search').addEventListener('input',function(){afficherMenuRapide(this.value);});
             document.getElementById('modal-recu').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
         }
@@ -330,12 +332,13 @@
             con.querySelectorAll('.cr-qty-btn').forEach(b=>{b.addEventListener('click',function(e){e.stopPropagation();const idx=parseInt(this.dataset.idx),d=parseInt(this.dataset.delta);crPanier[idx].quantite=Math.max(1,Math.min(99,crPanier[idx].quantite+d));actualiserResume();});});
             con.querySelectorAll('[data-action="remove"]').forEach(b=>{b.addEventListener('click',function(e){e.stopPropagation();crPanier.splice(parseInt(this.dataset.idx),1);actualiserResume();afficherMenuRapide(document.getElementById('cr-search').value);});});
         }
-        async function validerCommandeRapide(){
+        async function validerCommandeRapide(statut){
+            statut = statut || 'en_attente';
             const table=document.getElementById('cr-table').value,client=document.getElementById('cr-client').value.trim()||'Client';
             if(!table){showToast('Sélectionnez une table','error');return;}if(!crPanier.length){showToast('Ajoutez au moins un plat','error');return;}
             const items=crPanier.map(i=>({menuId:i.menuId,quantite:i.quantite,prix:i.prix,nom:i.nom})),total=crPanier.reduce((s,i)=>s+(i.prix*i.quantite),0);
             const btn=document.getElementById('cr-submit');btn.disabled=true;btn.textContent='Enregistrement...';
-            try{const t=localStorage.getItem(TOKEN_KEY);const r=await fetch('/api/commande-manuelle',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify({restoId:currentResto,tableId:parseInt(table),clientName:client,items,total,source:'manuelle'})});
+            try{const t=localStorage.getItem(TOKEN_KEY);const r=await fetch('/api/commande-manuelle',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${t}`},body:JSON.stringify({restoId:currentResto,tableId:parseInt(table),clientName:client,items,total,source:'manuelle', statut:statut})});
                 if(r.ok){const d=await r.json();showToast('✅ Commande enregistrée ! Paiement à encaisser.','success');fermerCommandeRapide();chargerCommandes();}
                 else{const e=await r.json();showToast(e.error||'Erreur','error');}
             }catch(e){showToast('Erreur réseau','error');}finally{btn.disabled=false;btn.textContent='✅ Enregistrer & Imprimer reçu';}
