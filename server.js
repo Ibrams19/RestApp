@@ -1464,9 +1464,12 @@ app.post('/api/employes', authMiddleware, checkRole(['gerant', 'superadmin']), a
  // Vérifier les permissions pour créer un gérant
 if (role === 'gerant') {
     // Seul le propriétaire peut créer un gérant
-    const { data: userProfile } = await supabase.from('profiles').select('est_proprietaire').eq('id', req.user.id).single();
-    if (!userProfile?.est_proprietaire) {
-        return res.status(403).json({ error: 'access_denied', message: 'Seul le propriétaire peut créer un gérant.' });
+    // Vérifier les permissions pour créer un gérant
+    if (role === 'gerant') {
+        // Utiliser le token JWT plutôt que la base de données
+        if (!req.user.est_proprietaire) {
+            return res.status(403).json({ error: 'access_denied', message: 'Seul le propriétaire peut créer un gérant.' });
+        }
     }
 }
 
