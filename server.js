@@ -562,11 +562,19 @@ app.post('/api/auth/set-password', async (req, res) => {
     });
   }
 
-  const jwtToken = jwt.sign(
-    { id: data.id, email: data.email, resto_id: data.resto_id, role: data.role },
+const { data: profileData } = await supabase.from('profiles').select('est_proprietaire').eq('id', data.id).single();
+
+const jwtToken = jwt.sign(
+    { 
+        id: data.id, 
+        email: data.email, 
+        resto_id: data.resto_id, 
+        role: data.role,
+        est_proprietaire: profileData?.est_proprietaire || false
+    },
     JWT_SECRET,
     { expiresIn: '7d' }
-  );
+);
 
   res.json({ success: true, token: jwtToken });
 });

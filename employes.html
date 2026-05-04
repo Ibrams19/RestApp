@@ -318,7 +318,7 @@
 
             document.getElementById('stats-bar').innerHTML = `
                 <span>📋 <strong>${employes.length}</strong> employé${employes.length > 1 ? 's' : ''}</span>
-                <span>👨‍🍳 <strong>${employes.filter(e => e.role === 'cuisinier').length}</strong> cuisinier${employes.filter(e => e.role === 'cuisinier').length > 1 ? 's' : ''}</span>
+                <span>👑 <strong>${employes.filter(e => e.role === 'gerant').length}</strong> gérant${employes.filter(e => e.role === 'gerant').length > 1 ? 's' : ''}</span>
                 <span>🍽️ <strong>${employes.filter(e => e.role === 'serveur').length}</strong> serveur${employes.filter(e => e.role === 'serveur').length > 1 ? 's' : ''}</span>
             `;
 
