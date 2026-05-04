@@ -261,10 +261,14 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('*, restaurants(*)')
-    .eq('email', email)
-    .single();
+    .eq('email', email.trim().toLowerCase())
+    .maybeSingle();
 
-  if (error || !profile) {
+  if (error) {
+    logSecurity('ERROR', 'Erreur base de données', { error });
+    return res.status(500).json({ error: 'Erreur serveur' });
+}
+if (!profile) {
     logSecurity('SECURITY', 'Tentative connexion email inconnu', { email });
     return res.status(401).json({ 
       error: 'invalid_credentials',
