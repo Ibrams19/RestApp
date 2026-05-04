@@ -259,8 +259,8 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
   }
 
   const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('*, restaurants(*)')
+    .from('profiles').select('*, restaurants!profiles_resto_id_fkey(*)')
+    
     .eq('email', email.trim().toLowerCase())
     .maybeSingle();
 
