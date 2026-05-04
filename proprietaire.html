@@ -152,7 +152,7 @@
                     const sc=e.subscription_status==='active'?'badge-active':(e.subscription_status==='trial'?'badge-trial':'badge-expired');
                     const sl=e.subscription_status==='active'?'Actif':(e.subscription_status==='trial'?'Essai':'Expiré');
                     return`<div class="etablissement-card">
-                        <div class="etablissement-nom">${e.nom||'Sans nom'}</div>
+                        <div class="etablissement-nom">${decodeURIComponent(escape(e.nom||'Sans nom'))}</div>
                         <div class="etablissement-type">${e.type_etablissement||'Restaurant'}</div>
                         <div class="etablissement-stats">
                             <span>💰 <strong>${(s?.ca||0).toLocaleString()} FCFA</strong></span>
