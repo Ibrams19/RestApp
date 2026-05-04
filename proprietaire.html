@@ -152,9 +152,15 @@
                             '<span>📋 <strong>'+(s?.nbCommandes||0)+'</strong> commandes</span>'+
                             '</div>'+
                             '<button class="btn-basculer" data-id="'+e.id+'">➡️ Gérer cet établissement</button>'+
+                            '<button class="btn-equipe" data-id="'+e.id+'" style="margin-top:8px;padding:6px 14px;border-radius:20px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;font-size:11px;font-family:var(--font-sans);">👥 Gérer l\'équipe</button>'+
                         '</div>';
                     }).join('');
                     grid.querySelectorAll('.btn-basculer').forEach(function(b){b.addEventListener('click',function(){basculerEtablissement(b.dataset.id);});});
+                    grid.querySelectorAll('.btn-equipe').forEach(function(b){
+                        b.addEventListener('click',function(){
+                        basculerEtablissement(b.dataset.id, '/employes.html');
+                        });
+                    });
                 }catch(e){}
             }
 
@@ -168,10 +174,11 @@
                 }catch(e){showToast('Erreur réseau','error');}
             }
 
-            async function basculerEtablissement(restoId){
+            async function basculerEtablissement(restoId, page){
+                page = page || '/dashboard.html';
                 try{
                     const r=await fetch('/api/proprietaire/basculer',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({resto_id:restoId})});
-                    if(r.ok){const d=await r.json();localStorage.setItem(TOKEN_KEY,d.token);localStorage.setItem('resto_id',d.restaurant.id);localStorage.setItem('resto_role','gerant');window.location.href='/dashboard.html';}
+                    if(r.ok){const d=await r.json();localStorage.setItem(TOKEN_KEY,d.token);localStorage.setItem('resto_id',d.restaurant.id);localStorage.setItem('resto_role','gerant');window.location.href=page;}
                     else{const d=await r.json();showToast(d.error||'Erreur','error');}
                 }catch(e){showToast('Erreur réseau','error');}
             }
