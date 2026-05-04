@@ -592,7 +592,7 @@
                 if (res.ok && data.success) {
                     saveSession(data);
                     showMessage('✅ Restaurant créé avec succès ! Redirection…', 'success');
-                    setTimeout(() => { window.location.href = '/dashboard.html'; }, 1200);
+                    setTimeout(() => redirectAfterLogin(data.user?.role, data.user), 1200);
                 } else {
                     showMessage(data.message || data.error || 'Erreur lors de l\'inscription.', 'error');
                 }
