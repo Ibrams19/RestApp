@@ -239,7 +239,8 @@ app.use('/api/employes/*', authMiddleware, checkSubscription, verifyRestaurantAc
 
 // Login
 app.post('/api/auth/login', loginLimiter, async (req, res) => {
-  const { email, motDePasse } = req.body;
+  const email = req.body.email;
+  const motDePasse = req.body.motDePasse || req.body.mot_de_passe || req.body.password;
   
   if (!email || !motDePasse) {
     return res.status(400).json({ 
