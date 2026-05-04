@@ -423,15 +423,16 @@ app.post('/api/register', async (req, res) => {
   }
 
   const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .insert({ 
-      email, 
-      resto_id: restaurant.id, 
-      nom: sanitizeString(nomRestaurant), 
-      mot_de_passe: hashedPassword, 
-      role: 'gerant', 
-      first_login: false 
-    })
+      .from('profiles')
+      .insert({ 
+        email, 
+        resto_id: restaurant.id, 
+        nom: sanitizeString(nomRestaurant), 
+        mot_de_passe: hashedPassword, 
+        role: 'gerant', 
+        first_login: false,
+        est_proprietaire: req.body.estProprietaire || false
+      })
     .select()
     .single();
 
@@ -444,7 +445,10 @@ app.post('/api/register', async (req, res) => {
       code: 'CREATE_FAILED'
     });
   }
-
+  // Si le créateur est propriétaire, lier le restaurant
+  if (req.body.estProprietaire) {
+    await supabase.from('restaurants').update({ proprietaire_id: profile.id }).eq('id', restaurant.id);
+  }
   // Création tables par défaut
   for (let i = 1; i <= 10; i++) {
     await supabase.from('tables').insert({ 

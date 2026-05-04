@@ -347,6 +347,13 @@
                         <option value="Autre">🏷️ Autre</option>
                     </select>
                 </div>
+                                <div class="form-group">
+                    <label class="form-label" for="register-role-type">Je suis *</label>
+                    <select id="register-role-type" class="form-input" required>
+                        <option value="gerant">👑 Gérant (je gère cet établissement)</option>
+                        <option value="proprietaire">🏢 Propriétaire (je possède plusieurs établissements)</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label class="form-label" for="register-nom">Nom de l'établissement *</label>
                     <input type="text" id="register-nom" class="form-input"
@@ -566,13 +573,14 @@
                 const res = await fetch('/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
+                   body: JSON.stringify({
                         email,
                         motDePasse: password,
                         nomRestaurant: nom,
                         typeEtablissement: document.getElementById('register-type').value || 'Restaurant',
                         telephone: telephone || null,
-                        adresse: adresse || null
+                        adresse: adresse || null,
+                        estProprietaire: document.getElementById('register-role-type')?.value === 'proprietaire'
                     })
                 });
 
