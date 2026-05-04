@@ -592,7 +592,12 @@
                 if (res.ok && data.success) {
                     saveSession(data);
                     showMessage('✅ Restaurant créé avec succès ! Redirection…', 'success');
-                    setTimeout(() => redirectAfterLogin(data.user?.role, data.user), 1200);
+                    const estProprietaire = document.getElementById('register-role-type')?.value === 'proprietaire';
+                    if (estProprietaire) {
+                        window.location.href = '/proprietaire.html';
+                    } else {
+                        window.location.href = '/dashboard.html';
+                    }
                 } else {
                     showMessage(data.message || data.error || 'Erreur lors de l\'inscription.', 'error');
                 }
