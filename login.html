@@ -482,9 +482,8 @@
             }
         }
 
-        function redirectAfterLogin(role) {
-            const user = JSON.parse(localStorage.getItem('resto_user') || '{}');
-            if (user.est_proprietaire) {
+        function redirectAfterLogin(role, userData) {
+            if (userData && userData.est_proprietaire) {
                 window.location.href = '/proprietaire.html';
             } else if (role === 'superadmin') {
                 window.location.href = '/superadmin.html';
@@ -534,7 +533,7 @@
                 } else if (data.error === 'subscription_expired' || data.code === 'SUBSCRIPTION_EXPIRED') {
                     showMessage(data.message || 'Abonnement expiré. Redirection…', 'error');
                     if (data.redirect) {
-                        setTimeout(() => { window.location.href = data.redirect; }, 1500);
+                        setTimeout(() => redirectAfterLogin(data.user?.role, data.user), 800);
                     }
                 } else {
                     showMessage(data.message || data.error || 'Email ou mot de passe incorrect.', 'error');
