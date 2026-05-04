@@ -126,6 +126,10 @@
             .employes-grid { grid-template-columns: 1fr; }
             .page-header { flex-direction: column; align-items: flex-start; }
         }
+        .avatar-gerant { background: #f5eedb; }
+        .badge-gerant { background: #f5eedb; color: #a8872a; }
+        body.dark .avatar-gerant { background: #2a1f0a; }
+        body.dark .badge-gerant { background: #2a1f0a; color: #C6A43F; }
     </style>
 </head>
 <body>
@@ -326,11 +330,11 @@
 
             grid.innerHTML = filtered.map(e => `
                 <div class="employe-card">
-                    <div class="employe-avatar ${e.role === 'gerant' ? 'avatar-gerant' : 'avatar-serveur'}" style="${e.role === 'gerant' ? 'background:#f5eedb;' : ''}">
+                    <div class="employe-avatar ${e.role === 'gerant' ? 'avatar-gerant' : 'avatar-serveur'}">
                         ${e.role === 'gerant' ? '👑' : '🍽️'}
                     </div>
                     <div class="employe-nom">${escapeHtml(e.prenom ? e.prenom + ' ' : '')}${escapeHtml(e.nom)}</div>
-                    <div class="employe-role" style="${e.role === 'gerant' ? 'background:#f5eedb;color:#a8872a;' : ''}">
+                    <div class="employe-role ${e.role === 'gerant' ? 'badge-gerant' : 'badge-serveur'}">
                         ${e.role === 'gerant' ? 'Gérant' : 'Serveur'}
                     </div>
                     ${e.created_at ? `<div class="employe-date">Ajouté le ${new Date(e.created_at).toLocaleDateString('fr-FR')}</div>` : ''}

@@ -1433,7 +1433,6 @@ app.get('/api/employes', authMiddleware, checkRole(['gerant', 'superadmin']), as
     .from('profiles')
     .select('id, nom, prenom, role, token_unique, lien_unique, created_at')
     .eq('resto_id', req.user.resto_id)
-    .neq('role', 'gerant')
     .neq('role', 'superadmin')
     .order('created_at', { ascending: false });
 
@@ -1509,13 +1508,30 @@ app.delete('/api/employes/:id', authMiddleware, checkRole(['gerant', 'superadmin
     return res.status(400).json({ error: 'Vous ne pouvez pas supprimer votre propre compte' });
   }
 
+  // Vérifier que l'employé existe et appartient au même restaurant
+  const { data: employe, error: findError } = await supabase
+    .from('profiles')
+    .select('id, resto_id')
+    .eq('id', id)
+    .single();
+
+  if (findError || !employe) {
+    return res.status(404).json({ error: 'Employé non trouvé' });
+  }
+
+  if (employe.resto_id !== req.user.resto_id) {
+    return res.status(403).json({ error: 'Cet employé ne fait pas partie de votre établissement' });
+  }
+
   const { error } = await supabase
     .from('profiles')
     .delete()
-    .eq('id', id)
-    .eq('resto_id', req.user.resto_id);
+    .eq('id', id);
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) {
+    logSecurity('ERROR', 'Erreur suppression employé', { error: error.message, employeId: id });
+    return res.status(500).json({ error: 'Erreur lors de la suppression' });
+  }
   
   logSecurity('INFO', 'Employé supprimé', { employeId: id });
   res.json({ success: true });
