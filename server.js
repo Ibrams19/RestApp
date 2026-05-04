@@ -1461,17 +1461,14 @@ app.post('/api/employes', authMiddleware, checkRole(['gerant', 'superadmin']), a
       });
   }
 
- // Vérifier les permissions pour créer un gérant
+ // Vérifier si le user peut créer un gérant
 if (role === 'gerant') {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (token) {
-        try {
-            const decoded = jwt.verify(token, JWT_SECRET);
-            if (!decoded.est_proprietaire) {
-                return res.status(403).json({ error: 'access_denied', message: 'Seul le propriétaire peut créer un gérant.' });
-            }
-        } catch(e) {
-            return res.status(403).json({ error: 'access_denied', message: 'Token invalide.' });
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.decode(token);
+        if (!decoded || !decoded.est_proprietaire) {
+            return res.status(403).json({ error: 'access_denied', message: 'Seul le propriétaire peut créer un gérant.' });
         }
     }
 }
