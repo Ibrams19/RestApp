@@ -1796,18 +1796,21 @@ app.post('/api/proprietaire/basculer', authMiddleware, async (req, res) => {
     return res.status(403).json({ error: 'Cet établissement ne vous appartient pas' });
   }
 
-  // Générer un nouveau token avec le nouveau resto_id
-  const newToken = jwt.sign(
+// Récupérer le statut propriétaire
+const { data: profile } = await supabase.from('profiles').select('est_proprietaire').eq('id', req.user.id).single();
+
+const newToken = jwt.sign(
     {
       id: req.user.id,
       email: req.user.email,
       resto_id: restaurant.id,
       restaurant_name: restaurant.nom,
-      role: req.user.role
+      role: 'gerant',
+      est_proprietaire: profile?.est_proprietaire || false
     },
     JWT_SECRET,
     { expiresIn: '7d' }
-  );
+);
 
   res.json({ success: true, token: newToken, restaurant });
 });
