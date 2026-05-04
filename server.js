@@ -1461,19 +1461,22 @@ app.post('/api/employes', authMiddleware, checkRole(['gerant', 'superadmin']), a
       });
   }
 
-  if (req.user.role === 'gerant' && role === 'gerant') {
-      var user = await supabase.from('profiles').select('est_proprietaire').eq('id', req.user.id).single();
-      if (!user.data?.est_proprietaire) {
-          return res.status(403).json({ error: 'access_denied', message: 'Seul le propriétaire peut créer un gérant.' });
-      }
-  }
-  if (!role || !VALID_ROLES.includes(role) || role === 'superadmin') {
-        return res.status(400).json({ 
-          error: 'validation_error',
-          message: 'Rôle invalide.',
-          code: 'INVALID_ROLE'
-        });
+ // Vérifier les permissions pour créer un gérant
+if (role === 'gerant') {
+    // Seul le propriétaire peut créer un gérant
+    const { data: userProfile } = await supabase.from('profiles').select('est_proprietaire').eq('id', req.user.id).single();
+    if (!userProfile?.est_proprietaire) {
+        return res.status(403).json({ error: 'access_denied', message: 'Seul le propriétaire peut créer un gérant.' });
     }
+}
+
+if (!role || !VALID_ROLES.includes(role) || role === 'superadmin') {
+    return res.status(400).json({ 
+      error: 'validation_error',
+      message: 'Rôle invalide.',
+      code: 'INVALID_ROLE'
+    });
+}
 
   const tokenUnique = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
   const lienUnique = `${PUBLIC_URL}/magic.html?token=${tokenUnique}`;
