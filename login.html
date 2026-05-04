@@ -591,13 +591,15 @@
 
                 if (res.ok && data.success) {
                     saveSession(data);
-                    showMessage('✅ Restaurant créé avec succès ! Redirection…', 'success');
+                    showMessage('✅ Établissement créé avec succès ! Redirection…', 'success');
                     const estProprietaire = document.getElementById('register-role-type')?.value === 'proprietaire';
-                    if (estProprietaire) {
-                        window.location.href = '/proprietaire.html';
-                    } else {
-                        window.location.href = '/dashboard.html';
-                    }
+                    setTimeout(() => {
+                        if (estProprietaire) {
+                            window.location.href = '/proprietaire.html';
+                        } else {
+                            window.location.href = '/dashboard.html';
+                        }
+                    }, 1200);
                 } else {
                     showMessage(data.message || data.error || 'Erreur lors de l\'inscription.', 'error');
                 }
