@@ -232,6 +232,14 @@
             }
 
             initEvents();
+            // Ajouter option Gérant si propriétaire
+            var user = JSON.parse(localStorage.getItem('resto_user') || '{}');
+            if (user.est_proprietaire) {
+                var opt = document.createElement('option');
+                opt.value = 'gerant';
+                opt.textContent = '👑 Gérant';
+                document.getElementById('role').insertBefore(opt, document.getElementById('role').firstChild);
+            }
             chargerEmployes();
         }
 
@@ -318,12 +326,12 @@
 
             grid.innerHTML = filtered.map(e => `
                 <div class="employe-card">
-                    <div class="employe-avatar ${e.role === 'cuisinier' ? 'avatar-cuisinier' : 'avatar-serveur'}">
-                        ${e.role === 'cuisinier' ? '👨‍🍳' : '🍽️'}
+                    <div class="employe-avatar ${e.role === 'gerant' ? 'avatar-gerant' : 'avatar-serveur'}" style="${e.role === 'gerant' ? 'background:#f5eedb;' : ''}">
+                        ${e.role === 'gerant' ? '👑' : '🍽️'}
                     </div>
                     <div class="employe-nom">${escapeHtml(e.prenom ? e.prenom + ' ' : '')}${escapeHtml(e.nom)}</div>
-                    <div class="employe-role ${e.role === 'cuisinier' ? 'badge-cuisinier' : 'badge-serveur'}">
-                        ${e.role === 'cuisinier' ? 'Cuisinier' : 'Serveur'}
+                    <div class="employe-role" style="${e.role === 'gerant' ? 'background:#f5eedb;color:#a8872a;' : ''}">
+                        ${e.role === 'gerant' ? 'Gérant' : 'Serveur'}
                     </div>
                     ${e.created_at ? `<div class="employe-date">Ajouté le ${new Date(e.created_at).toLocaleDateString('fr-FR')}</div>` : ''}
                     <div class="employe-actions">
