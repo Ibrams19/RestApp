@@ -116,77 +116,68 @@
     </div>
 
     <div class="toast-container" id="toast-container"></div>
-
     <script>
-    (function(){
-        const TOKEN_KEY='resto_token';let token;
-        function init(){
-            token=localStorage.getItem(TOKEN_KEY);
-            if(!token){location.href='/login.html';return;}
-            try{const p=JSON.parse(atob(token.split('.')[1]));if(p.exp&&p.exp*1000<Date.now()){redirectToLogin();return;}}
-            catch(e){redirectToLogin();return;}
-            document.getElementById('logout-btn').addEventListener('click',()=>{localStorage.clear();location.href='/login.html';});
-            document.getElementById('btn-add-etablissement').addEventListener('click',()=>document.getElementById('modal-add').style.display='flex');
-            document.getElementById('btn-cancel-add').addEventListener('click',()=>document.getElementById('modal-add').style.display='none');
-            document.getElementById('btn-confirm-add').addEventListener('click',ajouterEtablissement);
-            document.getElementById('modal-add').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
-            chargerDonnees();
-        }
-        function redirectToLogin(){localStorage.clear();location.href='/login.html';}
-        function showToast(m,t){const c=document.getElementById('toast-container'),to=document.createElement('div');to.className='toast '+t;to.textContent=m;c.appendChild(to);setTimeout(()=>{to.style.opacity='0';to.style.transition='opacity 0.3s';setTimeout(()=>to.remove(),300);},3000);}
+        (function(){
+            const TOKEN_KEY='resto_token';let token;
+            function init(){
+                token=localStorage.getItem(TOKEN_KEY);
+                if(!token){location.href='/login.html';return;}
+                document.getElementById('logout-btn').addEventListener('click',()=>{localStorage.clear();location.href='/login.html';});
+                document.getElementById('btn-add-etablissement').addEventListener('click',()=>document.getElementById('modal-add').style.display='flex');
+                document.getElementById('btn-cancel-add').addEventListener('click',()=>document.getElementById('modal-add').style.display='none');
+                document.getElementById('btn-confirm-add').addEventListener('click',ajouterEtablissement);
+                chargerDonnees();
+            }
+            function showToast(m,t){const c=document.getElementById('toast-container'),to=document.createElement('div');to.className='toast '+t;to.textContent=m;c.appendChild(to);setTimeout(()=>{to.style.opacity='0';to.style.transition='opacity 0.3s';setTimeout(()=>to.remove(),300);},3000);}
 
-        async function chargerDonnees(){
-            try{
-                const[etsRes,statsRes]=await Promise.all([
-                    fetch('/api/proprietaire/etablissements',{headers:{'Authorization':'Bearer '+token}}),
-                    fetch('/api/proprietaire/stats',{headers:{'Authorization':'Bearer '+token}})
-                ]);
-                const ets=await etsRes.json();const stats=await statsRes.json();
-                document.getElementById('nb-etablissements').textContent=stats.nbEtablissements;
-                document.getElementById('nb-commandes').textContent=stats.nbCommandes;
-                document.getElementById('ca-total').textContent=(stats.caTotal||0).toLocaleString();
-                const grid=document.getElementById('etablissements-grid');
-                if(!ets.length){grid.innerHTML='<div class="empty-state"><div class="empty-state-icon">🏪</div><p>Aucun établissement</p><p style="font-size:12px;color:var(--text-secondary);">Ajoutez votre premier établissement.</p></div>';return;}
-                grid.innerHTML=ets.map(e=>{
-                    const s=stats.etablissements?.find(x=>x.id===e.id);
-                    const sc=e.subscription_status==='active'?'badge-active':(e.subscription_status==='trial'?'badge-trial':'badge-expired');
-                    const sl=e.subscription_status==='active'?'Actif':(e.subscription_status==='trial'?'Essai':'Expiré');
-                    return`<div class="etablissement-card">
-                        <div class="etablissement-nom">${decodeURIComponent(escape(e.nom||'Sans nom'))}</div>
-                        <div class="etablissement-type">${e.type_etablissement||'Restaurant'}</div>
-                        <div class="etablissement-stats">
-                            <span>💰 <strong>${(s?.ca||0).toLocaleString()} FCFA</strong></span>
-                            <span>📋 <strong>${s?.nbCommandes||0}</strong> commandes</span>
-                        </div>
-                        <span class="badge-status ${sc}">${sl}</span>
-                        <br>
-                        <button class="btn-basculer" data-id="${e.id}">➡️ Gérer cet établissement</button>
-                    </div>`;
-                }).join('');
-                grid.querySelectorAll('.btn-basculer').forEach(b=>{b.addEventListener('click',()=>basculerEtablissement(b.dataset.id));});
-            }catch(e){}
-        }
+            async function chargerDonnees(){
+                try{
+                    const[etsRes,statsRes]=await Promise.all([
+                        fetch('/api/proprietaire/etablissements',{headers:{'Authorization':'Bearer '+token}}),
+                        fetch('/api/proprietaire/stats',{headers:{'Authorization':'Bearer '+token}})
+                    ]);
+                    const ets=await etsRes.json();const stats=await statsRes.json();
+                    document.getElementById('nb-etablissements').textContent=stats.nbEtablissements;
+                    document.getElementById('nb-commandes').textContent=stats.nbCommandes;
+                    document.getElementById('ca-total').textContent=(stats.caTotal||0).toLocaleString();
+                    const grid=document.getElementById('etablissements-grid');
+                    if(!ets.length){grid.innerHTML='<div class="empty-state"><div class="empty-state-icon">🏪</div><p>Aucun établissement</p></div>';return;}
+                    grid.innerHTML=ets.map(function(e){
+                        const s=stats.etablissements?.find(function(x){return x.id===e.id;});
+                        return '<div class="etablissement-card">'+
+                            '<div class="etablissement-nom">'+e.nom+'</div>'+
+                            '<div class="etablissement-type">'+(e.type_etablissement||'Restaurant')+'</div>'+
+                            '<div class="etablissement-stats">'+
+                            '<span>💰 <strong>'+(s?.ca||0).toLocaleString()+' FCFA</strong></span>'+
+                            '<span>📋 <strong>'+(s?.nbCommandes||0)+'</strong> commandes</span>'+
+                            '</div>'+
+                            '<button class="btn-basculer" data-id="'+e.id+'">➡️ Gérer cet établissement</button>'+
+                        '</div>';
+                    }).join('');
+                    grid.querySelectorAll('.btn-basculer').forEach(function(b){b.addEventListener('click',function(){basculerEtablissement(b.dataset.id);});});
+                }catch(e){}
+            }
 
-        async function ajouterEtablissement(){
-            const nom=document.getElementById('add-nom').value.trim(),type=document.getElementById('add-type').value,tel=document.getElementById('add-tel').value.trim(),adresse=document.getElementById('add-adresse').value.trim();
-            if(!nom){showToast('Nom requis','error');return;}
-            try{
-                const r=await fetch('/api/proprietaire/ajouter-etablissement',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({nomRestaurant:nom,typeEtablissement:type,telephone:tel,adresse})});
-                if(r.ok){showToast('✅ Établissement créé !','success');document.getElementById('modal-add').style.display='none';document.getElementById('add-nom').value='';chargerDonnees();}
-                else{const d=await r.json();showToast(d.error||'Erreur','error');}
-            }catch(e){showToast('Erreur réseau','error');}
-        }
+            async function ajouterEtablissement(){
+                const nom=document.getElementById('add-nom').value.trim(),type=document.getElementById('add-type').value,tel=document.getElementById('add-tel').value.trim(),adresse=document.getElementById('add-adresse').value.trim();
+                if(!nom){showToast('Nom requis','error');return;}
+                try{
+                    const r=await fetch('/api/proprietaire/ajouter-etablissement',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({nomRestaurant:nom,typeEtablissement:type,telephone:tel,adresse})});
+                    if(r.ok){showToast('✅ Créé !','success');document.getElementById('modal-add').style.display='none';document.getElementById('add-nom').value='';chargerDonnees();}
+                    else{const d=await r.json();showToast(d.error||'Erreur','error');}
+                }catch(e){showToast('Erreur réseau','error');}
+            }
 
-        async function basculerEtablissement(restoId){
-            try{
-                const r=await fetch('/api/proprietaire/basculer',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({resto_id:restoId})});
-                if(r.ok){const d=await r.json();localStorage.setItem(TOKEN_KEY,d.token);localStorage.setItem('resto_id',d.restaurant.id);localStorage.setItem('resto_role','gerant');window.location.href='/dashboard.html';}
-                else{const d=await r.json();showToast(d.error||'Erreur','error');}
-            }catch(e){showToast('Erreur réseau','error');}
-        }
+            async function basculerEtablissement(restoId){
+                try{
+                    const r=await fetch('/api/proprietaire/basculer',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({resto_id:restoId})});
+                    if(r.ok){const d=await r.json();localStorage.setItem(TOKEN_KEY,d.token);localStorage.setItem('resto_id',d.restaurant.id);localStorage.setItem('resto_role','gerant');window.location.href='/dashboard.html';}
+                    else{const d=await r.json();showToast(d.error||'Erreur','error');}
+                }catch(e){showToast('Erreur réseau','error');}
+            }
 
-        document.addEventListener('DOMContentLoaded',init);
-    })();
-    </script>
+            document.addEventListener('DOMContentLoaded',init);
+        })();
+</script>
 </body>
 </html>
