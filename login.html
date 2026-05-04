@@ -351,7 +351,7 @@
                     <label class="form-label" for="register-role-type">Je suis *</label>
                     <select id="register-role-type" class="form-input" required>
                         <option value="gerant">👑 Gérant (je gère cet établissement)</option>
-                        <option value="proprietaire">🏢 Propriétaire (je possède plusieurs établissements)</option>
+                        <option value="proprietaire">🏢 Propriétaire (je possède un ou plusieurs établissements)</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -360,7 +360,7 @@
                         placeholder="Ex: Le DAKAR, Speed Burger..." required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="register-email">Email du gérant *</label>
+                    <label class="form-label" for="register-email">Email du gérant ou Propriétaire*</label>
                     <input type="email" id="register-email" class="form-input"
                         placeholder="contact@monetablissement.com" autocomplete="email" required>
                 </div>
@@ -527,7 +527,7 @@
                 if (res.ok && data.success) {
                     saveSession(data);
                     showMessage('✅ Connexion réussie ! Redirection…', 'success');
-                    setTimeout(() => redirectAfterLogin(data.user?.role), 800);
+                    setTimeout(() => redirectAfterLogin(data.user?.role, data.user), 800);
                 } else if (data.error === 'first_login' || data.code === 'NEEDS_SETUP') {
                     showMessage('Première connexion. Utilisez votre lien d\'invitation.', 'error');
                 } else if (data.error === 'subscription_expired' || data.code === 'SUBSCRIPTION_EXPIRED') {
