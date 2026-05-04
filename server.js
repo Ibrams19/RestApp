@@ -1452,33 +1452,20 @@ app.post('/api/employes', authMiddleware, checkRole(['gerant', 'superadmin']), a
     });
   }
 
-  // Le gérant ne peut créer que des serveurs
-  if (req.user.role === 'gerant' && role === 'gerant') {
-      return res.status(403).json({ 
-        error: 'access_denied',
-        message: 'Seul le propriétaire peut créer un gérant.',
-        code: 'FORBIDDEN'
-      });
-  }
-
- // Vérifier si le user peut créer un gérant
+// Vérifier les permissions pour créer un gérant
 if (role === 'gerant') {
     const authHeader = req.headers.authorization;
     if (authHeader) {
         const token = authHeader.split(' ')[1];
-        const decoded = jwt.decode(token);
-        if (!decoded || !decoded.est_proprietaire) {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        if (!decoded.est_proprietaire) {
             return res.status(403).json({ error: 'access_denied', message: 'Seul le propriétaire peut créer un gérant.' });
         }
     }
 }
 
 if (!role || !VALID_ROLES.includes(role) || role === 'superadmin') {
-    return res.status(400).json({ 
-      error: 'validation_error',
-      message: 'Rôle invalide.',
-      code: 'INVALID_ROLE'
-    });
+    return res.status(400).json({ error: 'validation_error', message: 'Rôle invalide.' });
 }
 
   const tokenUnique = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
