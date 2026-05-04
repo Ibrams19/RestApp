@@ -310,15 +310,16 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
   }
 
   const token = jwt.sign(
-    { 
-      id: profile.id, 
-      email: profile.email, 
-      resto_id: profile.resto_id, 
-      restaurant_name: profile.restaurants?.nom, 
-      role: profile.role 
-    },
-    JWT_SECRET,
-    { expiresIn: '7d' }
+      { 
+        id: profile.id, 
+        email: profile.email, 
+        resto_id: profile.resto_id, 
+        restaurant_name: profile.restaurants?.nom, 
+        role: profile.role,
+        est_proprietaire: profile.est_proprietaire || false
+      },
+      JWT_SECRET,
+      { expiresIn: '7d' }
   );
 
   logSecurity('INFO', 'Connexion réussie', { email, role: profile.role });
@@ -331,6 +332,7 @@ app.post('/api/auth/login', loginLimiter, async (req, res) => {
       email: profile.email,
       nom: profile.nom,
       role: profile.role,
+      est_proprietaire: profile.est_proprietaire || false,
       resto_id: profile.resto_id
     },
     restaurant: profile.restaurants ? {
@@ -458,10 +460,17 @@ app.post('/api/register', async (req, res) => {
   }
 
   const token = jwt.sign(
-    { id: profile.id, email, resto_id: restaurant.id, restaurant_name: restaurant.nom, role: 'gerant' },
+    { 
+        id: profile.id, 
+        email, 
+        resto_id: restaurant.id, 
+        restaurant_name: restaurant.nom, 
+        role: 'gerant',
+        est_proprietaire: req.body.estProprietaire || false
+    },
     JWT_SECRET,
     { expiresIn: '7d' }
-  );
+);
 
   logSecurity('INFO', 'Nouveau restaurant créé', { email, restaurant: restaurant.nom });
 
@@ -469,12 +478,13 @@ app.post('/api/register', async (req, res) => {
     success: true, 
     token, 
     user: {
-      id: profile.id,
-      email: profile.email,
-      nom: profile.nom,
-      role: profile.role,
-      resto_id: profile.resto_id
-    },
+    id: profile.id,
+    email: profile.email,
+    nom: profile.nom,
+    role: profile.role,
+    resto_id: profile.resto_id,
+    est_proprietaire: req.body.estProprietaire || false
+},
     restaurant: {
       id: restaurant.id,
       nom: restaurant.nom,
