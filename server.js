@@ -1648,6 +1648,140 @@ app.get('/api/superadmin/stats', checkRole(['superadmin']), async (req, res) => 
     restaurants: restaurants || []
   });
 });
+// ==================== PROPRIÉTAIRE ====================
+
+// Liste des établissements du propriétaire
+app.get('/api/proprietaire/etablissements', authMiddleware, async (req, res) => {
+  if (!req.user?.id) return res.status(401).json({ error: 'Non autorisé' });
+
+  const { data, error } = await supabase
+    .from('restaurants')
+    .select('id, nom, type_etablissement, subscription_status, trial_ends_at, subscription_ends_at, actif')
+    .eq('proprietaire_id', req.user.id)
+    .order('nom');
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data || []);
+});
+
+// Stats globales du propriétaire
+app.get('/api/proprietaire/stats', authMiddleware, async (req, res) => {
+  if (!req.user?.id) return res.status(401).json({ error: 'Non autorisé' });
+
+  // Récupérer tous les IDs des restaurants du propriétaire
+  const { data: restos } = await supabase
+    .from('restaurants')
+    .select('id, nom')
+    .eq('proprietaire_id', req.user.id);
+
+  if (!restos || restos.length === 0) {
+    return res.json({ caTotal: 0, nbCommandes: 0, nbEtablissements: 0, etablissements: [] });
+  }
+
+  const restoIds = restos.map(r => r.id);
+
+  const { data: commandes } = await supabase
+    .from('commandes')
+    .select('id, total, resto_id')
+    .in('resto_id', restoIds)
+    .eq('statut', 'paye');
+
+  // Stats par établissement
+  const statsParEtablissement = restos.map(r => {
+    const cmds = (commandes || []).filter(c => c.resto_id === r.id);
+    return {
+      id: r.id,
+      nom: r.nom,
+      ca: cmds.reduce((s, c) => s + (c.total || 0), 0),
+      nbCommandes: cmds.length
+    };
+  });
+
+  const caTotal = commandes?.reduce((s, c) => s + (c.total || 0), 0) || 0;
+
+  res.json({
+    caTotal: Math.round(caTotal),
+    nbCommandes: commandes?.length || 0,
+    nbEtablissements: restos.length,
+    etablissements: statsParEtablissement
+  });
+});
+
+// Ajouter un établissement (propriétaire)
+app.post('/api/proprietaire/ajouter-etablissement', authMiddleware, async (req, res) => {
+  const { nomRestaurant, typeEtablissement, telephone, adresse } = req.body;
+
+  if (!nomRestaurant || nomRestaurant.length < 2) {
+    return res.status(400).json({ error: 'Nom de l\'établissement requis' });
+  }
+
+  const baseSlug = nomRestaurant.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 50);
+  const slug = `${baseSlug}-${Date.now().toString(36)}`;
+  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
+  const { data: restaurant, error } = await supabase
+    .from('restaurants')
+    .insert({
+      nom: Buffer.from(sanitizeString(nomRestaurant), 'latin1').toString('utf8'),
+      slug,
+      telephone: telephone || null,
+      adresse: adresse || null,
+      actif: true,
+      type_etablissement: typeEtablissement || 'Restaurant',
+      subscription_status: 'trial',
+      trial_ends_at: trialEndsAt.toISOString(),
+      proprietaire_id: req.user.id
+    })
+    .select()
+    .single();
+
+  if (error) {
+    logSecurity('ERROR', 'Erreur création établissement propriétaire', { error: error.message });
+    return res.status(500).json({ error: 'Erreur création' });
+  }
+
+  // Créer 10 tables par défaut
+  for (let i = 1; i <= 10; i++) {
+    await supabase.from('tables').insert({ resto_id: restaurant.id, numero_table: i });
+  }
+
+  logSecurity('INFO', 'Nouvel établissement créé par propriétaire', { nom: restaurant.nom, proprietaire_id: req.user.id });
+
+  res.json({ success: true, restaurant });
+});
+
+// Basculer vers un établissement (mettre à jour le resto_id dans le token)
+app.post('/api/proprietaire/basculer', authMiddleware, async (req, res) => {
+  const { resto_id } = req.body;
+  if (!resto_id) return res.status(400).json({ error: 'ID établissement requis' });
+
+  // Vérifier que l'établissement appartient bien au propriétaire
+  const { data: restaurant } = await supabase
+    .from('restaurants')
+    .select('id, nom, proprietaire_id')
+    .eq('id', resto_id)
+    .eq('proprietaire_id', req.user.id)
+    .single();
+
+  if (!restaurant) {
+    return res.status(403).json({ error: 'Cet établissement ne vous appartient pas' });
+  }
+
+  // Générer un nouveau token avec le nouveau resto_id
+  const newToken = jwt.sign(
+    {
+      id: req.user.id,
+      email: req.user.email,
+      resto_id: restaurant.id,
+      restaurant_name: restaurant.nom,
+      role: req.user.role
+    },
+    JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+
+  res.json({ success: true, token: newToken, restaurant });
+});
 
 // Supprimer un restaurant (superadmin)
 app.post('/api/superadmin/delete-restaurant', checkRole(['superadmin']), async (req, res) => {

@@ -474,7 +474,8 @@
                     email: data.user.email,
                     nom: data.user.nom,
                     role: data.user.role,
-                    resto_id: data.user.resto_id
+                    resto_id: data.user.resto_id,
+                    est_proprietaire: data.user.est_proprietaire || false 
                 }));
                 localStorage.setItem('resto_role', data.user.role);
                 localStorage.setItem('resto_id', data.user.resto_id);
@@ -482,14 +483,17 @@
         }
 
         function redirectAfterLogin(role) {
-            if (role === 'superadmin') {
-                 window.location.href = '/superadmin.html';
-             } else if (role === 'gerant') {
+            const user = JSON.parse(localStorage.getItem('resto_user') || '{}');
+            if (user.est_proprietaire) {
+                window.location.href = '/proprietaire.html';
+            } else if (role === 'superadmin') {
+                window.location.href = '/superadmin.html';
+            } else if (role === 'gerant') {
                 window.location.href = '/dashboard.html';
             } else {
-                 window.location.href = '/resto.html';
+                window.location.href = '/resto.html';
+            }
         }
-}
 
         // ==================== LOGIN ====================
         async function login(e) {
