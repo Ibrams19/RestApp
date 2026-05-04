@@ -1632,7 +1632,7 @@ app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
 app.get('/api/superadmin/restaurants', checkRole(['superadmin']), async (req, res) => {
   const { data, error } = await supabase
     .from('restaurants')
-    .select('*, profiles(email)')
+    .select('*, profiles!profiles_resto_id_fkey(email)')
     .order('id', { ascending: false });
 
   if (error) return res.status(500).json({ error: error.message });
@@ -1736,7 +1736,7 @@ app.post('/api/proprietaire/ajouter-etablissement', authMiddleware, async (req, 
   const { data: restaurant, error } = await supabase
     .from('restaurants')
     .insert({
-      nom: Buffer.from(sanitizeString(nomRestaurant), 'latin1').toString('utf8'),
+      nom: nomRestaurant.trim(),
       slug,
       telephone: telephone || null,
       adresse: adresse || null,
