@@ -77,7 +77,7 @@ const VALID_TRANSITIONS = {
   'servi': ['paye']
 };
 
-const VALID_ROLES = ['gerant', 'serveur', 'superadmin'];
+const VALID_ROLES = ['proprietaire', 'gerant', 'serveur', 'superadmin'];
 const VALID_CATEGORIES = ['Entrée', 'Plat', 'Dessert', 'Boisson', 'Accompagnement', 'Pâtisserie', 'Crêpe', 'Glace'];
 
 function validateEmail(email) {
@@ -435,9 +435,9 @@ app.post('/api/register', async (req, res) => {
         resto_id: restaurant.id, 
         nom: sanitizeString(nomRestaurant), 
         mot_de_passe: hashedPassword, 
-        role: 'gerant', 
+        role: 'proprietaire', 
         first_login: false,
-        est_proprietaire: req.body.estProprietaire || false
+        est_proprietaire: true
       })
     .select()
     .single();
@@ -469,8 +469,8 @@ app.post('/api/register', async (req, res) => {
         email, 
         resto_id: restaurant.id, 
         restaurant_name: restaurant.nom, 
-        role: 'gerant',
-        est_proprietaire: req.body.estProprietaire || false
+        role: 'proprietaire',
+        est_proprietaire: true
     },
     JWT_SECRET,
     { expiresIn: '7d' }
@@ -485,9 +485,9 @@ app.post('/api/register', async (req, res) => {
     id: profile.id,
     email: profile.email,
     nom: profile.nom,
-    role: profile.role,
+    role: 'proprietaire',
     resto_id: profile.resto_id,
-    est_proprietaire: req.body.estProprietaire || false
+    est_proprietaire: true
 },
     restaurant: {
       id: restaurant.id,
@@ -1471,7 +1471,7 @@ if (role === 'gerant') {
     }
 }
 
-if (!role || !VALID_ROLES.includes(role) || role === 'superadmin') {
+if (!role || !VALID_ROLES.includes(role) || role === 'superadmin' || role === 'proprietaire') {
     return res.status(400).json({ error: 'validation_error', message: 'Rôle invalide.' });
 }
 

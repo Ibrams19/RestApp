@@ -347,13 +347,6 @@
                         <option value="Autre">🏷️ Autre</option>
                     </select>
                 </div>
-                                <div class="form-group">
-                    <label class="form-label" for="register-role-type">Je suis *</label>
-                    <select id="register-role-type" class="form-input" required>
-                        <option value="gerant">👑 Gérant (je gère cet établissement)</option>
-                        <option value="proprietaire">🏢 Propriétaire (je possède un ou plusieurs établissements)</option>
-                    </select>
-                </div>
                 <div class="form-group">
                     <label class="form-label" for="register-nom">Nom de l'établissement *</label>
                     <input type="text" id="register-nom" class="form-input"
@@ -584,7 +577,7 @@
                         typeEtablissement: document.getElementById('register-type').value || 'Restaurant',
                         telephone: telephone || null,
                         adresse: adresse || null,
-                        estProprietaire: document.getElementById('register-role-type')?.value === 'proprietaire'
+                        estProprietaire: true
                     })
                 });
 
@@ -593,13 +586,8 @@
                 if (res.ok && data.success) {
                     saveSession(data);
                     showMessage('✅ Établissement créé avec succès ! Redirection…', 'success');
-                    const estProprietaire = document.getElementById('register-role-type')?.value === 'proprietaire';
                     setTimeout(() => {
-                        if (estProprietaire) {
-                            window.location.href = '/proprietaire.html';
-                        } else {
-                            window.location.href = '/dashboard.html';
-                        }
+                        window.location.href = '/proprietaire.html';
                     }, 1200);
                 } else {
                     showMessage(data.message || data.error || 'Erreur lors de l\'inscription.', 'error');
