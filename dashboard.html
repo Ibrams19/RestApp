@@ -379,6 +379,16 @@
             chargerStats();
             chargerTables();
             startPolling();
+            // Cacher Abonnement/Transactions pour les gérants non-propriétaires
+            var u = JSON.parse(localStorage.getItem('resto_user') || '{}');
+            if (userRole === 'gerant' && !u.est_proprietaire) {
+                var navLinks = document.querySelectorAll('.nav-btn');
+                navLinks.forEach(function(link) {
+                    if (link.href.includes('subscription.html') || link.href.includes('transactions.html')) {
+                        link.style.display = 'none';
+                    }
+                });
+            }
         }
 
         function redirectToLogin() {

@@ -1585,6 +1585,9 @@ app.get('/api/restaurant/subscription', authMiddleware, async (req, res) => {
 
 app.get('/api/restaurant/transactions', authMiddleware, async (req, res) => {
   const restoId = req.user.resto_id;
+    if (req.user.role === 'gerant' && !req.user.est_proprietaire) {
+      return res.status(403).json({ error: 'Accès réservé au propriétaire' });
+    }
   const { data, error } = await supabase
     .from('transactions')
     .select('*')
@@ -1599,6 +1602,9 @@ app.get('/api/restaurant/transactions', authMiddleware, async (req, res) => {
 // Paiement - CORRECTION : durée en mois, pas en minutes
 app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
   const { plan } = req.body;
+    if (req.user.role === 'gerant' && !req.user.est_proprietaire) {
+      return res.status(403).json({ error: 'Accès réservé au propriétaire' });
+    }
   const restoId = req.user.resto_id;
   const profileId = req.user.id;
 

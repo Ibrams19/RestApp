@@ -225,7 +225,20 @@
                 document.getElementById('nav-proprietaire').style.display = 'inline-block';
             }
             const nb=document.getElementById('nav-bar'),ni=[];
-            if(userRole==='proprietaire'||userRole==='gerant'||userRole==='superadmin')ni.push({href:'/dashboard.html',label:'📊 Dashboard'},{href:'/admin.html',label:'🍽️ Plats'},{href:'/employes.html',label:'👥 Équipe'},{href:'/resto.html',label:'👨‍🍳 Cuisine & Service',active:true},{href:'/qrcodes.html',label:'📱 QR Codes'},{href:'/subscription.html',label:'💰 Abonnement'});
+            if(userRole==='proprietaire'||userRole==='gerant'||userRole==='superadmin'){
+                ni.push(
+                    {href:'/dashboard.html',label:'📊 Dashboard'},
+                    {href:'/admin.html',label:'🍽️ Plats'},
+                    {href:'/employes.html',label:'👥 Équipe'},
+                    {href:'/resto.html',label:'👨‍🍳 Cuisine & Service',active:true},
+                    {href:'/qrcodes.html',label:'📱 QR Codes'}
+                );
+                // Abonnement seulement pour proprio et superadmin
+                var u = JSON.parse(localStorage.getItem('resto_user') || '{}');
+                if (u.est_proprietaire || userRole === 'superadmin') {
+                    ni.push({href:'/subscription.html',label:'💰 Abonnement'});
+                }
+            }
             else if(userRole==='serveur')ni.push({href:'/resto.html',label:'🍽️ Mon service',active:true});
             nb.innerHTML=ni.map(i=>`<a href="${i.href}" class="nav-btn${i.active?' active':''}">${i.label}</a>`).join('');
             document.getElementById('theme-toggle').addEventListener('click',toggleTheme);
