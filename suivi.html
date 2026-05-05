@@ -245,7 +245,7 @@
         <div class="card" id="suivi-card">
             <div class="logo-area">
                 <div class="logo-icon">🍽️</div>
-                <div class="resto-name">Restaurant <span>7★</span></div>
+                <div class="resto-name" id="resto-name">🍽️ Chargement...</div>
             </div>
 
             <div id="content">
@@ -283,6 +283,20 @@
 
             document.getElementById('btn-refresh').addEventListener('click', chargerSuivi);
             chargerSuivi();
+            // Charger le nom du restaurant
+            var restoId = new URLSearchParams(window.location.search).get('resto');
+            if (restoId) {
+                fetch('/api/menu/' + restoId)
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.restaurant) {
+                            document.getElementById('resto-name').textContent = '🍽️ ' + data.restaurant;
+                        }
+                    })
+                    .catch(function() {
+                        document.getElementById('resto-name').textContent = '🍽️ Restaurant';
+                    });
+            }
             startAutoRefresh();
         }
 
