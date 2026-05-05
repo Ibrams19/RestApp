@@ -944,6 +944,18 @@ app.put('/api/commande/:id/statut', apiLimiter, async (req, res) => {
 
   res.json({ success: true, statut });
 });
+app.delete('/api/commande/:id', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  
+  // Supprimer d'abord les détails
+  await supabase.from('commande_details').delete().eq('commande_id', id);
+  
+  // Puis supprimer la commande
+  const { error } = await supabase.from('commandes').delete().eq('id', id);
+  
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ success: true });
+});
 
 app.get('/api/commandes/:restoId', async (req, res) => {
   const { restoId } = req.params;
