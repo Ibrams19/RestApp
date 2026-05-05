@@ -124,7 +124,7 @@
                 if(!token){location.href='/login.html';return;}
                 try{
                     const p=JSON.parse(atob(token.split('.')[1]));
-                    if(p.role!=='proprietaire'&&p.role!=='superadmin'){location.href='/dashboard.html';return;}
+                    if(!p.est_proprietaire && p.role!=='superadmin'){location.href='/dashboard.html';return;}
                 }catch(e){location.href='/login.html';return;}
                 document.getElementById('logout-btn').addEventListener('click',()=>{localStorage.clear();location.href='/login.html';});
                 document.getElementById('btn-add-etablissement').addEventListener('click',()=>document.getElementById('modal-add').style.display='flex');
