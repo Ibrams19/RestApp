@@ -230,7 +230,7 @@
                 currentResto = payload.resto_id;
             } catch(e) { redirectToLogin(); return; }
 
-            if (userRole !== 'gerant' && userRole !== 'superadmin') {
+            if (userRole !== 'proprietaire' && userRole !== 'gerant' && userRole !== 'superadmin') {
                 window.location.href = '/resto.html';
                 return;
             }

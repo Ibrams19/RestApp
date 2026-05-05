@@ -402,9 +402,11 @@
                 }
 
                 // Rediriger selon le rôle
-                if (payload.est_proprietaire) {
+                if (payload.role === 'superadmin') {
+                    window.location.href = '/superadmin.html';
+                } else if (payload.role === 'proprietaire') {
                     window.location.href = '/proprietaire.html';
-                } else if (payload.role === 'superadmin') {
+                } else if (payload.role === 'gerant') {
                     window.location.href = '/superadmin.html';
                 } else if (payload.role === 'gerant') {
                     window.location.href = '/dashboard.html';
@@ -477,10 +479,10 @@
         }
 
         function redirectAfterLogin(role, userData) {
-            if (userData && userData.est_proprietaire) {
-                window.location.href = '/proprietaire.html';
-            } else if (role === 'superadmin') {
+            if (role === 'superadmin') {
                 window.location.href = '/superadmin.html';
+            } else if (role === 'proprietaire') {
+                window.location.href = '/proprietaire.html';
             } else if (role === 'gerant') {
                 window.location.href = '/dashboard.html';
             } else {

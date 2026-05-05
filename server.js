@@ -1136,7 +1136,7 @@ app.get('/api/generate-qr/:restoId/:tableId', async (req, res) => {
 // ==================== ROUTES PROTÉGÉES ====================
 
 // Admin - Plats
-app.post('/api/admin/plat', checkRole(['gerant', 'superadmin']), async (req, res) => {
+app.post('/api/admin/plat', checkRole(['proprietaire', 'gerant', 'superadmin']), async (req, res) => {
   const { restoId, nom_plat, prix, categorie, disponible, description } = req.body;
   const finalRestoId = restoId || req.user.resto_id;
 
@@ -1187,7 +1187,7 @@ app.get('/api/admin/menu/:restoId', checkRole(['gerant', 'serveur', 'superadmin'
   res.json(data);
 });
 
-app.put('/api/admin/plat/:id', checkRole(['gerant', 'superadmin']), async (req, res) => {
+app.put('/api/admin/plat/:id', checkRole(['proprietaire', 'gerant', 'superadmin']), async (req, res) => {
   const { id } = req.params;
   const updates = {};
   
@@ -1214,7 +1214,7 @@ app.put('/api/admin/plat/:id', checkRole(['gerant', 'superadmin']), async (req, 
   res.json({ success: true });
 });
 
-app.delete('/api/admin/plat/:id', checkRole(['gerant', 'superadmin']), async (req, res) => {
+app.delete('/api/admin/plat/:id', checkRole(['proprietaire', 'gerant', 'superadmin']), async (req, res) => {
   const { id } = req.params;
   
   // Supprimer la photo si elle existe
@@ -1231,7 +1231,7 @@ app.delete('/api/admin/plat/:id', checkRole(['gerant', 'superadmin']), async (re
   res.json({ success: true });
 });
 
-app.put('/api/admin/plat/:id/disponible', checkRole(['gerant', 'superadmin']), async (req, res) => {
+app.put('/api/admin/plat/:id/disponible', checkRole(['proprietaire', 'gerant', 'superadmin']), async (req, res) => {
   const { id } = req.params;
   const { disponible } = req.body;
   
@@ -1241,7 +1241,7 @@ app.put('/api/admin/plat/:id/disponible', checkRole(['gerant', 'superadmin']), a
 });
 
 // Stats
-app.get('/api/stats/:restoId', checkRole(['gerant', 'superadmin']), async (req, res) => {
+app.get('/api/stats/:restoId', checkRole(['proprietaire', 'gerant', 'superadmin']), async (req, res) => {
   const targetRestoId = req.params.restoId || req.user.resto_id;
   const { periode } = req.query;
 
@@ -1436,7 +1436,7 @@ app.post('/api/upload-plat-photo/:platId', authMiddleware, upload.single('photo'
 });
 
 // ==================== EMPLOYÉS ====================
-app.get('/api/employes', authMiddleware, checkRole(['gerant', 'superadmin']), async (req, res) => {
+app.get('/api/employes', authMiddleware, checkRole(['proprietaire', 'gerant', 'superadmin']), async (req, res) => {
   const { data, error } = await supabase
     .from('profiles')
     .select('id, nom, prenom, role, token_unique, lien_unique, created_at')

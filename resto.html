@@ -218,9 +218,9 @@
         function toggleTheme(){document.body.classList.toggle('dark');const d=document.body.classList.contains('dark');localStorage.setItem(THEME_KEY,d?'dark':'light');document.getElementById('theme-toggle').textContent=d?'☀️':'🌙';}
 
         function initUI(){
-            document.getElementById('role-badge').textContent={'gerant':'👑 Gérant','serveur':'🍽️ Serveur','superadmin':'👑 Super Admin'}[userRole]||'📋 Staff';
+            document.getElementById('role-badge').textContent={'proprietaire':'🏢 Propriétaire','gerant':'👑 Gérant','serveur':'🍽️ Serveur','superadmin':'👑 Super Admin'}[userRole]||'📋 Staff';
             const nb=document.getElementById('nav-bar'),ni=[];
-            if(userRole==='gerant'||userRole==='superadmin')ni.push({href:'/dashboard.html',label:'📊 Dashboard'},{href:'/admin.html',label:'🍽️ Plats'},{href:'/employes.html',label:'👥 Équipe'},{href:'/resto.html',label:'👨‍🍳 Cuisine & Service',active:true},{href:'/qrcodes.html',label:'📱 QR Codes'},{href:'/subscription.html',label:'💰 Abonnement'});
+            if(userRole==='proprietaire'||userRole==='gerant'||userRole==='superadmin')ni.push({href:'/dashboard.html',label:'📊 Dashboard'},{href:'/admin.html',label:'🍽️ Plats'},{href:'/employes.html',label:'👥 Équipe'},{href:'/resto.html',label:'👨‍🍳 Cuisine & Service',active:true},{href:'/qrcodes.html',label:'📱 QR Codes'},{href:'/subscription.html',label:'💰 Abonnement'});
             else if(userRole==='serveur')ni.push({href:'/resto.html',label:'🍽️ Mon service',active:true});
             nb.innerHTML=ni.map(i=>`<a href="${i.href}" class="nav-btn${i.active?' active':''}">${i.label}</a>`).join('');
             document.getElementById('theme-toggle').addEventListener('click',toggleTheme);

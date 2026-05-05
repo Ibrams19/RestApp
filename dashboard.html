@@ -357,12 +357,17 @@
                 document.getElementById('resto-name').textContent = decodeURIComponent(escape(payload.restaurant_name || 'Restaurant'));
             } catch(e) { redirectToLogin(); return; }
 
-            if (userRole !== 'gerant' && userRole !== 'superadmin') {
+            if (userRole === 'serveur') {
                 window.location.href = '/resto.html';
-                return;
+                 return;
             }
 
-            document.getElementById('role-badge').textContent = userRole === 'superadmin' ? '👑 Super Admin' : '👑 Gérant';
+            const badges = {
+                'proprietaire': '🏢 Propriétaire',
+                'gerant': '👑 Gérant',
+                'superadmin': '👑 Super Admin'
+            };
+            document.getElementById('role-badge').textContent = badges[userRole] || '📋 Staff';
 
             initEventListeners();
             checkSubscription();
