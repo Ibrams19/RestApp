@@ -286,7 +286,7 @@
         function getStatutText(s){return{en_attente:'En attente',cuisine:'En cuisine',pret:'Prête',servi:'Servie',paye:'Payée'}[s]||s;}
         function getTimeAgo(d){if(!d)return'';const n=new Date(),t=new Date(d),m=Math.floor((n-t)/60000);if(m<1)return'À l\'instant';if(m<60)return`Il y a ${m} min`;const h=Math.floor(m/60);if(h<24)return`Il y a ${h}h`;return t.toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}
         function isUrgent(d,s){if(s!=='en_attente'&&s!=='cuisine')return false;if(!d)return false;return Math.floor((new Date()-new Date(d))/60000)>15;}
-        function getActionsForCommand(s,r){const a=[];if(r==='serveur'||r==='gerant'||r==='superadmin'){if(s==='en_attente')a.push({label:'👨‍🍳 En cuisine',action:'cuisine',class:'btn-cuisine'});if(s==='cuisine')a.push({label:'✅ Plat prêt',action:'pret',class:'btn-pret'});if(s==='pret')a.push({label:'🍽️ Servir',action:'servi',class:'btn-servir'});if(s==='servi')a.push({label:'💰 Encaisser',action:'paye',class:'btn-payer'});}return a;}
+        function getActionsForCommand(s,r){const a=[];if(r==='proprietaire'||r==='serveur'||r==='gerant'||r==='superadmin'){if(s==='en_attente')a.push({label:'👨‍🍳 En cuisine',action:'cuisine',class:'btn-cuisine'});if(s==='cuisine')a.push({label:'✅ Plat prêt',action:'pret',class:'btn-pret'});if(s==='pret')a.push({label:'🍽️ Servir',action:'servi',class:'btn-servir'});if(s==='servi')a.push({label:'💰 Encaisser',action:'paye',class:'btn-payer'});}return a;}
 
         function afficherCommandes(){
             let f=allCommandes;const sp={en_attente:0,cuisine:1,pret:2,servi:3,paye:4};
