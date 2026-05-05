@@ -130,6 +130,7 @@
     </header>
 
     <nav class="nav-bar" id="nav-bar"></nav>
+    <a href="/proprietaire.html" class="nav-btn" id="nav-proprietaire" style="display:none;">🏢 Mes établissements</a>
 
     <div class="stats-row">
         <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-number" id="count-attente">0</div><div class="stat-label">En attente</div></div>
@@ -219,6 +220,10 @@
 
         function initUI(){
             document.getElementById('role-badge').textContent={'proprietaire':'🏢 Propriétaire','gerant':'👑 Gérant','serveur':'🍽️ Serveur','superadmin':'👑 Super Admin'}[userRole]||'📋 Staff';
+            var user = JSON.parse(localStorage.getItem('resto_user') || '{}');
+            if (user.est_proprietaire) {
+                document.getElementById('nav-proprietaire').style.display = 'inline-block';
+            }
             const nb=document.getElementById('nav-bar'),ni=[];
             if(userRole==='proprietaire'||userRole==='gerant'||userRole==='superadmin')ni.push({href:'/dashboard.html',label:'📊 Dashboard'},{href:'/admin.html',label:'🍽️ Plats'},{href:'/employes.html',label:'👥 Équipe'},{href:'/resto.html',label:'👨‍🍳 Cuisine & Service',active:true},{href:'/qrcodes.html',label:'📱 QR Codes'},{href:'/subscription.html',label:'💰 Abonnement'});
             else if(userRole==='serveur')ni.push({href:'/resto.html',label:'🍽️ Mon service',active:true});

@@ -265,6 +265,7 @@
     </header>
 
     <nav class="nav-bar">
+        <a href="/proprietaire.html" class="nav-btn">🏢 Mes établissements</a>
         <a href="/dashboard.html" class="nav-btn active">📊 Dashboard</a>
         <a href="/admin.html" class="nav-btn">🍽️ Plats</a>
         <a href="/employes.html" class="nav-btn">👥 Équipe</a>
@@ -360,6 +361,10 @@
             if (userRole === 'serveur') {
                 window.location.href = '/resto.html';
                  return;
+            }
+            var user = JSON.parse(localStorage.getItem('resto_user') || '{}');
+            if (user.est_proprietaire) {
+                document.getElementById('nav-proprietaire').style.display = 'inline-block';
             }
 
             const badges = {

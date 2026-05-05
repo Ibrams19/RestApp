@@ -129,6 +129,7 @@
     </header>
 
     <nav class="nav-bar">
+        <a href="/proprietaire.html" class="nav-btn" id="nav-proprietaire" style="display:none;">🏢 Mes établissements</a>
         <a href="/dashboard.html" class="nav-btn">📊 Dashboard</a>
         <a href="/admin.html" class="nav-btn active">📋 Menu</a>
         <a href="/employes.html" class="nav-btn">👥 Équipe</a>
@@ -245,6 +246,10 @@
             if (userRole !== 'gerant' && userRole !== 'superadmin') {
                 window.location.href = '/resto.html';
                 return;
+            }
+            var user = JSON.parse(localStorage.getItem('resto_user') || '{}');
+            if (user.est_proprietaire) {
+                document.getElementById('nav-proprietaire').style.display = 'inline-block';
             }
 
             initEvents();

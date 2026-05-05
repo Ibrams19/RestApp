@@ -1442,13 +1442,14 @@ app.get('/api/employes', authMiddleware, checkRole(['proprietaire', 'gerant', 's
     .select('id, nom, prenom, role, token_unique, lien_unique, created_at')
     .eq('resto_id', req.user.resto_id)
     .neq('role', 'superadmin')
+    .neq('role', 'proprietaire')
     .order('created_at', { ascending: false });
 
   if (error) return res.status(500).json({ error: error.message });
   res.json(data || []);
 });
 
-app.post('/api/employes', authMiddleware, checkRole(['gerant', 'superadmin']), async (req, res) => {
+app.post('/api/employes', authMiddleware, checkRole(['proprietaire', 'gerant', 'superadmin']), async (req, res) => {
   const { nom, prenom, role } = req.body;
   
   if (!nom || nom.trim().length < 2) {
@@ -1547,6 +1548,11 @@ app.delete('/api/employes/:id', authMiddleware, checkRole(['gerant', 'superadmin
 
 // ==================== ABONNEMENT ====================
 app.get('/api/restaurant/subscription', authMiddleware, async (req, res) => {
+  // Seul le propriétaire peut voir l'abonnement
+  if (req.user.role === 'gerant' && !req.user.est_proprietaire) {
+    return res.status(403).json({ error: 'Accès réservé au propriétaire' });
+  }
+
   const { data: restaurant, error } = await supabase
     .from('restaurants')
     .select('subscription_status, trial_ends_at, subscription_ends_at, nom')
@@ -1852,6 +1858,59 @@ app.post('/api/superadmin/delete-restaurant', checkRole(['superadmin']), async (
     logSecurity('ERROR', 'Erreur suppression restaurant', { error: e.message });
     res.status(500).json({ error: e.message });
   }
+});
+// Changer le statut d'un restaurant (suspendre/réactiver)
+app.post('/api/superadmin/changer-statut', checkRole(['superadmin']), async (req, res) => {
+  const { resto_id, statut } = req.body;
+  if (!resto_id || !statut) return res.status(400).json({ error: 'resto_id et statut requis' });
+
+  const { error } = await supabase
+    .from('restaurants')
+    .update({ subscription_status: statut })
+    .eq('id', resto_id);
+
+  if (error) return res.status(500).json({ error: error.message });
+  logSecurity('INFO', 'Statut restaurant changé par superadmin', { resto_id, statut });
+  res.json({ success: true });
+});
+// Se connecter en tant que gérant d'un restaurant
+app.post('/api/superadmin/login-as', checkRole(['superadmin']), async (req, res) => {
+  const { resto_id } = req.body;
+  if (!resto_id) return res.status(400).json({ error: 'resto_id requis' });
+
+  const { data: restaurant } = await supabase
+    .from('restaurants')
+    .select('id, nom')
+    .eq('id', resto_id)
+    .single();
+
+  if (!restaurant) return res.status(404).json({ error: 'Restaurant non trouvé' });
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, email, role, est_proprietaire')
+    .eq('resto_id', resto_id)
+    .neq('role', 'superadmin')
+    .limit(1)
+    .single();
+
+  if (!profile) return res.status(404).json({ error: 'Aucun gérant trouvé pour ce restaurant' });
+
+  const token = jwt.sign(
+    {
+      id: profile.id,
+      email: profile.email,
+      resto_id: restaurant.id,
+      restaurant_name: restaurant.nom,
+      role: 'gerant',
+      est_proprietaire: profile.est_proprietaire || false
+    },
+    JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+
+  logSecurity('INFO', 'Superadmin connecté en tant que gérant', { resto_id });
+  res.json({ success: true, token, restaurant });
 });
 
 // ==================== WEBSOCKETS ====================

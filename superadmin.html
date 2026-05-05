@@ -10,84 +10,88 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0d0d0d; --surface: #1a1a1a; --gold: #C6A43F; --gold-dark: #a8872a;
-            --text: #f0ece4; --text-secondary: #a0a0a0; --border: #2a2a2a;
-            --danger: #E74C3C; --success: #27AE60; --warning: #F39C12;
-            --shadow-lg: 0 8px 40px rgba(0,0,0,0.3);
-            --radius-md: 16px; --radius-lg: 24px; --radius-xl: 60px;
-            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-            --font-serif: 'Playfair Display', 'Georgia', serif;
+        :root { --bg:#0d0d0d; --surface:#1a1a1a; --gold:#C6A43F; --gold-dark:#a8872a; --text:#f0ece4; --text-secondary:#a0a0a0; --border:#2a2a2a; --danger:#E74C3C; --success:#27AE60; --warning:#F39C12;
+            --shadow-sm:0 1px 3px rgba(0,0,0,0.2); --shadow-md:0 2px 16px rgba(0,0,0,0.3); --shadow-lg:0 8px 40px rgba(0,0,0,0.4);
+            --radius-sm:12px; --radius-md:16px; --radius-lg:24px; --radius-xl:60px;
+            --transition:0.25s cubic-bezier(0.4,0,0.2,1);
+            --font-sans:'Inter','Segoe UI',system-ui,sans-serif; --font-serif:'Playfair Display','Georgia',serif;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: var(--font-sans); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
-        
-        .header { background: rgba(13,13,13,0.95); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); padding: 0 28px; height: 68px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-        .logo { font-family: var(--font-serif); font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
-        .logo span { color: var(--gold); }
-        .header-right { display: flex; align-items: center; gap: 14px; }
-        .badge-superadmin { background: rgba(198,164,63,0.15); color: var(--gold); padding: 6px 14px; border-radius: 40px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; }
-        .btn-logout { background: transparent; border: 1px solid #333; color: #888; padding: 8px 18px; border-radius: 40px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all var(--transition); }
-        .btn-logout:hover { border-color: var(--danger); color: var(--danger); }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:var(--font-sans);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
+        .header{background:rgba(13,13,13,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 28px;height:68px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
+        .logo{font-family:var(--font-serif);font-size:20px;font-weight:600;letter-spacing:-0.3px;}
+        .logo span{color:var(--gold);}
+        .header-right{display:flex;align-items:center;gap:14px;}
+        .badge-superadmin{background:rgba(198,164,63,0.15);color:var(--gold);padding:6px 14px;border-radius:40px;font-size:12px;font-weight:600;letter-spacing:0.5px;}
+        .btn-logout{background:transparent;border:1px solid #333;color:#888;padding:8px 18px;border-radius:40px;cursor:pointer;font-size:13px;font-weight:500;transition:all var(--transition);}
+        .btn-logout:hover{border-color:var(--danger);color:var(--danger);}
 
-        .container { max-width: 1300px; margin: 0 auto; padding: 30px 24px 60px; }
-        .page-title { font-family: var(--font-serif); font-size: 30px; font-weight: 600; margin-bottom: 6px; letter-spacing: -0.5px; }
-        .page-subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 30px; }
+        .container{max-width:1300px;margin:0 auto;padding:30px 24px 60px;}
+        .page-title{font-family:var(--font-serif);font-size:30px;font-weight:600;margin-bottom:6px;letter-spacing:-0.5px;}
+        .page-subtitle{color:var(--text-secondary);font-size:14px;margin-bottom:30px;}
 
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 30px; }
-        .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 22px 20px; text-align: center; transition: all var(--transition); }
-        .stat-card:hover { border-color: var(--gold); }
-        .stat-icon { font-size: 26px; margin-bottom: 6px; }
-        .stat-value { font-family: var(--font-serif); font-size: 34px; font-weight: 600; color: var(--gold); line-height: 1.1; }
-        .stat-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 6px; font-weight: 500; }
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:30px;}
+        .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:22px;text-align:center;transition:all var(--transition);}
+        .stat-card:hover{border-color:var(--gold);}
+        .stat-icon{font-size:24px;margin-bottom:4px;}
+        .stat-value{font-family:var(--font-serif);font-size:34px;font-weight:600;color:var(--gold);line-height:1.1;}
+        .stat-label{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1.5px;margin-top:6px;font-weight:500;}
 
-        .section-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
-        .section-title { font-family: var(--font-serif); font-size: 20px; }
-        .btn-add { padding: 10px 20px; border-radius: 40px; background: var(--gold); color: #0d0d0d; border: none; font-size: 13px; font-weight: 600; cursor: pointer; transition: all var(--transition); font-family: var(--font-sans); display: flex; align-items: center; gap: 6px; }
-        .btn-add:hover { background: #D4AF37; }
+        .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:20px;}
+        .btn-toolbar{padding:9px 18px;border-radius:40px;font-size:12px;font-weight:500;cursor:pointer;transition:all var(--transition);font-family:var(--font-sans);border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);}
+        .btn-toolbar:hover{border-color:var(--gold);color:var(--gold);}
+        .btn-toolbar.primary{background:var(--gold);color:#0d0d0d;border-color:var(--gold);}
+        .btn-toolbar.primary:hover{background:#D4AF37;}
 
-        .table-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 14px 18px; background: rgba(255,255,255,0.03); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); font-weight: 600; border-bottom: 2px solid var(--border); }
-        td { padding: 14px 18px; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 13px; vertical-align: middle; }
-        tr:hover td { background: rgba(255,255,255,0.02); }
-        .resto-name { font-weight: 600; color: #fff; }
-        .resto-date { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
-        .badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px; }
-        .badge-active { background: rgba(39,174,96,0.15); color: #2ECC71; }
-        .badge-trial { background: rgba(198,164,63,0.15); color: #C6A43F; }
-        .badge-expired { background: rgba(231,76,60,0.15); color: #E74C3C; }
-        .btn-sm { padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all var(--transition); font-family: var(--font-sans); border: 1px solid #333; background: transparent; color: #888; margin: 2px; }
-        .btn-sm:hover { border-color: #888; color: #fff; }
-        .btn-sm.danger { color: var(--danger); border-color: rgba(231,76,60,0.3); }
-        .btn-sm.danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
-        .empty-state { text-align: center; padding: 50px; color: var(--text-secondary); }
+        .table-wrapper{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow-x:auto;}
+        table{width:100%;border-collapse:collapse;min-width:800px;}
+        th{text-align:left;padding:14px 16px;background:rgba(255,255,255,0.03);font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--gold);font-weight:600;border-bottom:2px solid var(--border);white-space:nowrap;}
+        td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px;vertical-align:middle;}
+        tr:hover td{background:rgba(255,255,255,0.02);}
+        .resto-name{font-weight:600;color:#fff;}
+        .resto-date{font-size:11px;color:var(--text-secondary);margin-top:2px;}
+        .badge{display:inline-block;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:0.3px;}
+        .badge-active{background:rgba(39,174,96,0.15);color:#2ECC71;}
+        .badge-trial{background:rgba(198,164,63,0.15);color:#C6A43F;}
+        .badge-expired{background:rgba(231,76,60,0.15);color:#E74C3C;}
+        .badge-suspended{background:rgba(149,165,166,0.15);color:#95A5A6;}
+        .actions-cell{display:flex;gap:6px;flex-wrap:wrap;}
+        .btn-sm{padding:7px 14px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;transition:all var(--transition);font-family:var(--font-sans);border:1px solid #333;background:transparent;color:#888;white-space:nowrap;}
+        .btn-sm:hover{border-color:#888;color:#fff;}
+        .btn-sm.success{color:var(--success);border-color:rgba(39,174,96,0.3);}
+        .btn-sm.success:hover{background:var(--success);color:#fff;border-color:var(--success);}
+        .btn-sm.warning{color:var(--warning);border-color:rgba(243,156,18,0.3);}
+        .btn-sm.warning:hover{background:var(--warning);color:#fff;border-color:var(--warning);}
+        .btn-sm.danger{color:var(--danger);border-color:rgba(231,76,60,0.3);}
+        .btn-sm.danger:hover{background:var(--danger);color:#fff;border-color:var(--danger);}
+        .empty-state{text-align:center;padding:50px;color:var(--text-secondary);}
 
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); opacity: 0; pointer-events: none; transition: opacity var(--transition); }
-        .modal-overlay.open { opacity: 1; pointer-events: all; }
-        .modal-dialog { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 28px 24px; max-width: 440px; width: 90%; box-shadow: var(--shadow-lg); }
-        .modal-title { font-family: var(--font-serif); font-size: 20px; margin-bottom: 20px; }
-        .form-group { margin-bottom: 16px; }
-        .form-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .form-input { width: 100%; padding: 11px 14px; border: 1px solid var(--border); border-radius: 12px; font-size: 14px; font-family: var(--font-sans); background: #0d0d0d; color: var(--text); transition: all var(--transition); }
-        .form-input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 0 3px rgba(198,164,63,0.1); }
-        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
-        .btn-cancel { padding: 9px 20px; border-radius: 40px; background: transparent; border: 1px solid #333; color: #888; cursor: pointer; font-size: 13px; font-family: var(--font-sans); }
-        .btn-confirm { padding: 9px 20px; border-radius: 40px; background: var(--gold); color: #0d0d0d; border: none; cursor: pointer; font-size: 13px; font-weight: 600; font-family: var(--font-sans); }
-        .btn-confirm:hover { background: #D4AF37; }
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity var(--transition);}
+        .modal-overlay.open{opacity:1;pointer-events:all;}
+        .modal-dialog{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 24px;max-width:440px;width:90%;box-shadow:var(--shadow-lg);max-height:90vh;overflow-y:auto;}
+        .modal-title{font-family:var(--font-serif);font-size:20px;margin-bottom:20px;}
+        .form-group{margin-bottom:16px;}
+        .form-label{display:block;font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;}
+        .form-input,.form-select{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:12px;font-size:14px;font-family:var(--font-sans);background:#0d0d0d;color:var(--text);transition:all var(--transition);}
+        .form-input:focus,.form-select:focus{border-color:var(--gold);outline:none;box-shadow:0 0 0 3px rgba(198,164,63,0.1);}
+        .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+        .btn-cancel{padding:9px 20px;border-radius:40px;background:transparent;border:1px solid #333;color:#888;cursor:pointer;font-size:13px;font-family:var(--font-sans);}
+        .btn-confirm{padding:9px 20px;border-radius:40px;background:var(--gold);color:#0d0d0d;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--font-sans);}
+        .btn-confirm:hover{background:#D4AF37;}
 
-        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 300; display: flex; flex-direction: column; gap: 8px; }
-        .toast { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 20px; font-size: 13px; font-weight: 500; color: var(--text); animation: slideIn 0.3s ease; max-width: 380px; box-shadow: var(--shadow-lg); }
-        .toast.success { border-left: 3px solid var(--success); }
-        .toast.error { border-left: 3px solid var(--danger); }
-        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast-container{position:fixed;top:20px;right:20px;z-index:300;display:flex;flex-direction:column;gap:8px;}
+        .toast{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:500;color:var(--text);animation:slideIn 0.3s ease;max-width:380px;box-shadow:var(--shadow-lg);}
+        .toast.success{border-left:3px solid var(--success);}
+        .toast.error{border-left:3px solid var(--danger);}
+        @keyframes slideIn{from{transform:translateX(120%);opacity:0;}to{transform:translateX(0);opacity:1;}}
 
-        @media (max-width: 768px) {
-            .header { padding: 0 14px; }
-            .container { padding: 20px 14px; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            td, th { padding: 10px 12px; font-size: 12px; }
+        @media(max-width:768px){
+            .header{padding:0 14px;}
+            .container{padding:20px 14px;}
+            .stats-grid{grid-template-columns:repeat(2,1fr);}
+            .actions-cell{flex-direction:column;}
+            .btn-sm{width:100%;text-align:center;}
+            th:nth-child(5),td:nth-child(5){display:none;}
         }
     </style>
 </head>
@@ -106,71 +110,50 @@
     <p class="page-subtitle">Gérez tous les restaurants de la plateforme</p>
 
     <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">🏪</div>
-            <div class="stat-value" id="nb-restos">-</div>
-            <div class="stat-label">Restaurants</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">📋</div>
-            <div class="stat-value" id="nb-commandes">-</div>
-            <div class="stat-label">Commandes totales</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">💰</div>
-            <div class="stat-value" id="ca-total">-</div>
-            <div class="stat-label">CA Global (FCFA)</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">👥</div>
-            <div class="stat-value" id="nb-employes">-</div>
-            <div class="stat-label">Employés totaux</div>
-        </div>
+        <div class="stat-card"><div class="stat-icon">🏪</div><div class="stat-value" id="nb-restos">-</div><div class="stat-label">Restaurants</div></div>
+        <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-value" id="nb-commandes">-</div><div class="stat-label">Commandes totales</div></div>
+        <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-value" id="ca-total">-</div><div class="stat-label">CA Global (FCFA)</div></div>
+        <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value" id="nb-employes">-</div><div class="stat-label">Employés</div></div>
     </div>
 
-    <div class="section-header">
-        <h2 class="section-title">🏪 Tous les restaurants</h2>
-        <button class="btn-add" id="btn-add-resto">➕ Ajouter un restaurant</button>
+    <div class="toolbar">
+        <button class="btn-toolbar primary" id="btn-add-resto">➕ Ajouter un restaurant</button>
+        <button class="btn-toolbar" id="btn-refresh">🔄 Rafraîchir</button>
+        <input type="text" id="search-input" placeholder="🔍 Rechercher..." style="padding:9px 16px;border-radius:40px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:var(--font-sans);width:200px;">
     </div>
 
     <div class="table-wrapper">
         <table>
             <thead>
                 <tr>
-                    <th>Établissement</th>
+                    <th>Restaurant</th>
                     <th>Gérant</th>
                     <th>Statut</th>
                     <th>Expire le</th>
+                    <th>Employés</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="restos-tbody">
-                <tr><td colspan="5" class="empty-state">Chargement…</td></tr>
+                <tr><td colspan="6" class="empty-state">Chargement…</td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- Modal Ajout Restaurant -->
+<!-- MODALE AJOUT -->
 <div class="modal-overlay" id="modal-add">
     <div class="modal-dialog">
         <h3 class="modal-title">➕ Ajouter un restaurant</h3>
-        <div class="form-group">
-            <label class="form-label">Nom du restaurant</label>
-            <input type="text" class="form-input" id="add-nom" placeholder="Le Ndiollé" required>
+        <div class="form-group"><label class="form-label">Type</label>
+            <select id="add-type" class="form-select">
+                <option value="Restaurant">🍽️ Restaurant</option><option value="Fast-food">🍔 Fast-food</option><option value="Pizzeria">🍕 Pizzeria</option><option value="Snack">🥪 Snack</option><option value="Café">☕ Café</option><option value="Glacier">🍦 Glacier</option><option value="Grillade">🥩 Grillade</option><option value="Bar">🍺 Bar</option><option value="Food truck">🚚 Food truck</option><option value="Traiteur">📦 Traiteur</option><option value="Autre">🏷️ Autre</option>
+            </select>
         </div>
-        <div class="form-group">
-            <label class="form-label">Email du gérant</label>
-            <input type="email" class="form-input" id="add-email" placeholder="contact@restaurant.com" required>
-        </div>
-        <div class="form-group">
-            <label class="form-label">Mot de passe</label>
-            <input type="password" class="form-input" id="add-password" placeholder="Minimum 8 caractères" required minlength="8">
-        </div>
-        <div class="form-group">
-            <label class="form-label">Téléphone</label>
-            <input type="text" class="form-input" id="add-tel" placeholder="+221 77 000 00 00">
-        </div>
+        <div class="form-group"><label class="form-label">Nom *</label><input type="text" id="add-nom" class="form-input" placeholder="Nom du restaurant" required></div>
+        <div class="form-group"><label class="form-label">Email gérant *</label><input type="email" id="add-email" class="form-input" placeholder="gerant@restaurant.com" required></div>
+        <div class="form-group"><label class="form-label">Mot de passe *</label><input type="password" id="add-password" class="form-input" placeholder="Minimum 8 caractères" required minlength="8"></div>
+        <div class="form-group"><label class="form-label">Téléphone</label><input type="text" id="add-tel" class="form-input" placeholder="+221 77 000 00 00"></div>
         <div class="modal-actions">
             <button class="btn-cancel" id="btn-cancel-add">Annuler</button>
             <button class="btn-confirm" id="btn-confirm-add">Créer</button>
@@ -185,142 +168,158 @@
     'use strict';
     var token = localStorage.getItem('resto_token');
     if (!token) { location.href = '/login.html'; return; }
-
     try {
         var payload = JSON.parse(atob(token.split('.')[1]));
         if (payload.role !== 'superadmin') { location.href = '/dashboard.html'; return; }
     } catch(e) { location.href = '/login.html'; return; }
 
-    // ==================== CHARGEMENT ====================
+    var restaurants = [];
+
+    function init() {
+        document.getElementById('logout-btn').addEventListener('click', function() { localStorage.clear(); location.href = '/login.html'; });
+        document.getElementById('btn-add-resto').addEventListener('click', function() { document.getElementById('modal-add').classList.add('open'); });
+        document.getElementById('btn-cancel-add').addEventListener('click', function() { document.getElementById('modal-add').classList.remove('open'); });
+        document.getElementById('btn-confirm-add').addEventListener('click', ajouterRestaurant);
+        document.getElementById('btn-refresh').addEventListener('click', chargerDonnees);
+        document.getElementById('search-input').addEventListener('input', afficherRestaurants);
+        document.getElementById('modal-add').addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(function(m) { m.classList.remove('open'); }); });
+        chargerDonnees();
+    }
+
     async function chargerDonnees() {
         try {
             var [restosRes, statsRes] = await Promise.all([
                 fetch('/api/superadmin/restaurants', { headers: { 'Authorization': 'Bearer ' + token } }),
                 fetch('/api/superadmin/stats', { headers: { 'Authorization': 'Bearer ' + token } })
             ]);
-            var restos = await restosRes.json();
+            restaurants = await restosRes.json();
             var stats = await statsRes.json();
-
             document.getElementById('nb-restos').textContent = stats.nbRestaurants || 0;
             document.getElementById('nb-commandes').textContent = stats.nbCommandes || 0;
             document.getElementById('ca-total').textContent = (stats.caTotal || 0).toLocaleString();
-
-            var tbody = document.getElementById('restos-tbody');
-            if (!restos.length) {
-                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Aucun restaurant trouvé</td></tr>';
-            } else {
-                tbody.innerHTML = restos.map(function(r) {
-                    var statusClass = r.subscription_status === 'active' ? 'badge-active' : (r.subscription_status === 'trial' ? 'badge-trial' : 'badge-expired');
-                    var statusLabel = r.subscription_status === 'active' ? 'Actif' : (r.subscription_status === 'trial' ? 'Essai' : 'Expiré');
-                    var endDate = r.subscription_ends_at ? new Date(r.subscription_ends_at).toLocaleDateString('fr-FR') : (r.trial_ends_at ? new Date(r.trial_ends_at).toLocaleDateString('fr-FR') : '-');
-                    return '<tr>' +
-                        '<td><span class="resto-name">' + (r.nom || 'Sans nom') + '</span><br><span class="resto-date">Créé le ' + (r.created_at ? new Date(r.created_at).toLocaleDateString('fr-FR') : '?') + '</span></td>' +
-                        '<td style="color:var(--text-secondary);">' + (r.email_gerant || '-') + '</td>' +
-                        '<td><span class="badge ' + statusClass + '">' + statusLabel + '</span></td>' +
-                        '<td>' + endDate + '</td>' +
-                        '<td><button class="btn-sm danger" data-action="delete" data-id="' + r.id + '" data-nom="' + (r.nom || 'Sans nom') + '">🗑️ Supprimer</button></td>' +
-                    '</tr>';
-                }).join('');
-
-                // Event listeners sur boutons supprimer
-                tbody.querySelectorAll('[data-action="delete"]').forEach(function(btn) {
-                    btn.addEventListener('click', function() {
-                        supprimerRestaurant(this.dataset.id, this.dataset.nom);
-                    });
-                });
-            }
-        } catch(e) {
-            console.error(e);
-            document.getElementById('restos-tbody').innerHTML = '<tr><td colspan="5" class="empty-state">Erreur de chargement</td></tr>';
-        }
+            document.getElementById('nb-employes').textContent = stats.nbEmployes || 0;
+            afficherRestaurants();
+        } catch(e) {}
     }
 
-    // ==================== SUPPRIMER ====================
-    async function supprimerRestaurant(id, nom) {
-        if (!confirm('⚠️ Supprimer définitivement "' + nom + '" ?\n\nToutes les données (plats, commandes, employés) seront effacées. Cette action est irréversible.')) return;
+    function afficherRestaurants() {
+        var search = (document.getElementById('search-input').value || '').toLowerCase();
+        var filtered = restaurants.filter(function(r) {
+            return (r.nom || '').toLowerCase().includes(search) || (r.email_gerant || '').toLowerCase().includes(search);
+        });
+        var tbody = document.getElementById('restos-tbody');
+        if (!filtered.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun restaurant trouvé</td></tr>';
+            return;
+        }
+        tbody.innerHTML = filtered.map(function(r) {
+            var sc = r.subscription_status === 'active' ? 'badge-active' : (r.subscription_status === 'trial' ? 'badge-trial' : (r.subscription_status === 'suspended' ? 'badge-suspended' : 'badge-expired'));
+            var sl = r.subscription_status === 'active' ? 'Actif' : (r.subscription_status === 'trial' ? 'Essai' : (r.subscription_status === 'suspended' ? 'Suspendu' : 'Expiré'));
+            var endDate = r.subscription_ends_at ? new Date(r.subscription_ends_at).toLocaleDateString('fr-FR') : (r.trial_ends_at ? new Date(r.trial_ends_at).toLocaleDateString('fr-FR') : '-');
+            return '<tr>' +
+                '<td><span class="resto-name">' + (r.nom || 'Sans nom') + '</span><br><span class="resto-date">' + (r.type_etablissement || 'Restaurant') + '</span></td>' +
+                '<td style="color:var(--text-secondary);">' + (r.email_gerant || '-') + '</td>' +
+                '<td><span class="badge ' + sc + '">' + sl + '</span></td>' +
+                '<td>' + endDate + '</td>' +
+                '<td>' + (r.profiles?.[0]?.count || 0) + '</td>' +
+                '<td><div class="actions-cell">' +
+                    '<button class="btn-sm" data-action="login" data-id="' + r.id + '">🔑 Se connecter</button>' +
+                    (r.subscription_status === 'suspended' ? '<button class="btn-sm success" data-action="reactiver" data-id="' + r.id + '">✅ Réactiver</button>' : '<button class="btn-sm warning" data-action="suspendre" data-id="' + r.id + '">⏸️ Suspendre</button>') +
+                    '<button class="btn-sm danger" data-action="delete" data-id="' + r.id + '" data-nom="' + (r.nom || 'Sans nom') + '">🗑️ Supprimer</button>' +
+                '</div></td>' +
+            '</tr>';
+        }).join('');
 
+        tbody.querySelectorAll('[data-action="suspendre"]').forEach(function(b) {
+            b.addEventListener('click', function() { changerStatut(this.dataset.id, 'suspended'); });
+        });
+        tbody.querySelectorAll('[data-action="reactiver"]').forEach(function(b) {
+            b.addEventListener('click', function() { changerStatut(this.dataset.id, 'trial'); });
+        });
+        tbody.querySelectorAll('[data-action="delete"]').forEach(function(b) {
+            b.addEventListener('click', function() { supprimerRestaurant(this.dataset.id, this.dataset.nom); });
+        });
+        tbody.querySelectorAll('[data-action="login"]').forEach(function(b) {
+            b.addEventListener('click', function() { seConnecterEnTantQue(this.dataset.id); });
+        });
+    }
+
+    async function changerStatut(restoId, nouveauStatut) {
         try {
-            // Supprimer via Supabase directement (DELETE cascade si configuré)
-            var res1 = await fetch('/api/superadmin/delete-restaurant', {
+            var r = await fetch('/api/superadmin/changer-statut', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ resto_id: restoId, statut: nouveauStatut })
+            });
+            if (r.ok) { showToast('✅ Statut mis à jour', 'success'); chargerDonnees(); }
+            else { var d = await r.json(); showToast(d.error || 'Erreur', 'error'); }
+        } catch(e) { showToast('Erreur réseau', 'error'); }
+    }
+
+    async function supprimerRestaurant(id, nom) {
+        if (!confirm('⚠️ Supprimer définitivement "' + nom + '" ?\nToutes les données seront effacées.')) return;
+        try {
+            var r = await fetch('/api/superadmin/delete-restaurant', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                 body: JSON.stringify({ resto_id: id })
             });
-            
-            if (res1.ok || res1.status === 404) {
-                showToast('✅ Restaurant supprimé', 'success');
-                chargerDonnees();
-            } else {
-                // Fallback : supprimer directement
-                showToast('⚠️ Utilisez le SQL pour supprimer ce restaurant', 'error');
-            }
-        } catch(e) {
-            showToast('Erreur réseau', 'error');
-        }
+            if (r.ok) { showToast('✅ Supprimé', 'success'); chargerDonnees(); }
+            else { var d = await r.json(); showToast(d.error || 'Erreur', 'error'); }
+        } catch(e) { showToast('Erreur réseau', 'error'); }
     }
 
-    // ==================== AJOUTER ====================
     async function ajouterRestaurant() {
         var nom = document.getElementById('add-nom').value.trim();
         var email = document.getElementById('add-email').value.trim();
         var password = document.getElementById('add-password').value;
+        var type = document.getElementById('add-type').value;
         var tel = document.getElementById('add-tel').value.trim();
-
         if (!nom || !email || !password) { showToast('Remplissez tous les champs obligatoires', 'error'); return; }
         if (password.length < 8) { showToast('Mot de passe : 8 caractères minimum', 'error'); return; }
-
         try {
-            var res = await fetch('/api/register', {
+            var r = await fetch('/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    email: email,
-                    motDePasse: password,
-                    nomRestaurant: nom,
-                    telephone: tel || null
-                })
+                body: JSON.stringify({ email: email, motDePasse: password, nomRestaurant: nom, typeEtablissement: type, telephone: tel, estProprietaire: true })
             });
-            var data = await res.json();
-            if (res.ok) {
-                showToast('✅ Restaurant créé avec succès', 'success');
-                closeModal('modal-add');
+            if (r.ok) {
+                showToast('✅ Restaurant créé', 'success');
+                document.getElementById('modal-add').classList.remove('open');
                 document.getElementById('add-nom').value = '';
                 document.getElementById('add-email').value = '';
                 document.getElementById('add-password').value = '';
                 document.getElementById('add-tel').value = '';
                 chargerDonnees();
-            } else {
-                showToast(data.message || data.error || 'Erreur', 'error');
-            }
-        } catch(e) {
-            showToast('Erreur réseau', 'error');
-        }
+            } else { var d = await r.json(); showToast(d.error || 'Erreur', 'error'); }
+        } catch(e) { showToast('Erreur réseau', 'error'); }
     }
 
-    // ==================== MODALE ====================
-    function openModal(id) { document.getElementById(id).classList.add('open'); }
-    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-    // ==================== TOAST ====================
-    function showToast(message, type) {
-        var container = document.getElementById('toast-container');
-        var toast = document.createElement('div');
-        toast.className = 'toast ' + type;
-        toast.textContent = message;
-        container.appendChild(toast);
-        setTimeout(function() { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(function() { toast.remove(); }, 300); }, 3000);
+    async function seConnecterEnTantQue(restoId) {
+        try {
+            var r = await fetch('/api/superadmin/login-as', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ resto_id: restoId })
+            });
+            if (r.ok) {
+                var d = await r.json();
+                localStorage.setItem('resto_token', d.token);
+                localStorage.setItem('resto_id', d.restaurant.id);
+                localStorage.setItem('resto_role', 'gerant');
+                window.location.href = '/dashboard.html';
+            } else { var d = await r.json(); showToast(d.error || 'Erreur', 'error'); }
+        } catch(e) { showToast('Erreur réseau', 'error'); }
     }
 
-    // ==================== EVENTS ====================
-    document.getElementById('logout-btn').addEventListener('click', function() { localStorage.clear(); location.href = '/login.html'; });
-    document.getElementById('btn-add-resto').addEventListener('click', function() { openModal('modal-add'); });
-    document.getElementById('btn-cancel-add').addEventListener('click', function() { closeModal('modal-add'); });
-    document.getElementById('btn-confirm-add').addEventListener('click', ajouterRestaurant);
-    document.getElementById('modal-add').addEventListener('click', function(e) { if (e.target === this) closeModal('modal-add'); });
-    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal('modal-add'); });
+    function showToast(m, t) {
+        var c = document.getElementById('toast-container'), to = document.createElement('div');
+        to.className = 'toast ' + t; to.textContent = m; c.appendChild(to);
+        setTimeout(function() { to.style.opacity = '0'; to.style.transition = 'opacity 0.3s'; setTimeout(function() { to.remove(); }, 300); }, 3000);
+    }
 
-    chargerDonnees();
-    setInterval(chargerDonnees, 60000);
+    document.addEventListener('DOMContentLoaded', init);
 })();
 </script>
 </body>
