@@ -294,7 +294,6 @@
                     if(ns==='paye'){
                         var cmd=allCommandes.find(function(c){return c.id===id;});
                         if(cmd){
-                            // Formater les items pour le reçu
                             var items=[];
                             if(cmd.details){
                                 cmd.details.forEach(function(d){
@@ -305,6 +304,7 @@
                                     });
                                 });
                             }
+                            console.log('DEBUG RECU - items:', JSON.stringify(items));
                             genererRecu(cmd.client_nom||'Client',cmd.table_numero||cmd.table_id,items,cmd.total||0,cmd.id);
                         }
                     }
