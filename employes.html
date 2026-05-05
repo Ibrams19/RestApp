@@ -355,7 +355,7 @@
                 btn.addEventListener('click', () => ouvrirLienModal(btn.dataset.lien, btn.dataset.nom));
             });
             grid.querySelectorAll('[data-action="delete"]').forEach(btn => {
-                btn.addEventListener('click', () => supprimerEmploye(parseInt(btn.dataset.id)));
+                btn.addEventListener('click', () => supprimerEmploye(btn.dataset.id));
             });
         }
 
