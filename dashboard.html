@@ -457,6 +457,9 @@
                     const data = await res.json();
                     // Bannière spéciale compte démo (Le 7★ Gourmet)
                     const user = JSON.parse(localStorage.getItem('resto_user') || '{}');
+                    const container = document.getElementById('subscription-alert-container');
+                    
+                    // Bannière spéciale compte démo (Le 7★ Gourmet)
                     if (user.email === 'demo7etoiles@restapp.net') {
                         container.innerHTML = `
                             <div style="background: linear-gradient(135deg, #FFF8E1, #f5eedb); border: 2px solid #C6A43F; border-radius: 16px; padding: 20px 24px; margin-bottom: 24px; text-align: center;">
@@ -471,7 +474,6 @@
                             </div>`;
                         return;
                     }
-                    const container = document.getElementById('subscription-alert-container');
 
                     if (data.status === 'trial' && data.days_left !== undefined) {
                         if (data.days_left <= 3) {
@@ -859,7 +861,22 @@
                 pdf.setTextColor(150);
                 pdf.text(`RestApp 7★ — ${restoName} — ${date}`, 10, 290);
 
-                pdf.save(`dashboard-${restoName.replace(/\s+/g, '-')}-${date.replace(/\s+/g, '-')}.pdf`);
+                // Téléchargement compatible mobile
+                const pdfBlob = pdf.output('blob');
+                const pdfUrl = URL.createObjectURL(pdfBlob);
+
+                // Méthode 1 : Téléchargement direct
+                const link = document.createElement('a');
+                link.href = pdfUrl;
+                link.download = `dashboard-${restoName.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '')}-${date.replace(/\s+/g, '-')}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // Méthode 2 : Fallback mobile - ouvrir dans un nouvel onglet
+                setTimeout(() => {
+                    window.open(pdfUrl, '_blank');
+                }, 500);
                 
                 showToast('✅ PDF exporté avec succès !', 'success');
             } catch(e) {
