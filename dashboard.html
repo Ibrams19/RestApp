@@ -18,6 +18,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script> 
     <title>Dashboard | RestApp 7★</title>
     <style>
         :root {
@@ -258,6 +260,29 @@
             .header { padding: 0 14px; }
             .stat-value { font-size: 26px; }
         }
+        .btn-export {
+            padding: 10px 20px;
+            border-radius: 40px;
+            border: 1px solid var(--gold);
+            background: transparent;
+            color: var(--gold);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all var(--transition);
+            font-family: var(--font-sans);
+            letter-spacing: 0.2px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-export:hover {
+            background: var(--gold);
+            color: white;
+        }
+        body.dark .btn-export:hover {
+            color: #0d0d0d;
+        }
     </style>
 </head>
 <body>
@@ -286,6 +311,7 @@
         <div id="subscription-alert-container"></div>
 
         <div class="period-selector">
+            <button class="btn-export" id="btn-export-pdf" title="Exporter en PDF">📥 Exporter PDF</button>
             <button class="period-btn active" data-period="day">Aujourd'hui</button>
             <button class="period-btn" data-period="week">Cette semaine</button>
             <button class="period-btn" data-period="month">Ce mois</button>
@@ -757,6 +783,68 @@
             if (pollingTimer) clearInterval(pollingTimer);
             if (evolutionChart) evolutionChart.destroy();
         });
+        // ==================== EXPORT PDF ====================
+        async function exportPDF() {
+            const btn = document.getElementById('btn-export-pdf');
+            const originalText = btn.textContent;
+            btn.textContent = '⏳ Génération…';
+            btn.disabled = true;
+
+            try {
+                // Capturer le dashboard
+                const element = document.querySelector('.dashboard-container');
+                const canvas = await html2canvas(element, {
+                    backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#faf8f5',
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                });
+
+                // Créer le PDF (format A4)
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                
+                const imgWidth = 190;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                // Nom du restaurant
+                const restoName = document.getElementById('resto-name')?.textContent || 'Restaurant';
+                
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 15, imgWidth, Math.min(imgHeight, 260));
+                
+                // Si l'image est trop grande, ajouter des pages
+                if (imgHeight > 260) {
+                    let remainingHeight = imgHeight - 260;
+                    let yOffset = -260;
+                    while (remainingHeight > 0) {
+                        pdf.addPage();
+                        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, yOffset, imgWidth, imgHeight);
+                        remainingHeight -= 260;
+                        yOffset -= 260;
+                    }
+                }
+
+                // Pied de page
+                const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+                pdf.setFontSize(8);
+                pdf.setTextColor(150);
+                pdf.text(`RestApp 7★ — ${restoName} — ${date}`, 10, 290);
+
+                pdf.save(`dashboard-${restoName.replace(/\s+/g, '-')}-${date.replace(/\s+/g, '-')}.pdf`);
+                
+                showToast('✅ PDF exporté avec succès !', 'success');
+            } catch(e) {
+                console.error('Erreur export PDF:', e);
+                showToast('❌ Erreur lors de l\'export', 'error');
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Ajouter l'event listener dans initEventListeners()
+        // Cherche "function initEventListeners()" et ajoute à l'intérieur :
+        document.getElementById('btn-export-pdf').addEventListener('click', exportPDF);
 
         // ==================== DÉMARRAGE ====================
         document.addEventListener('DOMContentLoaded', init);
