@@ -768,7 +768,7 @@
                             if (res.ok) {
                                 const data = await res.json();
                                 const nouvelles = data.en_attente || 0;
-                                if (nouvelles > lastCommandeCount && lastCommandeCount > 0) {
+                                if (nouvelles > 0 && nouvelles !== lastCommandeCount && lastCommandeCount >= 0) {
                                     // Nouvelle commande détectée !
                                     playNotificationSound();
                                     showToast('🛎️ Nouvelle commande reçue !', 'success');
