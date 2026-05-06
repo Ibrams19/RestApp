@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RestApp 7★ — Gestion professionnelle pour établissements</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Inter',sans-serif;background:#faf8f5;color:#1a1a1a;line-height:1.6;}
+        .hero{text-align:center;padding:80px 20px 60px;max-width:700px;margin:0 auto;}
+        .hero h1{font-family:'Playfair Display',serif;font-size:44px;font-weight:700;margin-bottom:16px;letter-spacing:-0.5px;}
+        .hero h1 span{color:#C6A43F;}
+        .hero p{font-size:17px;color:#6b6b6b;margin-bottom:30px;}
+        .btn-primary{display:inline-block;padding:14px 32px;background:#C6A43F;color:#fff;border-radius:40px;text-decoration:none;font-weight:600;font-size:15px;transition:all 0.3s;}
+        .btn-primary:hover{background:#a8872a;transform:translateY(-2px);}
+        .btn-secondary{display:inline-block;padding:14px 32px;background:transparent;color:#C6A43F;border:2px solid #C6A43F;border-radius:40px;text-decoration:none;font-weight:600;font-size:15px;margin-left:12px;transition:all 0.3s;}
+        .btn-secondary:hover{background:#C6A43F;color:#fff;}
+        
+        .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px;max-width:1000px;margin:60px auto;padding:0 20px;}
+        .feature-card{background:#fff;border:1px solid #e8e5df;border-radius:20px;padding:28px 24px;text-align:center;box-shadow:0 2px 16px rgba(0,0,0,0.04);}
+        .feature-icon{font-size:36px;margin-bottom:12px;}
+        .feature-card h3{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:8px;}
+        .feature-card p{font-size:13px;color:#6b6b6b;}
+        
+        .types{max-width:900px;margin:40px auto;padding:0 20px;text-align:center;}
+        .types h2{font-family:'Playfair Display',serif;font-size:28px;margin-bottom:24px;}
+        .type-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;}
+        .type-tag{background:#fff;border:1px solid #e8e5df;padding:8px 16px;border-radius:40px;font-size:13px;color:#6b6b6b;}
+        
+        .pricing{max-width:900px;margin:60px auto;padding:0 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;}
+        .price-card{background:#fff;border:1px solid #e8e5df;border-radius:20px;padding:32px 24px;text-align:center;box-shadow:0 2px 16px rgba(0,0,0,0.04);}
+        .price-card.recommended{border:2px solid #C6A43F;box-shadow:0 8px 40px rgba(198,164,63,0.1);}
+        .price-card h3{font-family:'Playfair Display',serif;font-size:20px;margin-bottom:8px;}
+        .price-card .price{font-size:36px;font-weight:800;color:#C6A43F;margin:16px 0;}
+        .price-card .price small{font-size:14px;color:#6b6b6b;font-weight:400;}
+        .price-card ul{list-style:none;margin:20px 0;text-align:left;font-size:13px;color:#6b6b6b;}
+        .price-card ul li{padding:6px 0;}
+        .price-card ul li::before{content:"✓ ";color:#27AE60;font-weight:700;}
+        
+        .footer{text-align:center;padding:40px 20px;color:#bbb;font-size:12px;}
+        
+        @media(max-width:768px){
+            .hero h1{font-size:30px;}
+            .btn-secondary{margin-left:0;margin-top:10px;}
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>Gérez votre <span>établissement</span> comme un chef étoilé</h1>
+        <p>Menu digital, QR codes, commandes en temps réel, suivi, reçus, statistiques. Tout ce dont vous avez besoin, au même endroit.</p>
+        <a href="/login.html" class="btn-primary">Commencer gratuitement</a>
+        <a href="#features" class="btn-secondary">Découvrir les fonctionnalités</a>
+    </div>
+
+    <div id="features" class="features">
+        <div class="feature-card"><div class="feature-icon">📱</div><h3>QR Code</h3><p>Générez des QR codes pour chaque table. Vos clients scannent et commandent.</p></div>
+        <div class="feature-card"><div class="feature-icon">⚡</div><h3>Temps réel</h3><p>Les commandes arrivent instantanément en cuisine. Zéro délai.</p></div>
+        <div class="feature-card"><div class="feature-icon">📊</div><h3>Statistiques</h3><p>CA, panier moyen, top plats. Pilotez votre activité en un coup d'œil.</p></div>
+        <div class="feature-card"><div class="feature-icon">🧾</div><h3>Reçus</h3><p>Imprimez des reçus professionnels pour vos clients.</p></div>
+        <div class="feature-card"><div class="feature-icon">👥</div><h3>Équipe</h3><p>Ajoutez vos serveurs et gérants. Chacun a son rôle.</p></div>
+        <div class="feature-card"><div class="feature-icon">🏢</div><h3>Multi-établissements</h3><p>Gérez plusieurs restaurants avec un seul compte propriétaire.</p></div>
+    </div>
+
+    <div class="types">
+        <h2>Pour tous les types d'établissements</h2>
+        <div class="type-tags">
+            <span class="type-tag">🍽️ Restaurant</span><span class="type-tag">🍔 Fast-food</span><span class="type-tag">🍕 Pizzeria</span>
+            <span class="type-tag">🥪 Snack</span><span class="type-tag">☕ Café</span><span class="type-tag">🍦 Glacier</span>
+            <span class="type-tag">🥩 Grillade</span><span class="type-tag">🍺 Bar</span><span class="type-tag">🚚 Food truck</span>
+            <span class="type-tag">📦 Traiteur</span>
+        </div>
+    </div>
+
+    <div class="pricing">
+        <div class="price-card">
+            <h3>Mensuel</h3>
+            <div class="price">25 000 <small>FCFA/mois</small></div>
+            <ul><li>Toutes les fonctionnalités</li><li>Support 7j/7</li><li>Sans engagement</li></ul>
+            <a href="/login.html" class="btn-primary" style="display:block;">Commencer</a>
+        </div>
+        <div class="price-card recommended">
+            <h3>⭐ Trimestriel</h3>
+            <div class="price">60 000 <small>FCFA/3 mois</small></div>
+            <ul><li>Toutes les fonctionnalités</li><li>Support prioritaire</li><li>Économisez 15 000 FCFA</li></ul>
+            <a href="/login.html" class="btn-primary" style="display:block;">Commencer</a>
+        </div>
+        <div class="price-card">
+            <h3>Annuel</h3>
+            <div class="price">200 000 <small>FCFA/an</small></div>
+            <ul><li>Toutes les fonctionnalités</li><li>Support VIP 24/7</li><li>Économisez 100 000 FCFA</li></ul>
+            <a href="/login.html" class="btn-primary" style="display:block;">Commencer</a>
+        </div>
+    </div>
+
+    <div class="footer">© 2026 RestApp 7★ — Tous droits réservés</div>
+</body>
+</html>
