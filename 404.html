@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 — Page introuvable | RestApp 7★</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #faf8f5; --bg-dark: #0d0d0d; --gold: #C6A43F; --text: #1a1a1a;
+            --text-dark: #f0ece4; --text-secondary: #6b6b6b; --text-secondary-dark: #a0a0a0;
+            --border: #e8e5df; --border-dark: #2a2a2a;
+            --shadow-lg: 0 8px 40px rgba(0,0,0,0.08);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bg); color: var(--text);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            text-align: center; padding: 20px; -webkit-font-smoothing: antialiased;
+            transition: background 0.3s, color 0.3s;
+        }
+        body.dark { background: var(--bg-dark); color: var(--text-dark); }
+        .container {
+            background: #fff; border: 1px solid var(--border);
+            border-radius: 24px; padding: 60px 40px; max-width: 480px; width: 100%;
+            box-shadow: var(--shadow-lg);
+        }
+        body.dark .container { background: #1a1a1a; border-color: var(--border-dark); }
+        .error-code {
+            font-family: 'Playfair Display', serif; font-size: 100px;
+            font-weight: 700; color: var(--gold); line-height: 1; margin-bottom: 8px;
+        }
+        .error-text {
+            font-family: 'Playfair Display', serif; font-size: 22px;
+            margin-bottom: 12px; font-weight: 600;
+        }
+        .error-message { color: var(--text-secondary); font-size: 14px; margin-bottom: 32px; line-height: 1.6; }
+        body.dark .error-message { color: var(--text-secondary-dark); }
+        .btn-home {
+            display: inline-block; padding: 14px 32px; background: var(--gold);
+            color: #fff; border-radius: 40px; text-decoration: none; font-weight: 600;
+            font-size: 14px; transition: all 0.3s; letter-spacing: 0.2px;
+        }
+        .btn-home:hover { background: #a8872a; transform: translateY(-2px); }
+        .theme-toggle {
+            position: fixed; top: 20px; right: 20px; width: 40px; height: 40px;
+            border-radius: 50%; border: 1px solid var(--border); background: #fff;
+            cursor: pointer; font-size: 18px; display: flex; align-items: center;
+            justify-content: center; z-index: 10;
+        }
+        body.dark .theme-toggle { background: #1a1a1a; border-color: var(--border-dark); }
+        @media (max-width: 480px) {
+            .error-code { font-size: 72px; }
+            .container { padding: 40px 24px; }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Mode sombre">🌙</button>
+
+    <div class="container">
+        <div class="error-code">7★</div>
+        <div class="error-text">Page introuvable</div>
+        <p class="error-message">
+            Cette page n'existe pas ou a été déplacée.<br>
+            Pas d'inquiétude, même les plus grands chefs s'égarent parfois.
+        </p>
+        <a href="/" class="btn-home">🏠 Retour à l'accueil</a>
+    </div>
+
+    <script>
+        (function() {
+            const saved = localStorage.getItem('menu_theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (saved === 'dark' || (!saved && prefersDark)) {
+                document.body.classList.add('dark');
+                document.getElementById('theme-toggle').textContent = '☀️';
+            }
+            document.getElementById('theme-toggle').addEventListener('click', function() {
+                document.body.classList.toggle('dark');
+                var isDark = document.body.classList.contains('dark');
+                localStorage.setItem('menu_theme', isDark ? 'dark' : 'light');
+                this.textContent = isDark ? '☀️' : '🌙';
+            });
+        })();
+    </script>
+</body>
+</html>

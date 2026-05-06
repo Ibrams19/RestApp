@@ -2050,11 +2050,17 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.use((req, res) => {
+// Route 404 pour les requêtes API
+app.use('/api/*', (req, res) => {
   res.status(404).json({ 
     error: 'not_found',
-    message: 'Route non trouvée'
+    message: 'Route API non trouvée'
   });
+});
+
+// Page 404 pour tout le reste
+app.use((req, res) => {
+  res.status(404).sendFile('404.html', { root: __dirname });
 });
 
 // ==================== LANCEMENT ====================
