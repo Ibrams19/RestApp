@@ -332,6 +332,7 @@
                     <a href="/forgot-password.html">Mot de passe oublié ?</a>
                 </div>
                 <button type="submit" class="btn-submit" id="login-btn">Se connecter</button>
+                <button type="button" class="btn-demo" id="btn-demo-fill"> Essayer la démo (demo7etoiles@restapp.net)</button>
             </form>
 
             <!-- Formulaire Inscription -->
@@ -608,14 +609,31 @@
 
         // ==================== INIT ====================
         function init() {
-            checkExistingSession();
-            initTabs();
+        checkExistingSession();
+        initTabs();
 
-            document.getElementById('login-form').addEventListener('submit', login);
+        // Pré-remplir l'email si présent dans l'URL (bouton Démo)
+        const urlParams = new URLSearchParams(window.location.search);
+        const demoEmail = urlParams.get('email');
+        if (demoEmail) {
+            document.getElementById('login-email').value = demoEmail;
+            document.getElementById('login-password').focus();
+            showMessage('Mode démo : entrez le mot de passe demo1234', 'info');
+        }
+
+        document.getElementById('login-form').addEventListener('submit', login);
+
+        // Bouton démo
+        document.getElementById('btn-demo-fill').addEventListener('click', () => {
+            document.getElementById('login-email').value = 'demo7etoiles@restapp.net';                
+            document.getElementById('login-password').value = '';
+            document.getElementById('login-password').focus();
+             showMessage('Démo : mot de passe = demo1234', 'info');
+        });
             document.getElementById('register-form').addEventListener('submit', register);
         }
 
-        document.addEventListener('DOMContentLoaded', init);
+            document.addEventListener('DOMContentLoaded', init);
     })();
     </script>
 </body>
