@@ -511,6 +511,10 @@
                     document.getElementById('ca-total').textContent = (stats.caTotal || 0).toLocaleString() + ' FCFA';
                     document.getElementById('nb-commandes').textContent = stats.nbCommandes || 0;
                     document.getElementById('panier-moyen').textContent = Math.round(stats.panierMoyen || 0).toLocaleString() + ' FCFA';
+                    // Initialiser le compteur pour la détection de nouvelles commandes
+                    if (lastCommandeCount === 0) {
+                        lastCommandeCount = stats.nbCommandes;
+                    }
                     afficherTopPlats(stats.topPlats || []);
                     updateEvolutionChart(stats.evolution || []);
                 }
