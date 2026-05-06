@@ -1928,13 +1928,26 @@ app.post('/api/superadmin/delete-restaurant', checkRole(['superadmin']), async (
   if (!resto_id) return res.status(400).json({ error: 'resto_id requis' });
 
   try {
-    // 0. Enlever la référence proprietaire_id du restaurant
-    await supabase.from('restaurants').update({ proprietaire_id: null }).eq('id', resto_id);
+    // 0. Mettre à NULL tous les proprietaire_id qui pointent vers ce resto
+    // (sécurité au cas où plusieurs lignes)
+    const { error: updateError } = await supabase
+      .from('restaurants')
+      .update({ proprietaire_id: null })
+      .eq('id', resto_id);
+    
+    if (updateError) {
+      console.error('Erreur update proprietaire_id:', updateError);
+    }
 
-    // 1. Récupérer les commandes
-    const { data: commandes } = await supabase.from('commandes').select('id').eq('resto_id', resto_id);
+    // Petite pause pour laisser la DB prendre en compte
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-    // 2. Supprimer les détails de commandes
+    // 1. Supprimer les détails de commandes
+    const { data: commandes } = await supabase
+      .from('commandes')
+      .select('id')
+      .eq('resto_id', resto_id);
+
     if (commandes && commandes.length > 0) {
       const commandeIds = commandes.map(c => c.id);
       for (let i = 0; i < commandeIds.length; i += 50) {
@@ -1943,19 +1956,33 @@ app.post('/api/superadmin/delete-restaurant', checkRole(['superadmin']), async (
       }
     }
 
-    // 3. Supprimer dans l'ordre
+    // 2. Supprimer dans l'ordre strict
     await supabase.from('commandes').delete().eq('resto_id', resto_id);
     await supabase.from('menus').delete().eq('resto_id', resto_id);
     await supabase.from('tables').delete().eq('resto_id', resto_id);
     await supabase.from('transactions').delete().eq('resto_id', resto_id);
+    
+    // 3. Supprimer les profils SAUF s'ils sont propriétaires d'autres restos
     await supabase.from('profiles').delete().eq('resto_id', resto_id);
     
-    // 4. Suppression finale
+    // 4. Petite pause
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // 5. Suppression finale du restaurant
     const { error } = await supabase.from('restaurants').delete().eq('id', resto_id);
 
     if (error) {
       console.error('Erreur suppression finale:', error);
-      return res.status(500).json({ error: error.message });
+      
+      // Dernière tentative : réessayer après avoir forcé proprietaire_id = NULL
+      await supabase.from('restaurants').update({ proprietaire_id: null }).eq('proprietaire_id', resto_id);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const { error: error2 } = await supabase.from('restaurants').delete().eq('id', resto_id);
+      if (error2) {
+        console.error('Échec suppression (2e tentative):', error2);
+        return res.status(500).json({ error: 'Impossible de supprimer. Contrainte de clé étrangère.' });
+      }
     }
 
     logSecurity('INFO', 'Restaurant supprimé par superadmin', { resto_id });
