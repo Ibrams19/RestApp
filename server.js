@@ -1923,25 +1923,46 @@ const newToken = jwt.sign(
   res.json({ success: true, token: newToken, restaurant });
 });
 
-// Supprimer un restaurant (superadmin)
 app.post('/api/superadmin/delete-restaurant', checkRole(['superadmin']), async (req, res) => {
   const { resto_id } = req.body;
   if (!resto_id) return res.status(400).json({ error: 'resto_id requis' });
 
   try {
-    await supabase.from('commande_details').delete().eq('commande_id', null); // skip
+    // 1. Supprimer les détails des commandes
+    const { data: commandes } = await supabase.from('commandes').select('id').eq('resto_id', resto_id);
+    if (commandes && commandes.length > 0) {
+      const commandeIds = commandes.map(c => c.id);
+      await supabase.from('commande_details').delete().in('commande_id', commandeIds);
+    }
+    
+    // 2. Supprimer les commandes
     await supabase.from('commandes').delete().eq('resto_id', resto_id);
+    
+    // 3. Supprimer les menus
     await supabase.from('menus').delete().eq('resto_id', resto_id);
+    
+    // 4. Supprimer les tables
     await supabase.from('tables').delete().eq('resto_id', resto_id);
+    
+    // 5. Supprimer les transactions
     await supabase.from('transactions').delete().eq('resto_id', resto_id);
+    
+    // 6. Supprimer les profils
     await supabase.from('profiles').delete().eq('resto_id', resto_id);
-    await supabase.from('restaurants').delete().eq('id', resto_id);
-
+    
+    // 7. Supprimer le restaurant
+    const { error } = await supabase.from('restaurants').delete().eq('id', resto_id);
+    
+    if (error) {
+      logSecurity('ERROR', 'Erreur suppression restaurant', { error: error.message, resto_id });
+      return res.status(500).json({ error: 'Erreur lors de la suppression finale du restaurant.' });
+    }
+    
     logSecurity('INFO', 'Restaurant supprimé par superadmin', { resto_id });
-    res.json({ success: true, message: 'Restaurant supprimé' });
+    res.json({ success: true, message: 'Restaurant supprimé avec succès.' });
   } catch(e) {
     logSecurity('ERROR', 'Erreur suppression restaurant', { error: e.message });
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: 'Erreur serveur lors de la suppression.' });
   }
 });
 // Changer le statut d'un restaurant (suspendre/réactiver)
