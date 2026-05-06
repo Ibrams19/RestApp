@@ -1078,7 +1078,26 @@ app.get('/api/generate-qr/:restoId/:tableId', async (req, res) => {
     .eq('id', restoId)
     .single();
 
-  const restoName = (resto?.nom || 'Restaurant').replace(/★/g, '&#9733;');
+  const restoName = (resto?.nom || 'Restaurant')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+    .replace(/★/g, '&#9733;')
+    .replace(/é/g, '&eacute;')
+    .replace(/è/g, '&egrave;')
+    .replace(/ê/g, '&ecirc;')
+    .replace(/à/g, '&agrave;')
+    .replace(/ç/g, '&ccedil;')
+    .replace(/ù/g, '&ugrave;')
+    .replace(/ô/g, '&ocirc;')
+    .replace(/î/g, '&icirc;')
+    .replace(/â/g, '&acirc;')
+    .replace(/É/g, '&Eacute;')
+    .replace(/È/g, '&Egrave;')
+    .replace(/À/g, '&Agrave;')
+    .replace(/Ç/g, '&Ccedil;');
 
   res.send(`<!DOCTYPE html>
 <html lang="fr">
