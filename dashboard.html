@@ -744,13 +744,29 @@
             return div.innerHTML;
         }
 
+        let lastCommandeCount = 0;
+
         function startPolling() {
             if (pollingTimer) clearInterval(pollingTimer);
-            pollingTimer = setInterval(() => {
+            pollingTimer = setInterval(async () => {
                 chargerStats();
-                // Re-vérifier l'abonnement toutes les 5 minutes
+                
+                // Vérifier nouvelles commandes
+                const res = await fetch(`/api/stats/${currentResto}?periode=day`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const stats = await res.json();
+                    if (stats.nbCommandes > lastCommandeCount && lastCommandeCount > 0) {
+                        // Nouvelle commande détectée !
+                        playNotificationSound();
+                        showToast('🛎️ Nouvelle commande reçue !', 'success');
+                    }
+                    lastCommandeCount = stats.nbCommandes;
+                }
+                
                 if (Math.random() < 0.1) checkSubscription();
-            }, 30000);
+            }, 15000); // Vérifie toutes les 15 secondes
         }
 
         // ==================== EVENT LISTENERS ====================
@@ -849,9 +865,21 @@
         // ==================== DÉMARRAGE ====================
         document.addEventListener('DOMContentLoaded', init);
 
+
+        // Exposer pour compatibilité
+               // ==================== NOTIFICATION SONORE ====================
+        function playNotificationSound() {
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACAf39/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gA==');
+                audio.volume = 0.5;
+                audio.play().catch(() => {});
+            } catch(e) {}
+        }
+
         // Exposer pour compatibilité
         window.chargerTables = chargerTables;
     })();
+
     </script>
 </body>
 </html>
