@@ -420,6 +420,22 @@
 
                 if (res.ok) {
                     const data = await res.json();
+                    // Bannière spéciale compte démo (Le 7★ Gourmet)
+                    const user = JSON.parse(localStorage.getItem('resto_user') || '{}');
+                    if (user.email === 'demo7etoiles@restapp.net') {
+                        container.innerHTML = `
+                            <div style="background: linear-gradient(135deg, #FFF8E1, #f5eedb); border: 2px solid #C6A43F; border-radius: 16px; padding: 20px 24px; margin-bottom: 24px; text-align: center;">
+                                <div style="font-size: 32px; margin-bottom: 8px;">🎮</div>
+                                <h3 style="font-family: var(--font-serif); font-size: 18px; margin-bottom: 6px;">Vous testez la <span style="color:#C6A43F;">version démo</span></h3>
+                                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+                                    Prêt à créer votre propre établissement ?<br>30 jours d'essai gratuit, sans engagement.
+                                </p>
+                                <a href="/register.html" style="display: inline-block; padding: 12px 28px; background: #C6A43F; color: #fff; border-radius: 40px; text-decoration: none; font-weight: 600; font-size: 14px; transition: all 0.3s;">
+                                    ✨ Créer mon restaurant gratuitement
+                                </a>
+                            </div>`;
+                        return;
+                    }
                     const container = document.getElementById('subscription-alert-container');
 
                     if (data.status === 'trial' && data.days_left !== undefined) {

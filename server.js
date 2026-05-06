@@ -425,7 +425,7 @@ app.post('/api/register', async (req, res) => {
   const slug = `${baseSlug}-${Date.now().toString(36)}`;
   
   // CORRECTION : 14 jours d'essai (pas 1 minute)
-  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  const trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   const { data: restaurant, error: restoError } = await supabase
     .from('restaurants')
@@ -502,7 +502,7 @@ app.post('/api/register', async (req, res) => {
   sendEmail(email, 'Bienvenue sur RestApp 7★ ! 🎉', `
       <h2>Bienvenue ${nomRestaurant} !</h2>
       <p>Votre établissement est prêt.</p>
-      <p>Vous avez <strong>14 jours d'essai gratuit</strong>.</p>
+      <p>Vous avez <strong>30 jours d'essai gratuit</strong>.</p>
       <a href="${PUBLIC_URL}/login.html">Accéder à mon espace</a>
   `);
 
@@ -525,7 +525,7 @@ app.post('/api/register', async (req, res) => {
       slug: restaurant.slug
     },
     trial_ends_at: trialEndsAt,
-    trial_days: 14
+    trial_days: 30
   });
 });
 
@@ -1854,7 +1854,7 @@ app.post('/api/proprietaire/ajouter-etablissement', authMiddleware, async (req, 
 
   const baseSlug = nomRestaurant.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 50);
   const slug = `${baseSlug}-${Date.now().toString(36)}`;
-  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  const trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   const { data: restaurant, error } = await supabase
     .from('restaurants')
