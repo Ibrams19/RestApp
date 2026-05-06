@@ -2018,6 +2018,21 @@ app.post('/api/superadmin/login-as', checkRole(['superadmin']), async (req, res)
   res.json({ success: true, token, restaurant });
 });
 
+// Nombre de commandes en attente (pour notification dashboard)
+app.get('/api/commandes/nouvelles/:restoId', async (req, res) => {
+  const { restoId } = req.params;
+  
+  const { count, error } = await supabase
+    .from('commandes')
+    .select('*', { count: 'exact', head: true })
+    .eq('resto_id', restoId)
+    .eq('statut', 'en_attente');
+
+  if (error) return res.status(500).json({ error: error.message });
+  
+  res.json({ en_attente: count || 0 });
+});
+
 // ==================== WEBSOCKETS ====================
 io.on('connection', (socket) => {
   logSecurity('INFO', 'Client WebSocket connecté', { socketId: socket.id });

@@ -761,25 +761,23 @@
             if (pollingTimer) clearInterval(pollingTimer);
             pollingTimer = setInterval(async () => {
                 try {
-                    const res = await fetch(`/api/stats/${currentResto}?periode=day`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (res.ok) {
-                        const stats = await res.json();
-                        const newCount = stats.nbCommandes || 0;
-                        
-                        // Détecter nouvelle commande
-                        if (newCount > lastCommandeCount && lastCommandeCount > 0) {
-                            playNotificationSound();
-                            showToast('🛎️ Nouvelle commande reçue !', 'success');
-                            // Recharger les stats pour mettre à jour l'affichage
-                            chargerStats();
-                        }
-                        lastCommandeCount = newCount;
-                    }
-                } catch(e) {}
-            }, 5000); // Vérifie toutes les 5 secondes
-        }
+                        // Vérifier nouvelles commandes
+                    const res = await fetch(`/api/commandes/nouvelles/${currentResto}`, {
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            if (res.ok) {
+                                const data = await res.json();
+                                const nouvelles = data.en_attente || 0;
+                                if (nouvelles > lastCommandeCount && lastCommandeCount > 0) {
+                                    // Nouvelle commande détectée !
+                                    playNotificationSound();
+                                    showToast('🛎️ Nouvelle commande reçue !', 'success');
+                                }
+                                lastCommandeCount = nouvelles;
+                            }
+                            } catch(e) {}
+                        }, 5000); // Vérifie toutes les 5 secondes
+                }
 
         // ==================== EVENT LISTENERS ====================
         function initEventListeners() {
