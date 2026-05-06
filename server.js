@@ -1078,7 +1078,7 @@ app.get('/api/generate-qr/:restoId/:tableId', async (req, res) => {
     .eq('id', restoId)
     .single();
 
-  const restoName = resto?.nom || 'Restaurant';
+  const restoName = (resto?.nom || 'Restaurant').replace(/★/g, '&#9733;');
 
   res.send(`<!DOCTYPE html>
 <html lang="fr">
