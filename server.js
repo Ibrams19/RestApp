@@ -14,6 +14,10 @@ const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const mailjet = require('node-mailjet').apiConnect(
+    process.env.MAILJET_API_KEY || '',
+    process.env.MAILJET_SECRET_KEY || ''
+);
 
 const app = express();
 app.set('trust proxy', 1);
@@ -31,7 +35,7 @@ app.use(helmet({
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 app.get('/', (req, res) => {
-  res.redirect('/login.html');
+  res.redirect('/index.html');
 });
 app.use(express.static(__dirname));
 app.use(express.static('frontend/client'));
@@ -47,7 +51,7 @@ if (!supabaseUrl || !supabaseKey || !JWT_SECRET) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
-const PUBLIC_URL = process.env.PUBLIC_URL || 'https://restapp-a8ac.onrender.com';
+const PUBLIC_URL = process.env.PUBLIC_URL || 'https://www.restapps.net';
 const SALT_ROUNDS = 12;
 
 // ==================== RATE LIMITERS ====================
@@ -106,6 +110,25 @@ function isSubscriptionValid(restaurant) {
     return now <= new Date(restaurant.trial_ends_at);
   }
   return false;
+}
+async function sendEmail(to, subject, htmlContent) {
+    if (!process.env.MAILJET_API_KEY) {
+        console.log('📧 Email non envoyé (Mailjet non configuré):', subject);
+        return;
+    }
+    try {
+        await mailjet.post('send', { version: 'v3.1' }).request({
+            Messages: [{
+                From: { Email: 'contact@restapps.net', Name: 'RestApp' },
+                To: [{ Email: to }],
+                Subject: subject,
+                HTMLPart: htmlContent
+            }]
+        });
+        console.log('✅ Email envoyé à', to);
+    } catch(e) {
+        console.error('❌ Erreur envoi email:', e.message);
+    }
 }
 
 function logSecurity(level, message, metadata = {}) {
@@ -475,6 +498,13 @@ app.post('/api/register', async (req, res) => {
     JWT_SECRET,
     { expiresIn: '7d' }
 );
+  // Email de bienvenue
+  sendEmail(email, 'Bienvenue sur RestApp 7★ ! 🎉', `
+      <h2>Bienvenue ${nomRestaurant} !</h2>
+      <p>Votre établissement est prêt.</p>
+      <p>Vous avez <strong>14 jours d'essai gratuit</strong>.</p>
+      <a href="${PUBLIC_URL}/login.html">Accéder à mon espace</a>
+  `);
 
   logSecurity('INFO', 'Nouveau restaurant créé', { email, restaurant: restaurant.nom });
 
@@ -614,8 +644,13 @@ app.post('/api/auth/forgot-password', loginLimiter, async (req, res) => {
 
   const resetUrl = `${PUBLIC_URL}/reset-password.html?token=${resetToken}&email=${encodeURIComponent(email)}`;
   
-  // TODO: Envoyer l'email avec Mailjet/Brevo
-  logSecurity('INFO', 'Demande réinitialisation mot de passe', { email, resetUrl });
+  sendEmail(email, 'Réinitialisation de votre mot de passe', `
+      <h2>Mot de passe oublié ?</h2>
+      <p>Cliquez sur le lien ci-dessous :</p>
+      <a href="${resetUrl}">Réinitialiser mon mot de passe</a>
+      <p>Ce lien expire dans 1 heure.</p>
+  `);
+  logSecurity('INFO', 'Demande réinitialisation mot de passe', { email });
 
   res.json({ 
     success: true, 
