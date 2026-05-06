@@ -193,6 +193,11 @@
                     <option value="serveur">🍽️ Serveur</option>
                 </select>
             </div>
+            <div class="form-group">
+                <label class="form-label">Email (pour envoi du lien)</label>
+                <input type="email" class="form-input" id="email" placeholder="employe@gmail.com">
+                <small style="color:var(--text-secondary);font-size:11px;">Laissez vide pour obtenir un lien manuel uniquement</small>
+            </div>
             <div class="modal-actions">
                 <button class="btn-cancel" id="btn-cancel-add">Annuler</button>
                 <button class="btn-confirm" id="btn-confirm-add">Ajouter</button>
@@ -399,7 +404,13 @@
                 const res = await fetch('/api/employes', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ nom, prenom, role })
+                    body: JSON.stringify({ 
+                    nom, 
+                    prenom, 
+                    role, 
+                    email: document.getElementById('email').value.trim() || null,
+                    restaurant_name: document.getElementById('resto-name')?.textContent || 'Restaurant'
+                })
                 });
                 const data = await res.json();
 
@@ -408,6 +419,7 @@
                     closeModal('modal-add');
                     document.getElementById('prenom').value = '';
                     document.getElementById('nom').value = '';
+                    document.getElementById('email').value = '';
                     chargerEmployes();
                     if (data.lien) {
                         setTimeout(() => ouvrirLienModal(data.lien, data.nom), 500);

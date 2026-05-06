@@ -1497,7 +1497,12 @@ app.get('/api/employes', authMiddleware, checkRole(['proprietaire', 'gerant', 's
 });
 
 app.post('/api/employes', authMiddleware, checkRole(['proprietaire', 'gerant', 'superadmin']), async (req, res) => {
-  const { nom, prenom, role } = req.body;
+  const { nom, prenom, role, email } = req.body;
+
+  // Validation de l'email
+  if (email && !validateEmail(email)) {
+      return res.status(400).json({ error: 'Format d\'email invalide' });
+  }
   
   if (!nom || nom.trim().length < 2) {
     return res.status(400).json({ 
@@ -1535,11 +1540,22 @@ if (!role || !VALID_ROLES.includes(role) || role === 'superadmin' || role === 'p
       role,
       token_unique: tokenUnique,
       lien_unique: lienUnique,
-      email: `${tokenUnique}@invite.restapp.com`,
+      email: email ? email.trim().toLowerCase() : `${tokenUnique}@invite.restapp.com`,
       first_login: true
     })
     .select()
     .single();
+
+    // Envoyer le lien par email si un vrai email est fourni
+  if (email) {
+      sendEmail(email, `Invitation - ${req.body.restaurant_name || 'RestApp 7★'}`, `
+          <h2>Vous êtes invité(e) !</h2>
+          <p>Vous avez été ajouté(e) comme <strong>${role}</strong>.</p>
+          <p>Cliquez sur le lien ci-dessous pour configurer votre compte :</p>
+          <a href="${lienUnique}" style="display:inline-block;padding:12px 24px;background:#C6A43F;color:#fff;border-radius:40px;text-decoration:none;font-weight:600;margin:16px 0;">Rejoindre l'équipe</a>
+          <p>Ce lien est valable 7 jours.</p>
+      `);
+  }
 
   if (error) {
     logSecurity('ERROR', 'Erreur création employé', { error: error.message });
