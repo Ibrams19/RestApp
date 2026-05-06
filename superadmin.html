@@ -74,16 +74,23 @@
 
         .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity var(--transition);}
         .modal-overlay.open{opacity:1;pointer-events:all;}
-        .modal-dialog{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 24px;max-width:440px;width:90%;box-shadow:var(--shadow-lg);max-height:90vh;overflow-y:auto;}
+        .modal-dialog{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 24px;max-width:500px;width:90%;box-shadow:var(--shadow-lg);max-height:90vh;overflow-y:auto;}
         .modal-title{font-family:var(--font-serif);font-size:20px;margin-bottom:20px;}
         .form-group{margin-bottom:16px;}
         .form-label{display:block;font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;}
         .form-input,.form-select{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:12px;font-size:14px;font-family:var(--font-sans);background:#0d0d0d;color:var(--text);transition:all var(--transition);}
         .form-input:focus,.form-select:focus{border-color:var(--gold);outline:none;box-shadow:0 0 0 3px rgba(198,164,63,0.1);}
+        .form-hint{font-size:11px;color:var(--text-secondary);margin-top:4px;}
         .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
         .btn-cancel{padding:9px 20px;border-radius:40px;background:transparent;border:1px solid #333;color:#888;cursor:pointer;font-size:13px;font-family:var(--font-sans);}
         .btn-confirm{padding:9px 20px;border-radius:40px;background:var(--gold);color:#0d0d0d;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:var(--font-sans);}
         .btn-confirm:hover{background:#D4AF37;}
+
+        .success-box{background:rgba(39,174,96,0.1);border:1px solid rgba(39,174,96,0.3);border-radius:16px;padding:20px;margin:16px 0;text-align:center;}
+        .success-box .icon{font-size:40px;margin-bottom:8px;}
+        .success-box .title{font-family:var(--font-serif);font-size:18px;color:var(--success);margin-bottom:8px;}
+        .success-box .credentials{background:rgba(0,0,0,0.3);border-radius:12px;padding:14px;margin:12px 0;text-align:left;font-size:13px;line-height:2;}
+        .success-box .credentials strong{color:var(--gold);}
 
         .toast-container{position:fixed;top:20px;right:20px;z-index:300;display:flex;flex-direction:column;gap:8px;}
         .toast{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:500;color:var(--text);animation:slideIn 0.3s ease;max-width:380px;box-shadow:var(--shadow-lg);}
@@ -123,7 +130,7 @@
     </div>
 
     <div class="toolbar">
-        <button class="btn-toolbar primary" id="btn-add-resto">➕ Ajouter un restaurant</button>
+        <button class="btn-toolbar primary" id="btn-add-resto">➕ Créer un compte client</button>
         <button class="btn-toolbar" id="btn-refresh">🔄 Rafraîchir</button>
         <input type="text" id="search-input" placeholder="🔍 Rechercher..." style="padding:9px 16px;border-radius:40px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;font-family:var(--font-sans);width:200px;">
     </div>
@@ -150,19 +157,43 @@
 <!-- MODALE AJOUT -->
 <div class="modal-overlay" id="modal-add">
     <div class="modal-dialog">
-        <h3 class="modal-title">➕ Ajouter un restaurant</h3>
-        <div class="form-group"><label class="form-label">Type</label>
-            <select id="add-type" class="form-select">
-                <option value="Restaurant">🍽️ Restaurant</option><option value="Fast-food">🍔 Fast-food</option><option value="Pizzeria">🍕 Pizzeria</option><option value="Snack">🥪 Snack</option><option value="Café">☕ Café</option><option value="Glacier">🍦 Glacier</option><option value="Grillade">🥩 Grillade</option><option value="Bar">🍺 Bar</option><option value="Food truck">🚚 Food truck</option><option value="Traiteur">📦 Traiteur</option><option value="Autre">🏷️ Autre</option>
-            </select>
+        <h3 class="modal-title" id="modal-add-title">➕ Créer un compte client</h3>
+        <div id="modal-add-form">
+            <p style="color:var(--text-secondary);font-size:13px;margin-bottom:20px;">
+                Le restaurant sera créé avec <strong style="color:var(--gold);">30 jours d'essai gratuit</strong>. Les identifiants seront envoyés au client.
+            </p>
+            <div class="form-group"><label class="form-label">Type d'établissement</label>
+                <select id="add-type" class="form-select">
+                    <option value="Restaurant">🍽️ Restaurant</option><option value="Fast-food">🍔 Fast-food</option><option value="Pizzeria">🍕 Pizzeria</option><option value="Snack">🥪 Snack</option><option value="Café">☕ Café</option><option value="Glacier">🍦 Glacier</option><option value="Grillade">🥩 Grillade</option><option value="Bar">🍺 Bar</option><option value="Food truck">🚚 Food truck</option><option value="Traiteur">📦 Traiteur</option><option value="Autre">🏷️ Autre</option>
+                </select>
+            </div>
+            <div class="form-group"><label class="form-label">Nom de l'établissement *</label><input type="text" id="add-nom" class="form-input" placeholder="Ex: Le DAKAR, Speed Burger" required></div>
+            <div class="form-group"><label class="form-label">Nom du propriétaire / gérant *</label><input type="text" id="add-gerant" class="form-input" placeholder="Ex: Moussa Diop" required></div>
+            <div class="form-group"><label class="form-label">Email du client *</label><input type="email" id="add-email" class="form-input" placeholder="client@gmail.com" required><span class="form-hint">Les identifiants seront envoyés à cette adresse</span></div>
+            <div class="form-group"><label class="form-label">Mot de passe</label><input type="text" id="add-password" class="form-input" value="" readonly style="background:#111;color:var(--gold);cursor:pointer;" onclick="this.select();document.execCommand('copy');showToast('✅ Mot de passe copié !', 'success');"><span class="form-hint" style="color:var(--gold);">Cliquez pour copier. Mot de passe généré automatiquement.</span></div>
+            <div class="form-group"><label class="form-label">Téléphone</label><input type="text" id="add-tel" class="form-input" placeholder="+221 77 000 00 00"></div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="btn-cancel-add">Annuler</button>
+                <button class="btn-confirm" id="btn-confirm-add">🚀 Créer le compte</button>
+            </div>
         </div>
-        <div class="form-group"><label class="form-label">Nom *</label><input type="text" id="add-nom" class="form-input" placeholder="Nom du restaurant" required></div>
-        <div class="form-group"><label class="form-label">Email gérant *</label><input type="email" id="add-email" class="form-input" placeholder="gerant@restaurant.com" required></div>
-        <div class="form-group"><label class="form-label">Mot de passe *</label><input type="password" id="add-password" class="form-input" placeholder="Minimum 8 caractères" required minlength="8"></div>
-        <div class="form-group"><label class="form-label">Téléphone</label><input type="text" id="add-tel" class="form-input" placeholder="+221 77 000 00 00"></div>
-        <div class="modal-actions">
-            <button class="btn-cancel" id="btn-cancel-add">Annuler</button>
-            <button class="btn-confirm" id="btn-confirm-add">Créer</button>
+        <div id="modal-add-success" style="display:none;">
+            <div class="success-box">
+                <div class="icon">🎉</div>
+                <div class="title">Compte créé avec succès !</div>
+                <p style="color:var(--text-secondary);font-size:13px;margin-bottom:8px;">Voici les identifiants à communiquer au client :</p>
+                <div class="credentials">
+                    <div>🏪 <strong>Restaurant :</strong> <span id="success-nom"></span></div>
+                    <div>📧 <strong>Email :</strong> <span id="success-email"></span></div>
+                    <div>🔑 <strong>Mot de passe :</strong> <span id="success-password"></span></div>
+                    <div>🎁 <strong>Essai :</strong> 30 jours gratuits</div>
+                    <div>🔗 <strong>Connexion :</strong> restapps.net/login.html</div>
+                </div>
+                <p style="font-size:11px;color:var(--text-secondary);">Les identifiants ont été envoyés par email.</p>
+            </div>
+            <div class="modal-actions" style="justify-content:center;">
+                <button class="btn-confirm" id="btn-close-success">✨ OK, parfait</button>
+            </div>
         </div>
     </div>
 </div>
@@ -181,16 +212,38 @@
 
     var restaurants = [];
 
+    function generatePassword() {
+        var chars = 'abcdefghjkmnpqrstuvwxyz23456789ABCDEFGHJKMNPQRSTUVWXYZ!@#';
+        var pwd = '';
+        for (var i = 0; i < 12; i++) {
+            pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return pwd;
+    }
+
     function init() {
         document.getElementById('logout-btn').addEventListener('click', function() { localStorage.clear(); location.href = '/login.html'; });
-        document.getElementById('btn-add-resto').addEventListener('click', function() { document.getElementById('modal-add').classList.add('open'); });
-        document.getElementById('btn-cancel-add').addEventListener('click', function() { document.getElementById('modal-add').classList.remove('open'); });
+        document.getElementById('btn-add-resto').addEventListener('click', openAddModal);
+        document.getElementById('btn-cancel-add').addEventListener('click', closeAddModal);
         document.getElementById('btn-confirm-add').addEventListener('click', ajouterRestaurant);
+        document.getElementById('btn-close-success').addEventListener('click', closeAddModal);
         document.getElementById('btn-refresh').addEventListener('click', chargerDonnees);
         document.getElementById('search-input').addEventListener('input', afficherRestaurants);
-        document.getElementById('modal-add').addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
+        document.getElementById('modal-add').addEventListener('click', function(e) { if (e.target === this) closeAddModal(); });
         document.addEventListener('keydown', function(e) { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(function(m) { m.classList.remove('open'); }); });
         chargerDonnees();
+    }
+
+    function openAddModal() {
+        document.getElementById('add-password').value = generatePassword();
+        document.getElementById('modal-add-form').style.display = 'block';
+        document.getElementById('modal-add-success').style.display = 'none';
+        document.getElementById('modal-add').classList.add('open');
+        document.getElementById('add-nom').focus();
+    }
+
+    function closeAddModal() {
+        document.getElementById('modal-add').classList.remove('open');
     }
 
     async function chargerDonnees() {
@@ -282,24 +335,43 @@
         var password = document.getElementById('add-password').value;
         var type = document.getElementById('add-type').value;
         var tel = document.getElementById('add-tel').value.trim();
-        if (!nom || !email || !password) { showToast('Remplissez tous les champs obligatoires', 'error'); return; }
-        if (password.length < 8) { showToast('Mot de passe : 8 caractères minimum', 'error'); return; }
+        var gerant = document.getElementById('add-gerant').value.trim();
+
+        if (!nom || !email || !gerant) { showToast('Remplissez tous les champs obligatoires (*)', 'error'); return; }
+
+        var btn = document.getElementById('btn-confirm-add');
+        btn.disabled = true;
+        btn.textContent = 'Création…';
+
         try {
             var r = await fetch('/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email, motDePasse: password, nomRestaurant: nom, typeEtablissement: type, telephone: tel, estProprietaire: true })
+                body: JSON.stringify({ 
+                    email: email, 
+                    motDePasse: password, 
+                    nomRestaurant: nom, 
+                    typeEtablissement: type, 
+                    telephone: tel, 
+                    estProprietaire: true 
+                })
             });
             if (r.ok) {
-                showToast('✅ Restaurant créé', 'success');
-                document.getElementById('modal-add').classList.remove('open');
-                document.getElementById('add-nom').value = '';
-                document.getElementById('add-email').value = '';
-                document.getElementById('add-password').value = '';
-                document.getElementById('add-tel').value = '';
+                document.getElementById('success-nom').textContent = nom;
+                document.getElementById('success-email').textContent = email;
+                document.getElementById('success-password').textContent = password;
+                document.getElementById('modal-add-form').style.display = 'none';
+                document.getElementById('modal-add-success').style.display = 'block';
                 chargerDonnees();
-            } else { var d = await r.json(); showToast(d.error || 'Erreur', 'error'); }
+            } else { 
+                var d = await r.json(); 
+                showToast(d.message || d.error || 'Erreur', 'error'); 
+            }
         } catch(e) { showToast('Erreur réseau', 'error'); }
+        finally {
+            btn.disabled = false;
+            btn.textContent = '🚀 Créer le compte';
+        }
     }
 
     async function seConnecterEnTantQue(restoId) {
