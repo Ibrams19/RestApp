@@ -408,6 +408,15 @@
             document.getElementById('role-badge').textContent = badges[userRole] || '📋 Staff';
 
             initEventListeners();
+            // Débloquer l'audio au premier clic (obligatoire navigateurs)
+            document.addEventListener('click', function unlockAudio() {
+                const testAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACAf39/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gA==');
+                testAudio.volume = 0;
+                testAudio.play().then(() => {
+                    document.removeEventListener('click', unlockAudio);
+                    console.log('🔔 Audio débloqué');
+                }).catch(() => {});
+            }, { once: true });
             checkSubscription();
             chargerStats();
             chargerTables();
