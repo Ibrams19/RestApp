@@ -1527,6 +1527,22 @@ if (role === 'gerant') {
 if (!role || !VALID_ROLES.includes(role) || role === 'superadmin' || role === 'proprietaire') {
     return res.status(400).json({ error: 'validation_error', message: 'Rôle invalide.' });
 }
+// Vérifier si l'email est déjà utilisé (si fourni)
+if (email) {
+    const { data: existingEmail } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .eq('email', email.trim().toLowerCase())
+        .single();
+
+    if (existingEmail) {
+        return res.status(409).json({ 
+            error: 'duplicate_email',
+            message: 'Cet email est déjà utilisé par un autre compte.',
+            code: 'EMAIL_EXISTS'
+        });
+    }
+}
 
   const tokenUnique = Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
   const lienUnique = `${PUBLIC_URL}/magic.html?token=${tokenUnique}`;
