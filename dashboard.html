@@ -409,13 +409,17 @@
 
             initEventListeners();
             // Débloquer l'audio au premier clic (obligatoire navigateurs)
+            // Débloquer l'audio au premier clic
             document.addEventListener('click', function unlockAudio() {
-                const testAudio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACAf39/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gA==');
-                testAudio.volume = 0;
-                testAudio.play().then(() => {
-                    document.removeEventListener('click', unlockAudio);
-                    console.log('🔔 Audio débloqué');
-                }).catch(() => {});
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.frequency.value = 440;
+                gain.gain.value = 0.001; // Volume quasi nul
+                osc.start();
+                setTimeout(() => { osc.stop(); audioCtx.close(); audioUnlocked = true; console.log('🔊 Audio débloqué !'); }, 100);
+                document.removeEventListener('click', unlockAudio);
             }, { once: true });
             checkSubscription();
             chargerStats();
@@ -891,31 +895,25 @@
         document.addEventListener('DOMContentLoaded', init);
 
 
-        // Exposer pour compatibilité
                // ==================== NOTIFICATION SONORE ====================
-        function playNotificationSound() {
-            try {
-                // Utiliser l'API Web Audio pour un bip simple et fiable
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                
-                oscillator.frequency.value = 880;
-                oscillator.type = 'sine';
-                gainNode.gain.value = 0.1;
-                
-                oscillator.start();
-                setTimeout(() => {
-                    oscillator.stop();
-                    audioCtx.close();
-                }, 200);
-            } catch(e) {
-                console.error('Son non supporté:', e);
-            }
-        }
+
+               let audioUnlocked = false;
+
+function playNotificationSound() {
+    if (!audioUnlocked) return; // Pas encore débloqué
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.frequency.value = 880;
+        oscillator.type = 'sine';
+        gainNode.gain.value = 0.3;
+        oscillator.start();
+        setTimeout(() => { oscillator.stop(); audioCtx.close(); }, 300);
+    } catch(e) {}
+}
 
         // Exposer pour compatibilité
         window.chargerTables = chargerTables;
