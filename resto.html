@@ -472,8 +472,35 @@
 
         function genererRecu(client,table,items,total,commandeId){
             var now=new Date(),ds=now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}),hs=now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-            var nom = (window.restoName || 'Mon établissement').replace(/★/g, '★');
-            document.getElementById('recu-print').innerHTML='<div style="text-align:center;margin-bottom:16px;"><div style="font-size:22px;font-weight:bold;">🍽️ '+nom+'</div><div style="font-size:11px;color:#888;">'+ds+' à '+hs+'</div><div style="font-size:11px;color:#888;">Commande #'+commandeId+'</div></div><div style="border-top:1px dashed #ddd;border-bottom:1px dashed #ddd;padding:8px 0;margin-bottom:10px;font-size:12px;color:#666;">Table : '+table+' | Client : '+escapeHtml(client)+'</div><table style="width:100%;font-size:12px;margin-bottom:10px;">'+items.map(function(i){return'<tr><td style="padding:3px 0;">'+escapeHtml(i.nom)+' ×'+i.quantite+'</td><td style="text-align:right;">'+((i.prix||0)*(i.quantite||1)).toLocaleString()+' F</td></tr>';}).join('')+'</table><div style="border-top:2px solid #000;padding-top:8px;display:flex;justify-content:space-between;font-size:16px;font-weight:bold;"><span>TOTAL</span><span>'+total.toLocaleString()+' FCFA</span></div><div style="text-align:center;margin-top:16px;font-size:11px;color:#888;">Merci de votre visite !</div><div style="display:flex;gap:8px;margin-top:16px;"><button onclick="window.print()" style="flex:1;padding:10px;background:#C6A43F;color:white;border:none;border-radius:20px;font-weight:600;cursor:pointer;">🖨️ Imprimer</button><button onclick="document.getElementById(\'modal-recu\').style.display=\'none\'" style="flex:1;padding:10px;background:#f0f0f0;border:none;border-radius:20px;cursor:pointer;">Fermer</button></div>';
+            var nom = (window.restoName || 'Mon établissement');
+        var nomHTML = nom
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;')
+            .replace(/★/g, '&#9733;')
+            .replace(/é/g, '&eacute;')
+            .replace(/è/g, '&egrave;')
+            .replace(/ê/g, '&ecirc;')
+            .replace(/ë/g, '&euml;')
+            .replace(/à/g, '&agrave;')
+            .replace(/â/g, '&acirc;')
+            .replace(/ç/g, '&ccedil;')
+            .replace(/ù/g, '&ugrave;')
+            .replace(/û/g, '&ucirc;')
+            .replace(/ô/g, '&ocirc;')
+            .replace(/î/g, '&icirc;')
+            .replace(/ï/g, '&iuml;')
+            .replace(/É/g, '&Eacute;')
+            .replace(/È/g, '&Egrave;')
+            .replace(/Ê/g, '&Ecirc;')
+            .replace(/À/g, '&Agrave;')
+            .replace(/Ç/g, '&Ccedil;')
+            .replace(/œ/g, '&oelig;')
+            .replace(/Œ/g, '&OElig;')
+            .replace(/ô/g, '&ocirc;');
+            document.getElementById('recu-print').innerHTML='<div style="text-align:center;margin-bottom:16px;"><div style="font-size:22px;font-weight:bold;">🍽️ '+nomHTML+'</div><div style="font-size:11px;color:#888;">'+ds+' à '+hs+'</div><div style="font-size:11px;color:#888;">Commande #'+commandeId+'</div></div><div style="border-top:1px dashed #ddd;border-bottom:1px dashed #ddd;padding:8px 0;margin-bottom:10px;font-size:12px;color:#666;">Table : '+table+' | Client : '+escapeHtml(client)+'</div><table style="width:100%;font-size:12px;margin-bottom:10px;">'+items.map(function(i){return'<tr><td style="padding:3px 0;">'+escapeHtml(i.nom)+' ×'+i.quantite+'</td><td style="text-align:right;">'+((i.prix||0)*(i.quantite||1)).toLocaleString()+' F</td></tr>';}).join('')+'</table><div style="border-top:2px solid #000;padding-top:8px;display:flex;justify-content:space-between;font-size:16px;font-weight:bold;"><span>TOTAL</span><span>'+total.toLocaleString()+' FCFA</span></div><div style="text-align:center;margin-top:16px;font-size:11px;color:#888;">Merci de votre visite !</div><div style="display:flex;gap:8px;margin-top:16px;"><button onclick="window.print()" style="flex:1;padding:10px;background:#C6A43F;color:white;border:none;border-radius:20px;font-weight:600;cursor:pointer;">🖨️ Imprimer</button><button onclick="document.getElementById(\'modal-recu\').style.display=\'none\'" style="flex:1;padding:10px;background:#f0f0f0;border:none;border-radius:20px;cursor:pointer;">Fermer</button></div>';
             document.getElementById('modal-recu').style.display='flex';
         }
 
