@@ -511,14 +511,21 @@
                     if (user.email === 'demo7etoiles@restapp.net') {
                         container.innerHTML = `
                             <div style="background: linear-gradient(135deg, #FFF8E1, #f5eedb); border: 2px solid #C6A43F; border-radius: 16px; padding: 20px 24px; margin-bottom: 24px; text-align: center;">
-                                <div style="font-size: 32px; margin-bottom: 8px;">🎮</div>
                                 <h3 style="font-family: var(--font-serif); font-size: 18px; margin-bottom: 6px;">Vous testez la <span style="color:#C6A43F;">version démo</span></h3>
                                 <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
                                     Prêt à créer votre propre établissement ?<br>30 jours d'essai gratuit, sans engagement.
                                 </p>
-                                <a href="/register.html" style="display: inline-block; padding: 12px 28px; background: #C6A43F; color: #fff; border-radius: 40px; text-decoration: none; font-weight: 600; font-size: 14px; transition: all 0.3s;">
-                                    ✨ Créer mon restaurant gratuitement
-                                </a>
+                                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap;">
+                                    <a href="https://wa.me/221711504243?text=Bonjour%20RestApp%2C%20je%20souhaite%20cr%C3%A9er%20mon%20compte" 
+                                    target="_blank" 
+                                    style="display: inline-block; padding: 10px 20px; background: #25D366; color: white; border-radius: 40px; text-decoration: none; font-weight: 600; font-size: 13px;">
+                                    📱 WhatsApp
+                                    </a>
+                                    <a href="mailto:contact@restapps.net?subject=Cr%C3%A9ation%20de%20compte%20RestApp&body=Bonjour%2C%20je%20souhaite%20cr%C3%A9er%20mon%20compte%20RestApp%207%E2%98%85" 
+                                    style="display: inline-block; padding: 10px 20px; background: #C6A43F; color: white; border-radius: 40px; text-decoration: none; font-weight: 600; font-size: 13px;">
+                                    ✉️ Email
+                                    </a>
+                                </div>
                             </div>`;
                         return;
                     }
