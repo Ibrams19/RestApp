@@ -822,13 +822,54 @@
 
             try {
                 // Capturer le dashboard
-                const element = document.querySelector('.dashboard-container');
+                // Capturer seulement les stats + graphiques + top plats
+                const element = document.createElement('div');
+                element.style.padding = '20px';
+                element.style.background = getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#faf8f5';
+
+                // Titre
+                const title = document.createElement('h2');
+                title.textContent = document.getElementById('resto-name')?.textContent || 'Restaurant';
+                title.style.cssText = 'font-family:Georgia,serif;font-size:24px;color:#C6A43F;text-align:center;margin-bottom:20px;';
+                element.appendChild(title);
+
+                // Stats
+                const statsClone = document.querySelector('.stats-grid').cloneNode(true);
+                element.appendChild(statsClone);
+
+                // Graphique
+                const chartClone = document.querySelector('.chart-card').cloneNode(true);
+                // Remplacer le canvas par une image
+                const originalCanvas = document.getElementById('evolution-chart');
+                const chartImg = document.createElement('img');
+                chartImg.src = originalCanvas.toDataURL('image/png');
+                chartImg.style.width = '100%';
+                chartImg.style.maxHeight = '280px';
+                chartClone.querySelector('canvas').replaceWith(chartImg);
+                element.appendChild(chartClone);
+
+                // Top plats
+                const topPlatsClone = document.querySelectorAll('.chart-card')[1].cloneNode(true);
+                element.appendChild(topPlatsClone);
+
+                // Date
+                const dateEl = document.createElement('p');
+                dateEl.textContent = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+                dateEl.style.cssText = 'text-align:center;color:#999;font-size:11px;margin-top:20px;';
+                element.appendChild(dateEl);
+
+                // Ajouter temporairement au DOM pour html2canvas
+                element.style.position = 'absolute';
+                element.style.left = '-9999px';
+                document.body.appendChild(element);
                 const canvas = await html2canvas(element, {
                     backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#faf8f5',
                     scale: 2,
                     useCORS: true,
                     logging: false
                 });
+                // Nettoyer l'élément temporaire
+                document.body.removeChild(element);
 
                 // Créer le PDF (format A4)
                 const { jsPDF } = window.jspdf;
@@ -900,19 +941,16 @@
                let audioUnlocked = false;
 
 function playNotificationSound() {
-    if (!audioUnlocked) return; // Pas encore débloqué
     try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.frequency.value = 880;
-        oscillator.type = 'sine';
-        gainNode.gain.value = 0.3;
-        oscillator.start();
-        setTimeout(() => { oscillator.stop(); audioCtx.close(); }, 300);
-    } catch(e) {}
+        const audio = new Audio('https://www.soundjay.com/buttons/sounds/button-09.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(() => {
+            // Fallback silencieux
+            console.log('🔔 Nouvelle commande (son bloqué par navigateur)');
+        });
+    } catch(e) {
+        console.log('🔔 Nouvelle commande');
+    }
 }
 
         // Exposer pour compatibilité
