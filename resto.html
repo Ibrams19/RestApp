@@ -149,50 +149,50 @@
 
 <!-- MODALE COMMANDE RAPIDE -->
 <div class="modal-overlay" id="modal-commande-rapide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(8px);">
-    <div style="background:#fff;border-radius:20px;max-width:600px;width:95%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);padding:24px;">
-        
+    <div style="background:#fff;border-radius:20px;max-width:800px;width:95%;max-height:85vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;">
         <!-- Header -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-            <h3 style="font-family:var(--font-serif);font-size:20px;margin:0;">⚡ Commande rapide</h3>
-            <button id="cr-close-top" style="background:transparent;border:none;font-size:22px;cursor:pointer;color:#999;">✕</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-bottom:1px solid #e8e5df;">
+            <h3 style="font-family:var(--font-serif);font-size:20px;margin:0;color:#1a1a1a;">⚡ Commande rapide</h3>
+            <button id="cr-close-top" style="background:transparent;border:none;font-size:22px;cursor:pointer;color:#999;padding:4px 8px;border-radius:50%;line-height:1;">✕</button>
         </div>
 
-        <!-- Table + Client -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
-            <select id="cr-table" style="padding:10px;border:1px solid #ddd;border-radius:10px;font-size:13px;background:#fdfcfa;">
-                <option value="">Table...</option>
-            </select>
-            <input type="text" id="cr-client" placeholder="Nom client" maxlength="30" style="padding:10px;border:1px solid #ddd;border-radius:10px;font-size:13px;background:#fdfcfa;">
-        </div>
-
-        <!-- Recherche -->
-        <div style="position:relative;margin-bottom:16px;">
-            <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);">🔍</span>
-            <input type="text" id="cr-search" placeholder="Rechercher un plat..." style="width:100%;padding:10px 10px 10px 36px;border:1px solid #ddd;border-radius:10px;font-size:13px;background:#fdfcfa;">
-        </div>
-
-        <!-- Menu scrollable -->
-        <div id="cr-menu-list" style="max-height:200px;overflow-y:auto;border:1px solid #eee;border-radius:12px;padding:8px;margin-bottom:16px;background:#fdfcfa;">
-            <div style="text-align:center;color:#999;padding:20px;">🍽️ Chargement du menu...</div>
-        </div>
-
-        <!-- Panier -->
-        <div style="background:#faf8f5;border:1px solid #eee;border-radius:12px;padding:16px;margin-bottom:16px;">
-            <div style="font-size:12px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🛒 Panier</div>
-            <div id="cr-resume" style="max-height:200px;overflow-y:auto;font-size:13px;color:#666;text-align:center;">
-                Aucun plat ajouté
+        <!-- Body : Menu + Panier -->
+        <div style="display:flex;flex:1;overflow:hidden;">
+            <!-- Colonne Menu (gauche) -->
+            <div style="flex:1;padding:16px;overflow-y:auto;border-right:1px solid #f0f0f0;display:flex;flex-direction:column;gap:12px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <select id="cr-table" style="width:100%;padding:10px 14px;border:1px solid #e0dcd3;border-radius:10px;font-size:13px;font-family:var(--font-sans);background:#fdfcfa;color:#1a1a1a;">
+                        <option value="">Table...</option>
+                    </select>
+                    <input type="text" id="cr-client" placeholder="Nom client" maxlength="30" style="width:100%;padding:10px 14px;border:1px solid #e0dcd3;border-radius:10px;font-size:13px;font-family:var(--font-sans);background:#fdfcfa;color:#1a1a1a;">
+                </div>
+                <div style="position:relative;">
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;">🔍</span>
+                    <input type="text" id="cr-search" placeholder="Rechercher..." style="width:100%;padding:10px 14px 10px 36px;border:1px solid #e0dcd3;border-radius:10px;font-size:13px;font-family:var(--font-sans);background:#fdfcfa;color:#1a1a1a;">
+                </div>
+                <div id="cr-menu-list" style="flex:1;overflow-y:auto;border:1px solid #f0f0f0;border-radius:12px;padding:8px;background:#fdfcfa;min-height:200px;">
+                    <div style="text-align:center;color:#999;padding:30px;">🍽️ Menu...</div>
+                </div>
             </div>
-            <div id="cr-total-line" style="display:none;justify-content:space-between;align-items:center;padding-top:12px;margin-top:12px;border-top:2px solid #C6A43F;font-weight:700;font-size:16px;">
-                <span>Total</span>
-                <span id="cr-total" style="color:#C6A43F;">0 FCFA</span>
+
+            <!-- Colonne Panier (droite) -->
+            <div style="width:320px;padding:16px;overflow-y:auto;display:flex;flex-direction:column;background:#faf8f5;">
+                <div style="font-size:12px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🛒 Panier</div>
+                <div id="cr-resume" style="flex:1;overflow-y:auto;max-height:300px;font-size:13px;color:#666;text-align:left;padding-right:4px;">
+                    Aucun plat ajouté
+                </div>
+                <div id="cr-total-line" style="display:none;justify-content:space-between;align-items:center;padding-top:12px;margin-top:12px;border-top:2px solid #C6A43F;font-weight:700;font-size:16px;">
+                    <span>Total</span>
+                    <span id="cr-total" style="color:#C6A43F;">0 FCFA</span>
+                </div>
             </div>
         </div>
 
-        <!-- Boutons -->
-        <div style="display:flex;gap:10px;">
-            <button id="cr-cancel" style="flex:1;padding:12px;border-radius:40px;border:1px solid #ddd;background:transparent;color:#999;cursor:pointer;font-size:13px;">Annuler</button>
-            <button id="cr-submit" style="flex:1;padding:12px;border-radius:40px;border:none;background:#C6A43F;color:white;font-weight:600;cursor:pointer;font-size:13px;">👨‍🍳 En cuisine</button>
-            <button id="cr-submit-direct" style="flex:1;padding:12px;border-radius:40px;border:none;background:#27AE60;color:white;font-weight:600;cursor:pointer;font-size:13px;">🍽️ Servi directement</button>
+        <!-- Footer boutons -->
+        <div style="padding:16px 24px;border-top:1px solid #e8e5df;display:flex;gap:12px;background:#fff;">
+            <button id="cr-cancel" style="flex:1;padding:12px;border-radius:40px;border:1px solid #e0dcd3;background:transparent;color:#999;cursor:pointer;font-size:13px;font-weight:500;">Annuler</button>
+            <button id="cr-submit" style="flex:2;padding:12px;border-radius:40px;border:none;background:#C6A43F;color:white;font-weight:600;cursor:pointer;font-size:13px;">👨‍🍳 En cuisine</button>
+            <button id="cr-submit-direct" style="flex:2;padding:12px;border-radius:40px;border:none;background:#27AE60;color:white;font-weight:600;cursor:pointer;font-size:13px;">🍽️ Servi directement</button>
         </div>
     </div>
 </div>
