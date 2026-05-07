@@ -125,6 +125,21 @@
         body.dark #cr-table option { background: #2a2a2a; color: #fff; }
         body.dark .cr-menu-item span { color: #e0e0e0 !important; }
         body.dark .cr-menu-item:hover { background: #333 !important; }
+        body.dark #recu-print {
+            background: #1e1e1e !important;
+            color: #f0ece4 !important;
+        }
+        body.dark #recu-print * {
+            color: #f0ece4 !important;
+        }
+        body.dark #recu-print button:first-child {
+            background: #C6A43F !important;
+            color: #fff !important;
+        }
+        body.dark #recu-print button:last-child {
+            background: #333 !important;
+            color: #ccc !important;
+        }
     </style>
 </head>
 <body>
@@ -457,8 +472,8 @@
 
         function genererRecu(client,table,items,total,commandeId){
             var now=new Date(),ds=now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}),hs=now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-            var nom = window.restoName || 'Mon établissement';
-            document.getElementById('recu-print').innerHTML='<div style="text-align:center;margin-bottom:16px;"><div style="font-size:22px;font-weight:bold;">🍽️ '+escapeHtml(nom)+'</div><div style="font-size:11px;color:#888;">'+ds+' à '+hs+'</div><div style="font-size:11px;color:#888;">Commande #'+commandeId+'</div></div><div style="border-top:1px dashed #ddd;border-bottom:1px dashed #ddd;padding:8px 0;margin-bottom:10px;font-size:12px;color:#666;">Table : '+table+' | Client : '+escapeHtml(client)+'</div><table style="width:100%;font-size:12px;margin-bottom:10px;">'+items.map(function(i){return'<tr><td style="padding:3px 0;">'+escapeHtml(i.nom)+' ×'+i.quantite+'</td><td style="text-align:right;">'+((i.prix||0)*(i.quantite||1)).toLocaleString()+' F</td></tr>';}).join('')+'</table><div style="border-top:2px solid #000;padding-top:8px;display:flex;justify-content:space-between;font-size:16px;font-weight:bold;"><span>TOTAL</span><span>'+total.toLocaleString()+' FCFA</span></div><div style="text-align:center;margin-top:16px;font-size:11px;color:#888;">Merci de votre visite !</div><div style="display:flex;gap:8px;margin-top:16px;"><button onclick="window.print()" style="flex:1;padding:10px;background:#C6A43F;color:white;border:none;border-radius:20px;font-weight:600;cursor:pointer;">🖨️ Imprimer</button><button onclick="document.getElementById(\'modal-recu\').style.display=\'none\'" style="flex:1;padding:10px;background:#f0f0f0;border:none;border-radius:20px;cursor:pointer;">Fermer</button></div>';
+            var nom = (window.restoName || 'Mon établissement').replace(/★/g, '★');
+            document.getElementById('recu-print').innerHTML='<div style="text-align:center;margin-bottom:16px;"><div style="font-size:22px;font-weight:bold;">🍽️ '+nom+'</div><div style="font-size:11px;color:#888;">'+ds+' à '+hs+'</div><div style="font-size:11px;color:#888;">Commande #'+commandeId+'</div></div><div style="border-top:1px dashed #ddd;border-bottom:1px dashed #ddd;padding:8px 0;margin-bottom:10px;font-size:12px;color:#666;">Table : '+table+' | Client : '+escapeHtml(client)+'</div><table style="width:100%;font-size:12px;margin-bottom:10px;">'+items.map(function(i){return'<tr><td style="padding:3px 0;">'+escapeHtml(i.nom)+' ×'+i.quantite+'</td><td style="text-align:right;">'+((i.prix||0)*(i.quantite||1)).toLocaleString()+' F</td></tr>';}).join('')+'</table><div style="border-top:2px solid #000;padding-top:8px;display:flex;justify-content:space-between;font-size:16px;font-weight:bold;"><span>TOTAL</span><span>'+total.toLocaleString()+' FCFA</span></div><div style="text-align:center;margin-top:16px;font-size:11px;color:#888;">Merci de votre visite !</div><div style="display:flex;gap:8px;margin-top:16px;"><button onclick="window.print()" style="flex:1;padding:10px;background:#C6A43F;color:white;border:none;border-radius:20px;font-weight:600;cursor:pointer;">🖨️ Imprimer</button><button onclick="document.getElementById(\'modal-recu\').style.display=\'none\'" style="flex:1;padding:10px;background:#f0f0f0;border:none;border-radius:20px;cursor:pointer;">Fermer</button></div>';
             document.getElementById('modal-recu').style.display='flex';
         }
 
