@@ -388,6 +388,9 @@
                 return;
             }
             con.style.display='block';
+            con.style.maxHeight='300px';
+            con.style.overflowY='auto';
+            con.style.paddingRight='4px';
             var total=crPanier.reduce(function(s,i){return s+(i.prix*i.quantite);},0);
             con.innerHTML='<div style="display:flex;flex-direction:column;gap:6px;">'+crPanier.map(function(item,idx){
                 var sousTotal=item.prix*item.quantite;
