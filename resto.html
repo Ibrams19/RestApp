@@ -116,6 +116,39 @@
         body.dark .cr-qty-btn { background: var(--surface-dark); border-color: var(--border-dark); color: var(--text-dark); }
         @media print { body * { visibility: hidden; } #recu-print, #recu-print * { visibility: visible; } #recu-print { position: absolute; left: 0; top: 0; width: 100%; } }
         @media (max-width: 768px) { .header { padding: 0 16px; height: 60px; } .commandes-grid { grid-template-columns: 1fr; padding: 0 12px 40px; gap: 12px; } }
+        /* Mode sombre commande rapide */
+        body.dark #modal-commande-rapide > div {
+            background: #1e1e1e !important;
+            color: #f0ece4 !important;
+        }
+        body.dark #modal-commande-rapide h3 {
+            color: #f0ece4 !important;
+        }
+        body.dark #cr-table,
+        body.dark #cr-client,
+        body.dark #cr-search {
+            background: #2a2a2a !important;
+            border-color: #444 !important;
+            color: #f0ece4 !important;
+        }
+        body.dark #cr-menu-list {
+            background: #2a2a2a !important;
+            border-color: #444 !important;
+        }
+        body.dark #cr-resume {
+            color: #ccc !important;
+        }
+        body.dark #cr-total-line span {
+            color: #f0ece4 !important;
+        }
+        body.dark #cr-cancel {
+            color: #ccc !important;
+            border-color: #555 !important;
+        }
+        body.dark #cr-table option {
+            background: #2a2a2a;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
