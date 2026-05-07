@@ -116,35 +116,18 @@
         body.dark .cr-qty-btn { background: var(--surface-dark); border-color: var(--border-dark); color: var(--text-dark); }
         @media print { body * { visibility: hidden; } #recu-print, #recu-print * { visibility: visible; } #recu-print { position: absolute; left: 0; top: 0; width: 100%; } }
         @media (max-width: 768px) { .header { padding: 0 16px; height: 60px; } .commandes-grid { grid-template-columns: 1fr; padding: 0 12px 40px; gap: 12px; } }
-        /* Mode sombre pour la commande rapide */
-        body.dark #modal-commande-rapide > div {
-            background: var(--surface-dark) !important;
-            border-color: var(--border-dark) !important;
-            color: var(--text-dark) !important;
-        }
+        /* Mode sombre commande rapide */
+        body.dark .cr-modal { background: var(--surface-dark) !important; border-color: var(--border-dark) !important; }
+        body.dark .cr-modal > div:first-child { background: var(--surface-dark) !important; border-color: var(--border-dark) !important; }
+        body.dark .cr-modal > div:last-child { background: var(--surface-dark) !important; border-color: var(--border-dark) !important; }
         body.dark #cr-table,
         body.dark #cr-client,
-        body.dark #cr-search {
-            background: var(--bg-dark) !important;
-            border-color: var(--border-dark) !important;
-            color: var(--text-dark) !important;
-        }
-        body.dark #cr-menu-list {
-            background: var(--bg-dark) !important;
-            border-color: var(--border-dark) !important;
-        }
-        body.dark #cr-resume {
-            background: var(--bg-dark) !important;
-            border-color: var(--border-dark) !important;
-            color: var(--text-dark) !important;
-        }
-        body.dark .cr-menu-item:hover {
-            background: #2a1f0a !important;
-        }
-        body.dark #cr-cancel {
-            color: var(--text-dark) !important;
-            border-color: var(--border-dark) !important;
-        }
+        body.dark #cr-search { background: var(--bg-dark) !important; border-color: var(--border-dark) !important; color: var(--text-dark) !important; }
+        body.dark #cr-menu-list { background: var(--bg-dark) !important; border-color: var(--border-dark) !important; }
+        body.dark #cr-resume { color: var(--text-dark) !important; }
+        body.dark .cr-menu-item:hover { background: #2a1f0a !important; }
+        body.dark #cr-cancel { color: var(--text-dark) !important; border-color: var(--border-dark) !important; }
+        body.dark #cr-table option { background: #0d0d0d; color: #f0ece4; }
     </style>
 </head>
 <body>
@@ -177,27 +160,61 @@
     <div class="commandes-grid" id="commandes-grid"></div>
 
     <!-- MODALE COMMANDE RAPIDE -->
-    <div class="modal-overlay" id="modal-commande-rapide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:24px;max-width:600px;width:95%;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3 style="font-family:var(--font-serif);font-size:20px;">⚡ Commande rapide</h3><button id="cr-close-top" style="background:transparent;border:none;font-size:24px;cursor:pointer;color:var(--text-secondary);">&times;</button></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
-                <div><label style="font-size:11px;font-weight:500;color:var(--text-secondary);text-transform:uppercase;">Table *</label><select id="cr-table" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--font-sans);background:#fdfcfa;margin-top:4px;"><option value="">Sélectionnez...</option></select></div>
-                <div><label style="font-size:11px;font-weight:500;color:var(--text-secondary);text-transform:uppercase;">Client</label><input type="text" id="cr-client" placeholder="Nom du client" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--font-sans);background:#fdfcfa;margin-top:4px;" maxlength="30"></div>
+    <!-- MODALE COMMANDE RAPIDE -->
+<div class="modal-overlay" id="modal-commande-rapide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(8px);">
+    <div class="cr-modal" style="background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:0;max-width:650px;width:95%;max-height:90vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.2);display:flex;flex-direction:column;">
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--border);background:var(--surface);">
+            <h3 style="font-family:var(--font-serif);font-size:20px;margin:0;color:var(--text);">⚡ Commande rapide</h3>
+            <button id="cr-close-top" style="background:transparent;border:none;font-size:22px;cursor:pointer;color:var(--text-secondary);padding:4px 8px;border-radius:50%;transition:all var(--transition);line-height:1;">✕</button>
+        </div>
+        
+        <!-- Body -->
+        <div style="padding:24px;overflow-y:auto;flex:1;">
+            <!-- Table + Client -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+                <div>
+                    <label style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block;">Table</label>
+                    <select id="cr-table" style="width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:12px;font-size:14px;font-family:var(--font-sans);background:var(--bg);color:var(--text);cursor:pointer;">
+                        <option value="">Sélectionnez une table...</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block;">Client</label>
+                    <input type="text" id="cr-client" placeholder="Nom du client" maxlength="30" style="width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:12px;font-size:14px;font-family:var(--font-sans);background:var(--bg);color:var(--text);">
+                </div>
             </div>
-            <div style="margin-bottom:10px;position:relative;"><input type="text" id="cr-search" placeholder="🔍 Rechercher un plat..." style="width:100%;padding:10px 12px 10px 32px;border:1px solid var(--border);border-radius:10px;font-size:13px;font-family:var(--font-sans);background:#fdfcfa;"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;">🔍</span></div>
-            <div id="cr-menu-list" style="max-height:220px;overflow-y:auto;margin-bottom:14px;border:1px solid var(--border);border-radius:12px;padding:8px;"><div style="text-align:center;color:var(--text-secondary);padding:20px;">Chargement du menu...</div></div>
-            <div style="background:#fdfcfa;border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:14px;">
-                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;margin-bottom:8px;">🛒 Commande</div>
-                <div id="cr-resume" style="font-size:13px;color:var(--text-secondary);text-align:center;">Aucun plat ajouté</div>
-                <div id="cr-total-line" style="display:none;justify-content:space-between;align-items:center;padding-top:10px;margin-top:8px;border-top:2px solid var(--gold);font-weight:700;font-size:16px;"><span>Total</span><span id="cr-total" style="color:var(--gold);">0 FCFA</span></div>
+
+            <!-- Recherche -->
+            <div style="position:relative;margin-bottom:16px;">
+                <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;">🔍</span>
+                <input type="text" id="cr-search" placeholder="Rechercher un plat..." style="width:100%;padding:12px 16px 12px 40px;border:1px solid var(--border);border-radius:12px;font-size:14px;font-family:var(--font-sans);background:var(--bg);color:var(--text);">
             </div>
-            <div style="display:flex;gap:10px;">
-                <button id="cr-cancel" style="flex:1;padding:12px;border-radius:40px;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:13px;font-family:var(--font-sans);">Annuler</button>
-                <button id="cr-submit" style="flex:1;padding:12px;border-radius:40px;border:none;background:var(--gold);color:white;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font-sans);">👨‍🍳 En cuisine</button>
-                <button id="cr-submit-direct" style="flex:1;padding:12px;border-radius:40px;border:none;background:#27AE60;color:white;font-weight:600;cursor:pointer;font-size:13px;font-family:var(--font-sans);">🍽️ Servi directement</button>
+
+            <!-- Menu -->
+            <div id="cr-menu-list" style="max-height:240px;overflow-y:auto;margin-bottom:16px;border:1px solid var(--border);border-radius:16px;padding:8px;background:var(--bg);">
+                <div style="text-align:center;color:var(--text-secondary);padding:30px;font-size:14px;">🍽️ Chargement du menu...</div>
+            </div>
+
+            <!-- Résumé commande -->
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:16px;">
+                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🛒 Commande</div>
+                <div id="cr-resume" style="font-size:14px;color:var(--text-secondary);text-align:center;min-height:30px;display:flex;align-items:center;justify-content:center;">Aucun plat ajouté</div>
+                <div id="cr-total-line" style="display:none;justify-content:space-between;align-items:center;padding-top:14px;margin-top:14px;border-top:2px solid var(--gold);font-weight:700;font-size:18px;color:var(--text);">
+                    <span>Total</span>
+                    <span id="cr-total" style="color:var(--gold);">0 FCFA</span>
+                </div>
             </div>
         </div>
+
+        <!-- Footer boutons -->
+        <div style="padding:20px 24px;border-top:1px solid var(--border);display:flex;gap:12px;background:var(--surface);">
+            <button id="cr-cancel" style="flex:1;padding:12px;border-radius:40px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;font-size:13px;font-weight:500;font-family:var(--font-sans);transition:all var(--transition);">Annuler</button>
+            <button id="cr-submit" style="flex:1.5;padding:12px;border-radius:40px;border:none;background:var(--gold);color:white;font-weight:600;cursor:pointer;font-size:14px;font-family:var(--font-sans);transition:all var(--transition);">👨‍🍳 En cuisine</button>
+            <button id="cr-submit-direct" style="flex:1.5;padding:12px;border-radius:40px;border:none;background:#27AE60;color:white;font-weight:600;cursor:pointer;font-size:14px;font-family:var(--font-sans);transition:all var(--transition);">🍽️ Servi directement</button>
+        </div>
     </div>
+</div>
 
     <!-- MODALE REÇU -->
     <div class="modal-overlay" id="modal-recu" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:250;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
