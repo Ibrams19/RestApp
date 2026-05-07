@@ -117,22 +117,25 @@
         @media print { body * { visibility: hidden; } #recu-print, #recu-print * { visibility: visible; } #recu-print { position: absolute; left: 0; top: 0; width: 100%; } }
         @media (max-width: 768px) { .header { padding: 0 16px; height: 60px; } .commandes-grid { grid-template-columns: 1fr; padding: 0 12px 40px; gap: 12px; } }
         /* Mode sombre commande rapide */
-        body.dark .cr-modal { background: var(--surface-dark) !important; border-color: var(--border-dark) !important; }
-        body.dark .cr-modal > div:first-child { background: var(--surface-dark) !important; border-color: var(--border-dark) !important; }
-        body.dark .cr-modal > div:last-child { background: var(--surface-dark) !important; border-color: var(--border-dark) !important; }
+        body.dark #modal-commande-rapide > div > div:first-child { background: var(--surface-dark) !important; border-bottom-color: var(--border-dark) !important; }
+        body.dark #modal-commande-rapide > div > div:last-child { background: var(--surface-dark) !important; border-top-color: var(--border-dark) !important; }
         body.dark #cr-table,
         body.dark #cr-client,
-        body.dark #cr-search { background: var(--bg-dark) !important; border-color: var(--border-dark) !important; color: var(--text-dark) !important; }
-        body.dark #cr-menu-list { background: var(--bg-dark) !important; border-color: var(--border-dark) !important; }
-        body.dark #cr-resume { color: var(--text-dark) !important; }
+        body.dark #cr-search { background: #252525 !important; border-color: var(--border-dark) !important; color: #fff !important; }
+        body.dark #cr-menu-list { background: #252525 !important; border-color: var(--border-dark) !important; }
+        body.dark #cr-menu-list > div > div:first-child { color: var(--gold) !important; }
+        body.dark #cr-resume,
+        body.dark #cr-resume + div { background: #252525 !important; border-color: var(--border-dark) !important; }
+        body.dark #cr-resume > div,
+        body.dark #cr-resume > div span,
+        body.dark #cr-resume > div * { color: #f0ece4 !important; }
+        body.dark #cr-resume + div > div > div > span { color: #f0ece4 !important; }
+        body.dark .cr-menu-item span { color: #f0ece4 !important; }
         body.dark .cr-menu-item:hover { background: #2a1f0a !important; }
-        body.dark #cr-cancel { color: var(--text-dark) !important; border-color: var(--border-dark) !important; }
+        body.dark #cr-cancel { color: #f0ece4 !important; border-color: var(--border-dark) !important; }
         body.dark #cr-table option { background: #0d0d0d; color: #f0ece4; }
-        body.dark #cr-resume > div { color: var(--text-dark) !important; }
-        body.dark #cr-resume > div span { color: var(--text-dark) !important; }
-        body.dark #cr-total-line span { color: var(--text-dark) !important; }
-        body.dark #cr-submit { color: #0d0d0d !important; }
-        body.dark #cr-submit-direct { color: white !important; }
+        body.dark #cr-submit { color: #0d0d0d !important; background: var(--gold) !important; }
+        body.dark #cr-submit-direct { color: #fff !important; background: #27AE60 !important; }
     </style>
 </head>
 <body>
