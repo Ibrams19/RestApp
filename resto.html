@@ -116,25 +116,6 @@
         body.dark .cr-qty-btn { background: var(--surface-dark); border-color: var(--border-dark); color: var(--text-dark); }
         @media print { body * { visibility: hidden; } #recu-print, #recu-print * { visibility: visible; } #recu-print { position: absolute; left: 0; top: 0; width: 100%; } }
         @media (max-width: 768px) { .header { padding: 0 16px; height: 60px; } .commandes-grid { grid-template-columns: 1fr; padding: 0 12px 40px; gap: 12px; } }
-        /* Mode sombre commande rapide - fond doux */
-        body.dark #modal-commande-rapide > div > div:first-child { background: #1e1e1e !important; border-bottom-color: #333 !important; }
-        body.dark #modal-commande-rapide > div > div:last-child { background: #1e1e1e !important; border-top-color: #333 !important; }
-        body.dark #cr-table,
-        body.dark #cr-client,
-        body.dark #cr-search { background: #2a2a2a !important; border-color: #444 !important; color: #fff !important; }
-        body.dark #cr-menu-list { background: #2a2a2a !important; border-color: #444 !important; }
-        body.dark #cr-menu-list > div > div:first-child { color: var(--gold) !important; }
-        body.dark #cr-resume { background: #2a2a2a !important; border-color: #444 !important; }
-        body.dark #cr-total-line { border-top-color: var(--gold) !important; }
-        body.dark #cr-total-line span { color: #f0ece4 !important; }
-        body.dark #cr-resume > div { color: #f0ece4 !important; }
-        body.dark #cr-resume > div span { color: #f0ece4 !important; }
-        body.dark .cr-menu-item span { color: #e0e0e0 !important; }
-        body.dark .cr-menu-item:hover { background: #333 !important; }
-        body.dark #cr-cancel { color: #ccc !important; border-color: #555 !important; }
-        body.dark #cr-table option { background: #2a2a2a; color: #fff; }
-        body.dark #cr-submit { color: #1a1a1a !important; background: var(--gold) !important; }
-        body.dark #cr-submit-direct { color: #fff !important; background: #219A52 !important; }
     </style>
 </head>
 <body>
@@ -166,59 +147,52 @@
     </div>
     <div class="commandes-grid" id="commandes-grid"></div>
 
-    <!-- MODALE COMMANDE RAPIDE -->
-    <!-- MODALE COMMANDE RAPIDE -->
+<!-- MODALE COMMANDE RAPIDE -->
 <div class="modal-overlay" id="modal-commande-rapide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(8px);">
-    <div class="cr-modal" style="background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:0;max-width:650px;width:95%;max-height:90vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.2);display:flex;flex-direction:column;">
+    <div style="background:#fff;border-radius:20px;max-width:800px;width:95%;max-height:85vh;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.3);display:flex;flex-direction:column;">
         <!-- Header -->
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--border);background:var(--surface);">
-            <h3 style="font-family:var(--font-serif);font-size:20px;margin:0;color:var(--text);">⚡ Commande rapide</h3>
-            <button id="cr-close-top" style="background:transparent;border:none;font-size:22px;cursor:pointer;color:var(--text-secondary);padding:4px 8px;border-radius:50%;transition:all var(--transition);line-height:1;">✕</button>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:18px 24px;border-bottom:1px solid #e8e5df;">
+            <h3 style="font-family:var(--font-serif);font-size:20px;margin:0;color:#1a1a1a;">⚡ Commande rapide</h3>
+            <button id="cr-close-top" style="background:transparent;border:none;font-size:22px;cursor:pointer;color:#999;padding:4px 8px;border-radius:50%;line-height:1;">✕</button>
         </div>
-        
-        <!-- Body -->
-        <div style="padding:24px;overflow-y:auto;flex:1;">
-            <!-- Table + Client -->
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
-                <div>
-                    <label style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block;">Table</label>
-                    <select id="cr-table" style="width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:12px;font-size:14px;font-family:var(--font-sans);background:var(--bg);color:var(--text);cursor:pointer;">
-                        <option value="">Sélectionnez une table...</option>
+
+        <!-- Body : Menu + Panier -->
+        <div style="display:flex;flex:1;overflow:hidden;">
+            <!-- Colonne Menu (gauche) -->
+            <div style="flex:1;padding:16px;overflow-y:auto;border-right:1px solid #f0f0f0;display:flex;flex-direction:column;gap:12px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                    <select id="cr-table" style="width:100%;padding:10px 14px;border:1px solid #e0dcd3;border-radius:10px;font-size:13px;font-family:var(--font-sans);background:#fdfcfa;color:#1a1a1a;">
+                        <option value="">Table...</option>
                     </select>
+                    <input type="text" id="cr-client" placeholder="Nom client" maxlength="30" style="width:100%;padding:10px 14px;border:1px solid #e0dcd3;border-radius:10px;font-size:13px;font-family:var(--font-sans);background:#fdfcfa;color:#1a1a1a;">
                 </div>
-                <div>
-                    <label style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;display:block;">Client</label>
-                    <input type="text" id="cr-client" placeholder="Nom du client" maxlength="30" style="width:100%;padding:12px 16px;border:1px solid var(--border);border-radius:12px;font-size:14px;font-family:var(--font-sans);background:var(--bg);color:var(--text);">
+                <div style="position:relative;">
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;">🔍</span>
+                    <input type="text" id="cr-search" placeholder="Rechercher..." style="width:100%;padding:10px 14px 10px 36px;border:1px solid #e0dcd3;border-radius:10px;font-size:13px;font-family:var(--font-sans);background:#fdfcfa;color:#1a1a1a;">
+                </div>
+                <div id="cr-menu-list" style="flex:1;overflow-y:auto;border:1px solid #f0f0f0;border-radius:12px;padding:8px;background:#fdfcfa;min-height:200px;">
+                    <div style="text-align:center;color:#999;padding:30px;">🍽️ Menu...</div>
                 </div>
             </div>
 
-            <!-- Recherche -->
-            <div style="position:relative;margin-bottom:16px;">
-                <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;">🔍</span>
-                <input type="text" id="cr-search" placeholder="Rechercher un plat..." style="width:100%;padding:12px 16px 12px 40px;border:1px solid var(--border);border-radius:12px;font-size:14px;font-family:var(--font-sans);background:var(--bg);color:var(--text);">
-            </div>
-
-            <!-- Menu -->
-            <div id="cr-menu-list" style="max-height:240px;overflow-y:auto;margin-bottom:16px;border:1px solid var(--border);border-radius:16px;padding:8px;background:var(--bg);">
-                <div style="text-align:center;color:var(--text-secondary);padding:30px;font-size:14px;">🍽️ Chargement du menu...</div>
-            </div>
-
-            <!-- Résumé commande -->
-            <div style="background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:16px;">
-                <div style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🛒 Commande</div>
-                <div id="cr-resume" style="font-size:14px;color:var(--text-secondary);text-align:center;min-height:30px;display:flex;align-items:center;justify-content:center;">Aucun plat ajouté</div>
-                <div id="cr-total-line" style="display:none;justify-content:space-between;align-items:center;padding-top:14px;margin-top:14px;border-top:2px solid var(--gold);font-weight:700;font-size:18px;color:var(--text);">
+            <!-- Colonne Panier (droite) -->
+            <div style="width:320px;padding:16px;overflow-y:auto;display:flex;flex-direction:column;background:#faf8f5;">
+                <div style="font-size:12px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🛒 Panier</div>
+                <div id="cr-resume" style="flex:1;overflow-y:auto;font-size:13px;color:#999;text-align:center;min-height:150px;display:flex;align-items:center;justify-content:center;">
+                    Aucun plat ajouté
+                </div>
+                <div id="cr-total-line" style="display:none;justify-content:space-between;align-items:center;padding-top:12px;margin-top:12px;border-top:2px solid #C6A43F;font-weight:700;font-size:16px;">
                     <span>Total</span>
-                    <span id="cr-total" style="color:var(--gold);">0 FCFA</span>
+                    <span id="cr-total" style="color:#C6A43F;">0 FCFA</span>
                 </div>
             </div>
         </div>
 
         <!-- Footer boutons -->
-        <div style="padding:20px 24px;border-top:1px solid var(--border);display:flex;gap:12px;background:var(--surface);">
-            <button id="cr-cancel" style="flex:1;padding:12px;border-radius:40px;border:1px solid var(--border);background:transparent;color:var(--text-secondary);cursor:pointer;font-size:13px;font-weight:500;font-family:var(--font-sans);transition:all var(--transition);">Annuler</button>
-            <button id="cr-submit" style="flex:1.5;padding:12px;border-radius:40px;border:none;background:var(--gold);color:white;font-weight:600;cursor:pointer;font-size:14px;font-family:var(--font-sans);transition:all var(--transition);">👨‍🍳 En cuisine</button>
-            <button id="cr-submit-direct" style="flex:1.5;padding:12px;border-radius:40px;border:none;background:#27AE60;color:white;font-weight:600;cursor:pointer;font-size:14px;font-family:var(--font-sans);transition:all var(--transition);">🍽️ Servi directement</button>
+        <div style="padding:16px 24px;border-top:1px solid #e8e5df;display:flex;gap:12px;background:#fff;">
+            <button id="cr-cancel" style="flex:1;padding:12px;border-radius:40px;border:1px solid #e0dcd3;background:transparent;color:#999;cursor:pointer;font-size:13px;font-weight:500;">Annuler</button>
+            <button id="cr-submit" style="flex:2;padding:12px;border-radius:40px;border:none;background:#C6A43F;color:white;font-weight:600;cursor:pointer;font-size:13px;">👨‍🍳 En cuisine</button>
+            <button id="cr-submit-direct" style="flex:2;padding:12px;border-radius:40px;border:none;background:#27AE60;color:white;font-weight:600;cursor:pointer;font-size:13px;">🍽️ Servi directement</button>
         </div>
     </div>
 </div>
@@ -407,26 +381,44 @@
         function togglePlatPanier(id,nom,prix){var ex=crPanier.find(function(i){return i.menuId===id;});if(ex)crPanier=crPanier.filter(function(i){return i.menuId!==id;});else crPanier.push({menuId:id,nom:nom,prix:prix,quantite:1});actualiserResume();afficherMenuRapide(document.getElementById('cr-search').value);}
         function actualiserResume(){
             var con=document.getElementById('cr-resume'),tl=document.getElementById('cr-total-line');
-            if(!crPanier.length){con.innerHTML='<div style="text-align:center;color:var(--text-secondary);padding:20px;">🛒 Aucun plat ajouté</div>';tl.style.display='none';return;}
+            if(!crPanier.length){
+                con.innerHTML='<div style="text-align:center;color:#bbb;padding:30px;font-size:13px;">🛒<br>Aucun plat ajouté</div>';
+                con.style.display='flex';con.style.alignItems='center';con.style.justifyContent='center';
+                tl.style.display='none';
+                return;
+            }
+            con.style.display='block';
             var total=crPanier.reduce(function(s,i){return s+(i.prix*i.quantite);},0);
-            con.innerHTML='<div style="display:flex;flex-direction:column;gap:8px;">'+crPanier.map(function(item,idx){
+            con.innerHTML='<div style="display:flex;flex-direction:column;gap:6px;">'+crPanier.map(function(item,idx){
                 var sousTotal=item.prix*item.quantite;
-                return'<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:rgba(0,0,0,0.03);border-radius:12px;gap:10px;">'+
-                    '<div style="flex:1;min-width:0;">'+
-                        '<div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escapeHtml(item.nom)+'</div>'+
-                        '<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">'+item.prix.toLocaleString()+' FCFA × '+item.quantite+' = <strong style="color:var(--gold);">'+sousTotal.toLocaleString()+' FCFA</strong></div>'+
-                    '</div>'+
-                    '<div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">'+
-                        '<button class="cr-qty-btn" data-idx="'+idx+'" data-delta="-1" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;font-weight:600;">−</button>'+
-                        '<span style="width:24px;text-align:center;font-weight:600;">'+item.quantite+'</span>'+
-                        '<button class="cr-qty-btn" data-idx="'+idx+'" data-delta="1" style="width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;font-weight:600;">+</button>'+
-                        '<button data-idx="'+idx+'" data-action="remove" style="width:28px;height:28px;border-radius:50%;border:none;background:#FDE8E8;color:#E74C3C;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;margin-left:4px;" title="Supprimer">🗑️</button>'+
+                return'<div style="background:#fff;border:1px solid #e8e5df;border-radius:12px;padding:12px 14px;">'+
+                    '<div style="font-weight:600;font-size:13px;margin-bottom:4px;color:#1a1a1a;word-break:break-word;">'+escapeHtml(item.nom)+'</div>'+
+                    '<div style="font-size:11px;color:#999;margin-bottom:8px;">'+item.prix.toLocaleString()+' FCFA × '+item.quantite+' = <strong style="color:#C6A43F;">'+sousTotal.toLocaleString()+' FCFA</strong></div>'+
+                    '<div style="display:flex;align-items:center;gap:8px;">'+
+                        '<button class="cr-qty-btn" data-idx="'+idx+'" data-delta="-1" style="width:28px;height:28px;border-radius:50%;border:1px solid #e0dcd3;background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;font-weight:600;color:#666;">−</button>'+
+                        '<span style="width:22px;text-align:center;font-weight:600;font-size:14px;">'+item.quantite+'</span>'+
+                        '<button class="cr-qty-btn" data-idx="'+idx+'" data-delta="1" style="width:28px;height:28px;border-radius:50%;border:1px solid #e0dcd3;background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;font-weight:600;color:#666;">+</button>'+
+                        '<button data-idx="'+idx+'" data-action="remove" style="margin-left:auto;padding:6px 12px;border-radius:20px;border:1px solid #f5c6cb;background:#fff;color:#E74C3C;cursor:pointer;font-size:11px;font-weight:500;display:flex;align-items:center;gap:4px;">🗑️ Supprimer</button>'+
                     '</div>'+
                 '</div>';
             }).join('')+'</div>';
             tl.style.display='flex';document.getElementById('cr-total').textContent=total.toLocaleString()+' FCFA';
-            con.querySelectorAll('.cr-qty-btn').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();var idx=parseInt(this.dataset.idx),d=parseInt(this.dataset.delta);crPanier[idx].quantite=Math.max(1,Math.min(99,crPanier[idx].quantite+d));actualiserResume();});});
-            con.querySelectorAll('[data-action="remove"]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();crPanier.splice(parseInt(this.dataset.idx),1);actualiserResume();afficherMenuRapide(document.getElementById('cr-search').value);});});
+            con.querySelectorAll('.cr-qty-btn').forEach(function(b){
+                b.addEventListener('click',function(e){
+                    e.stopPropagation();
+                    var idx=parseInt(this.dataset.idx),d=parseInt(this.dataset.delta);
+                    crPanier[idx].quantite=Math.max(1,Math.min(99,crPanier[idx].quantite+d));
+                    actualiserResume();
+                });
+            });
+            con.querySelectorAll('[data-action="remove"]').forEach(function(b){
+                b.addEventListener('click',function(e){
+                    e.stopPropagation();
+                    crPanier.splice(parseInt(this.dataset.idx),1);
+                    actualiserResume();
+                    afficherMenuRapide(document.getElementById('cr-search').value);
+                });
+            });
         }
         async function validerCommandeRapide(statut){
             statut=statut||'en_attente';
