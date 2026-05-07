@@ -292,6 +292,7 @@
         <div class="header-right">
             <span class="role-badge" id="role-badge">👑 Gérant</span>
             <span style="font-size: 13px; color: var(--text-secondary);" id="resto-name">Restaurant</span>
+            <button class="btn-icon" id="theme-toggle" title="Mode sombre" style="width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:16px;">🌙</button>
             <button class="btn-logout" id="logout-btn">Quitter</button>
         </div>
     </header>
@@ -469,6 +470,15 @@
                     }
                 });
             }
+            // Theme toggle
+            var savedTheme = localStorage.getItem('resto_theme');
+            if (savedTheme === 'dark') { document.body.classList.add('dark'); }
+            document.getElementById('theme-toggle').addEventListener('click', function() {
+                document.body.classList.toggle('dark');
+                var isDark = document.body.classList.contains('dark');
+                localStorage.setItem('resto_theme', isDark ? 'dark' : 'light');
+                this.textContent = isDark ? '☀️' : '🌙';
+            });
         }
 
         function redirectToLogin() {
