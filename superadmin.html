@@ -142,13 +142,14 @@
                     <th>Restaurant</th>
                     <th>Gérant</th>
                     <th>Statut</th>
+                    <th>Jours restants</th>
                     <th>Expire le</th>
                     <th>Employés</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="restos-tbody">
-                <tr><td colspan="6" class="empty-state">Chargement…</td></tr>
+                <tr><td colspan="7" class="empty-state">Chargement…</td></tr>
             </tbody>
         </table>
     </div>
@@ -261,6 +262,22 @@
         } catch(e) {}
     }
 
+    function getJoursRestants(r) {
+    var now = new Date();
+    var endDate = null;
+    if (r.subscription_status === 'trial' && r.trial_ends_at) {
+        endDate = new Date(r.trial_ends_at);
+    } else if (r.subscription_status === 'active' && r.subscription_ends_at) {
+        endDate = new Date(r.subscription_ends_at);
+    }
+    if (!endDate) return '<span style="color:#666;">-</span>';
+    var jours = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+    if (jours < 0) return '<span style="color:#E74C3C;font-weight:600;">⚠️ Expiré</span>';
+    if (jours <= 3) return '<span style="color:#E74C3C;font-weight:600;">' + jours + 'j ⚠️</span>';
+    if (jours <= 7) return '<span style="color:#F39C12;font-weight:600;">' + jours + 'j</span>';
+    return '<span style="color:#27AE60;">' + jours + 'j</span>';
+}
+
     function afficherRestaurants() {
         var search = (document.getElementById('search-input').value || '').toLowerCase();
         var filtered = restaurants.filter(function(r) {
@@ -268,7 +285,7 @@
         });
         var tbody = document.getElementById('restos-tbody');
         if (!filtered.length) {
-            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Aucun restaurant trouvé</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Aucun restaurant trouvé</td></tr>';
             return;
         }
         tbody.innerHTML = filtered.map(function(r) {
@@ -279,6 +296,7 @@
                 '<td><span class="resto-name">' + (r.nom || 'Sans nom') + '</span><br><span class="resto-date">' + (r.type_etablissement || 'Restaurant') + '</span></td>' +
                 '<td style="color:var(--text-secondary);">' + (r.email_gerant || '-') + '</td>' +
                 '<td><span class="badge ' + sc + '">' + sl + '</span></td>' +
+                '<td style="text-align:center;">' + getJoursRestants(r) + '</td>' +
                 '<td>' + endDate + '</td>' +
                 '<td>' + (r.profiles?.[0]?.count || 0) + '</td>' +
                 '<td><div class="actions-cell">' +
