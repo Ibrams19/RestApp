@@ -170,7 +170,7 @@
             <div class="form-group"><label class="form-label">Nom de l'établissement *</label><input type="text" id="add-nom" class="form-input" placeholder="Ex: Le DAKAR, Speed Burger" required></div>
             <div class="form-group"><label class="form-label">Nom du propriétaire / gérant *</label><input type="text" id="add-gerant" class="form-input" placeholder="Ex: Moussa Diop" required></div>
             <div class="form-group"><label class="form-label">Email du client *</label><input type="email" id="add-email" class="form-input" placeholder="client@gmail.com" required><span class="form-hint">Les identifiants seront envoyés à cette adresse</span></div>
-            <div class="form-group"><label class="form-label">Mot de passe</label><input type="text" id="add-password" class="form-input" value="" readonly style="background:#111;color:var(--gold);cursor:pointer;" onclick="this.select();document.execCommand('copy');showToast('✅ Mot de passe copié !', 'success');"><span class="form-hint" style="color:var(--gold);">Cliquez pour copier. Mot de passe généré automatiquement.</span></div>
+            <input type="hidden" id="add-password" value="">
             <div class="form-group"><label class="form-label">Téléphone</label><input type="text" id="add-tel" class="form-input" placeholder="+221 77 000 00 00"></div>
             <div class="modal-actions">
                 <button class="btn-cancel" id="btn-cancel-add">Annuler</button>
@@ -235,7 +235,6 @@
     }
 
     function openAddModal() {
-        document.getElementById('add-password').value = generatePassword();
         document.getElementById('modal-add-form').style.display = 'block';
         document.getElementById('modal-add-success').style.display = 'none';
         document.getElementById('modal-add').classList.add('open');

@@ -503,12 +503,24 @@ app.post('/api/register', async (req, res) => {
     JWT_SECRET,
     { expiresIn: '7d' }
 );
-  // Email de bienvenue
-  sendEmail(email, 'Bienvenue sur RestApp 7★ ! 🎉', `
+    // Envoyer un lien magique pour définir le mot de passe
+  const magicToken = crypto.randomBytes(32).toString('hex');
+  
+  await supabase.from('profiles').update({ 
+    token_unique: magicToken,
+    first_login: true,
+    mot_de_passe: null // Pas de mot de passe tant que le client ne l'a pas défini
+  }).eq('id', profile.id);
+
+  const magicLink = `${PUBLIC_URL}/set-password.html?token=${magicToken}&email=${encodeURIComponent(email)}`;
+
+  sendEmail(email, 'Bienvenue sur RestApp 7★ ! Définissez votre mot de passe', `
       <h2>Bienvenue ${nomRestaurant} !</h2>
-      <p>Votre établissement est prêt.</p>
+      <p>Votre établissement a été créé avec succès.</p>
       <p>Vous avez <strong>30 jours d'essai gratuit</strong>.</p>
-      <a href="${PUBLIC_URL}/login.html">Accéder à mon espace</a>
+      <p>Cliquez ci-dessous pour définir votre mot de passe :</p>
+      <a href="${magicLink}" style="display:inline-block;padding:12px 24px;background:#C6A43F;color:#fff;border-radius:40px;text-decoration:none;font-weight:600;">Définir mon mot de passe</a>
+      <p style="color:#999;font-size:12px;">Ce lien est valable 7 jours.</p>
   `);
 
   logSecurity('INFO', 'Nouveau restaurant créé', { email, restaurant: restaurant.nom });
