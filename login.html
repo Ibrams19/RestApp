@@ -611,6 +611,10 @@
         function init() {
         checkExistingSession();
         initTabs();
+        // Ouvrir l'onglet inscription si ?tab=register
+        if (window.location.search.includes('tab=register')) {
+            document.querySelectorAll('.tab')[1].click();
+        }
 
         // Pré-remplir l'email si présent dans l'URL (bouton Démo)
         const urlParams = new URLSearchParams(window.location.search);
