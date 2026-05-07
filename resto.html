@@ -178,7 +178,7 @@
             <!-- Colonne Panier (droite) -->
             <div style="width:320px;padding:16px;overflow-y:auto;display:flex;flex-direction:column;background:#faf8f5;">
                 <div style="font-size:12px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🛒 Panier</div>
-                <div id="cr-resume" style="flex:1;overflow-y:auto;font-size:13px;color:#999;text-align:center;min-height:150px;display:flex;align-items:center;justify-content:center;">
+                <div id="cr-resume" style="flex:1;overflow-y:auto;max-height:300px;font-size:13px;color:#666;text-align:left;padding-right:4px;">
                     Aucun plat ajouté
                 </div>
                 <div id="cr-total-line" style="display:none;justify-content:space-between;align-items:center;padding-top:12px;margin-top:12px;border-top:2px solid #C6A43F;font-weight:700;font-size:16px;">
@@ -379,50 +379,54 @@
             con.querySelectorAll('.cr-menu-item').forEach(function(item){item.addEventListener('click',function(){togglePlatPanier(parseInt(this.dataset.id),this.dataset.nom,parseInt(this.dataset.prix));});});
         }
         function togglePlatPanier(id,nom,prix){var ex=crPanier.find(function(i){return i.menuId===id;});if(ex)crPanier=crPanier.filter(function(i){return i.menuId!==id;});else crPanier.push({menuId:id,nom:nom,prix:prix,quantite:1});actualiserResume();afficherMenuRapide(document.getElementById('cr-search').value);}
+        
         function actualiserResume(){
-            var con=document.getElementById('cr-resume'),tl=document.getElementById('cr-total-line');
-            if(!crPanier.length){
-                con.innerHTML='<div style="text-align:center;color:#bbb;padding:30px;font-size:13px;">🛒<br>Aucun plat ajouté</div>';
-                con.style.display='flex';con.style.alignItems='center';con.style.justifyContent='center';
-                tl.style.display='none';
-                return;
-            }
-            con.style.display='block';
-            con.style.maxHeight='300px';
-            con.style.overflowY='auto';
-            con.style.paddingRight='4px';
-            var total=crPanier.reduce(function(s,i){return s+(i.prix*i.quantite);},0);
-            con.innerHTML='<div style="display:flex;flex-direction:column;gap:6px;">'+crPanier.map(function(item,idx){
-                var sousTotal=item.prix*item.quantite;
-                return'<div style="background:#fff;border:1px solid #e8e5df;border-radius:12px;padding:12px 14px;">'+
-                    '<div style="font-weight:600;font-size:13px;margin-bottom:4px;color:#1a1a1a;word-break:break-word;">'+escapeHtml(item.nom)+'</div>'+
-                    '<div style="font-size:11px;color:#999;margin-bottom:8px;">'+item.prix.toLocaleString()+' FCFA × '+item.quantite+' = <strong style="color:#C6A43F;">'+sousTotal.toLocaleString()+' FCFA</strong></div>'+
-                    '<div style="display:flex;align-items:center;gap:8px;">'+
-                        '<button class="cr-qty-btn" data-idx="'+idx+'" data-delta="-1" style="width:28px;height:28px;border-radius:50%;border:1px solid #e0dcd3;background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;font-weight:600;color:#666;">−</button>'+
-                        '<span style="width:22px;text-align:center;font-weight:600;font-size:14px;">'+item.quantite+'</span>'+
-                        '<button class="cr-qty-btn" data-idx="'+idx+'" data-delta="1" style="width:28px;height:28px;border-radius:50%;border:1px solid #e0dcd3;background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;font-weight:600;color:#666;">+</button>'+
-                        '<button data-idx="'+idx+'" data-action="remove" style="margin-left:auto;padding:6px 12px;border-radius:20px;border:1px solid #f5c6cb;background:#fff;color:#E74C3C;cursor:pointer;font-size:11px;font-weight:500;display:flex;align-items:center;gap:4px;">🗑️ Supprimer</button>'+
-                    '</div>'+
-                '</div>';
-            }).join('')+'</div>';
-            tl.style.display='flex';document.getElementById('cr-total').textContent=total.toLocaleString()+' FCFA';
-            con.querySelectorAll('.cr-qty-btn').forEach(function(b){
-                b.addEventListener('click',function(e){
-                    e.stopPropagation();
-                    var idx=parseInt(this.dataset.idx),d=parseInt(this.dataset.delta);
-                    crPanier[idx].quantite=Math.max(1,Math.min(99,crPanier[idx].quantite+d));
-                    actualiserResume();
-                });
-            });
-            con.querySelectorAll('[data-action="remove"]').forEach(function(b){
-                b.addEventListener('click',function(e){
-                    e.stopPropagation();
-                    crPanier.splice(parseInt(this.dataset.idx),1);
-                    actualiserResume();
-                    afficherMenuRapide(document.getElementById('cr-search').value);
-                });
-            });
-        }
+    var con=document.getElementById('cr-resume'),tl=document.getElementById('cr-total-line');
+    if(!crPanier.length){
+        con.innerHTML='<div style="text-align:center;color:#bbb;padding:30px;font-size:13px;width:100%;">🛒 Aucun plat ajouté</div>';
+        con.style.display='block';
+        con.style.textAlign='center';
+        tl.style.display='none';
+        return;
+    }
+    con.style.display='block';
+    con.style.textAlign='left';
+    con.style.overflowY='auto';
+    con.style.maxHeight='250px';
+    var total=crPanier.reduce(function(s,i){return s+(i.prix*i.quantite);},0);
+    con.innerHTML=crPanier.map(function(item,idx){
+        var sousTotal=item.prix*item.quantite;
+        return'<div style="background:#fff;border:1px solid #e8e5df;border-radius:10px;padding:10px 12px;margin-bottom:6px;">'+
+            '<div style="font-weight:600;font-size:13px;color:#1a1a1a;">'+escapeHtml(item.nom)+'</div>'+
+            '<div style="font-size:11px;color:#999;margin:4px 0;">'+item.prix.toLocaleString()+' F × '+item.quantite+' = <b style="color:#C6A43F;">'+sousTotal.toLocaleString()+' F</b></div>'+
+            '<div style="display:flex;align-items:center;gap:6px;margin-top:6px;">'+
+                '<button data-idx="'+idx+'" data-delta="-1" style="width:28px;height:28px;border-radius:50%;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:16px;text-align:center;line-height:26px;font-weight:600;color:#666;">−</button>'+
+                '<span style="min-width:20px;text-align:center;font-weight:600;">'+item.quantite+'</span>'+
+                '<button data-idx="'+idx+'" data-delta="1" style="width:28px;height:28px;border-radius:50%;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:16px;text-align:center;line-height:26px;font-weight:600;color:#666;">+</button>'+
+                '<button data-idx="'+idx+'" data-action="remove" style="margin-left:auto;padding:5px 10px;border-radius:15px;border:1px solid #f5c6cb;background:#fff;color:#E74C3C;cursor:pointer;font-size:11px;">🗑️</button>'+
+            '</div>'+
+        '</div>';
+    }).join('');
+    tl.style.display='flex';document.getElementById('cr-total').textContent=total.toLocaleString()+' FCFA';
+    // Events
+    con.querySelectorAll('[data-delta]').forEach(function(b){
+        b.addEventListener('click',function(e){
+            e.stopPropagation();
+            var idx=parseInt(this.dataset.idx),d=parseInt(this.dataset.delta);
+            crPanier[idx].quantite=Math.max(1,Math.min(99,crPanier[idx].quantite+d));
+            actualiserResume();
+        });
+    });
+    con.querySelectorAll('[data-action="remove"]').forEach(function(b){
+        b.addEventListener('click',function(e){
+            e.stopPropagation();
+            crPanier.splice(parseInt(this.dataset.idx),1);
+            actualiserResume();
+            afficherMenuRapide(document.getElementById('cr-search').value);
+        });
+    });
+}
+            
         async function validerCommandeRapide(statut){
             statut=statut||'en_attente';
             var table=document.getElementById('cr-table').value,client=document.getElementById('cr-client').value.trim()||'Client';
