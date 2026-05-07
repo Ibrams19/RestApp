@@ -122,6 +122,7 @@
     <header class="header">
         <div class="logo"><span class="logo-icon">👨‍🍳</span><span>Cuisine</span> & Service</div>
         <div class="header-right">
+            <button class="btn-icon" id="btn-notif" title="🔔 Activer les notifications" style="display:none;">🔔</button>
             <button class="btn-commande-rapide" id="btn-commande-rapide" style="background:#27AE60;color:white;border:none;padding:10px 18px;border-radius:40px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-sans);display:flex;align-items:center;gap:6px;">⚡ Commande rapide</button>
             <span class="role-badge" id="role-badge">Chargement…</span>
             <button class="btn-icon" id="theme-toggle" title="Mode sombre">🌙</button>
@@ -378,6 +379,42 @@
             document.getElementById('recu-print').innerHTML='<div style="text-align:center;margin-bottom:16px;"><div style="font-size:22px;font-weight:bold;">🍽️ '+escapeHtml(nom)+'</div><div style="font-size:11px;color:#888;">'+ds+' à '+hs+'</div><div style="font-size:11px;color:#888;">Commande #'+commandeId+'</div></div><div style="border-top:1px dashed #ddd;border-bottom:1px dashed #ddd;padding:8px 0;margin-bottom:10px;font-size:12px;color:#666;">Table : '+table+' | Client : '+escapeHtml(client)+'</div><table style="width:100%;font-size:12px;margin-bottom:10px;">'+items.map(function(i){return'<tr><td style="padding:3px 0;">'+escapeHtml(i.nom)+' ×'+i.quantite+'</td><td style="text-align:right;">'+((i.prix||0)*(i.quantite||1)).toLocaleString()+' F</td></tr>';}).join('')+'</table><div style="border-top:2px solid #000;padding-top:8px;display:flex;justify-content:space-between;font-size:16px;font-weight:bold;"><span>TOTAL</span><span>'+total.toLocaleString()+' FCFA</span></div><div style="text-align:center;margin-top:16px;font-size:11px;color:#888;">Merci de votre visite !</div><div style="display:flex;gap:8px;margin-top:16px;"><button onclick="window.print()" style="flex:1;padding:10px;background:#C6A43F;color:white;border:none;border-radius:20px;font-weight:600;cursor:pointer;">🖨️ Imprimer</button><button onclick="document.getElementById(\'modal-recu\').style.display=\'none\'" style="flex:1;padding:10px;background:#f0f0f0;border:none;border-radius:20px;cursor:pointer;">Fermer</button></div>';
             document.getElementById('modal-recu').style.display='flex';
         }
+
+// ==================== NOTIFICATIONS PUSH ====================
+const VAPID_KEY = 'BNDoy5XCwYhAopADoXbYzeJ9b9_HkQGxC1XpXKrzCn2yolXXwy3mOoGHFAJh8wgTioF9GkW6Yq0ogXGY81BCpTA';
+
+if ('serviceWorker' in navigator && 'PushManager' in window) {
+    document.getElementById('btn-notif').style.display = 'flex';
+    document.getElementById('btn-notif').addEventListener('click', subscribeToPush);
+}
+
+async function subscribeToPush() {
+    try {
+        const reg = await navigator.serviceWorker.register('/sw.js');
+        const sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(VAPID_KEY)
+        });
+        await fetch('/api/push/subscribe', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('resto_token') },
+            body: JSON.stringify({ subscription: sub })
+        });
+        document.getElementById('btn-notif').style.background = '#27AE60';
+        document.getElementById('btn-notif').style.color = 'white';
+        document.getElementById('btn-notif').style.borderColor = '#27AE60';
+        document.getElementById('btn-notif').textContent = '🔔✓';
+        showToast('✅ Notifications activées !', 'success');
+    } catch(e) {
+        showToast('❌ Notifications refusées', 'error');
+    }
+}
+
+function urlBase64ToUint8Array(b64) {
+    const pad = '='.repeat((4 - b64.length % 4) % 4);
+    const base64 = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+    return new Uint8Array([...atob(base64)].map(c => c.charCodeAt(0)));
+}
 
         window.addEventListener('beforeunload',function(){if(pollingTimer)clearInterval(pollingTimer);if(socket)socket.disconnect();});
         document.addEventListener('DOMContentLoaded',init);

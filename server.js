@@ -18,7 +18,7 @@ const mailjet = require('node-mailjet').apiConnect(
     process.env.MAILJET_API_KEY || '',
     process.env.MAILJET_SECRET_KEY || ''
 );
-
+const webpush = require('web-push');
 const app = express();
 app.set('trust proxy', 1);
 const server = http.createServer(app);
@@ -52,6 +52,11 @@ if (!supabaseUrl || !supabaseKey || !JWT_SECRET) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 const PUBLIC_URL = process.env.PUBLIC_URL || 'https://www.restapps.net';
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || '';
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || '';
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails('https://www.restapps.net', VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+}
 const SALT_ROUNDS = 12;
 
 // ==================== RATE LIMITERS ====================
@@ -2031,6 +2036,19 @@ app.get('/api/commandes/nouvelles/:restoId', async (req, res) => {
   if (error) return res.status(500).json({ error: error.message });
   
   res.json({ en_attente: count || 0 });
+});
+
+app.post('/api/push/subscribe', authMiddleware, async (req, res) => {
+  const { subscription } = req.body;
+  if (!subscription) return res.status(400).json({ error: 'Abonnement requis' });
+  try {
+    await supabase.from('push_subscriptions').upsert({
+      user_id: req.user.id,
+      subscription: JSON.stringify(subscription),
+      created_at: new Date()
+    }, { onConflict: 'user_id' });
+    res.json({ success: true });
+  } catch(e) { res.status(500).json({ error: e.message }); }
 });
 
 // ==================== WEBSOCKETS ====================
