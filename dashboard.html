@@ -347,6 +347,39 @@
                 </div>
             </div>
         </div>
+        <!-- Comparaison période précédente -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:28px;">
+    <div class="stat-card">
+        <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">📊 vs période précédente</div>
+        <div id="comparison-ca" style="font-size:16px;font-weight:600;margin-top:6px;">--</div>
+    </div>
+    <div class="stat-card">
+        <div style="font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;">📋 Tendance commandes</div>
+        <div id="comparison-commandes" style="font-size:16px;font-weight:600;margin-top:6px;">--</div>
+    </div>
+</div>
+
+<!-- Dernières commandes -->
+<div class="chart-card" style="margin-bottom:28px;">
+    <h3>📋 Dernières commandes</h3>
+    <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+                <tr style="border-bottom:2px solid var(--border);">
+                    <th style="text-align:left;padding:8px;color:var(--text-secondary);font-size:11px;">#</th>
+                    <th style="text-align:left;padding:8px;color:var(--text-secondary);font-size:11px;">Table</th>
+                    <th style="text-align:left;padding:8px;color:var(--text-secondary);font-size:11px;">Client</th>
+                    <th style="text-align:left;padding:8px;color:var(--text-secondary);font-size:11px;">Montant</th>
+                    <th style="text-align:left;padding:8px;color:var(--text-secondary);font-size:11px;">Statut</th>
+                    <th style="text-align:left;padding:8px;color:var(--text-secondary);font-size:11px;">Date</th>
+                </tr>
+            </thead>
+            <tbody id="commandes-recentes-tbody">
+                <tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-secondary);">Chargement…</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
         <div class="tables-section">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
@@ -424,6 +457,7 @@
             checkSubscription();
             chargerStats();
             chargerTables();
+            chargerDernieresCommandes();
             startPolling();
             // Cacher Abonnement/Transactions pour les gérants non-propriétaires
             var u = JSON.parse(localStorage.getItem('resto_user') || '{}');
@@ -764,6 +798,7 @@
        function startPolling() {
             if (pollingTimer) clearInterval(pollingTimer);
             pollingTimer = setInterval(async () => {
+                chargerDernieresCommandes();
                 try {
                         // Vérifier nouvelles commandes
                     const res = await fetch(`/api/commandes/nouvelles/${currentResto}`, {
@@ -951,6 +986,44 @@ function playNotificationSound() {
     } catch(e) {
         console.log('🔔 Nouvelle commande');
     }
+}
+
+async function chargerDernieresCommandes() {
+    try {
+        const res = await fetch(`/api/commandes/${currentResto}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            const commandes = await res.json();
+            afficherDernieresCommandes(commandes.slice(0, 10));
+        }
+    } catch(e) {}
+}
+
+function afficherDernieresCommandes(commandes) {
+    const tbody = document.getElementById('commandes-recentes-tbody');
+    if (!commandes.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--text-secondary);">🍃 Aucune commande récente</td></tr>';
+        return;
+    }
+    tbody.innerHTML = commandes.map(c => {
+        const statutColors = {
+            'paye': { bg: '#E8F5E9', color: '#27AE60', text: 'Payée' },
+            'en_attente': { bg: '#FFF8E1', color: '#F39C12', text: 'En attente' },
+            'cuisine': { bg: '#E3F2FD', color: '#3498DB', text: 'En cuisine' },
+            'pret': { bg: '#F3E5F5', color: '#9B59B6', text: 'Prête' },
+            'servi': { bg: '#E0F2F1', color: '#1ABC9C', text: 'Servie' }
+        };
+        const s = statutColors[c.statut] || { bg: '#f0f0f0', color: '#666', text: c.statut };
+        return `<tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:8px;font-weight:600;color:var(--gold);">#${String(c.id).slice(-4)}</td>
+            <td style="padding:8px;">Table ${c.table_numero || '?'}</td>
+            <td style="padding:8px;">${escapeHtml(c.client_nom || 'Anonyme')}</td>
+            <td style="padding:8px;font-weight:600;">${(c.total || 0).toLocaleString()} FCFA</td>
+            <td style="padding:8px;"><span style="display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;background:${s.bg};color:${s.color};">${s.text}</span></td>
+            <td style="padding:8px;font-size:11px;color:var(--text-secondary);">${new Date(c.date_commande).toLocaleString('fr-FR', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</td>
+        </tr>`;
+    }).join('');
 }
 
         // Exposer pour compatibilité
