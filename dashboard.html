@@ -983,7 +983,7 @@ function playNotificationSound() {
         g.gain.exponentialRampToValueAtTime(0.01, c.currentTime + 0.3);
         o.start(c.currentTime);
         o.stop(c.currentTime + 0.3);
-    } catch(e) {}
+    } catch(e) { console.log('Son bloqué:', e); }
 }
 
 async function chargerDernieresCommandes() {

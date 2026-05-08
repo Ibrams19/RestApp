@@ -303,6 +303,10 @@
             }else if(userRole==='serveur')ni.push({href:'/resto.html',label:'🍽️ Mon service',active:true});
             nb.innerHTML=ni.map(function(i){return'<a href="'+i.href+'" class="nav-btn'+(i.active?' active':'')+'">'+i.label+'</a>';}).join('');
             document.getElementById('theme-toggle').addEventListener('click',toggleTheme);
+            // Restaurer l'état de la cloche après initUI
+            if (localStorage.getItem('notif_active') === 'true') {
+                updateNotifButton(true);
+            }
             document.getElementById('logout-btn').addEventListener('click',function(){if(socket)socket.disconnect();if(pollingTimer)clearInterval(pollingTimer);localStorage.clear();location.href='/login.html';});
             document.querySelectorAll('.tab-btn').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab-btn').forEach(function(x){x.classList.remove('active');});this.classList.add('active');currentFilter=this.dataset.status;afficherCommandes();});});
             document.getElementById('btn-commande-rapide').addEventListener('click',ouvrirCommandeRapide);

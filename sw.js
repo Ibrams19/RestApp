@@ -1,7 +1,6 @@
-const CACHE_NAME = 'resto-7etoiles-v2';
-const API_CACHE_NAME = 'resto-api-v1';
+const CACHE_NAME = 'resto-7etoiles-v3';
+const API_CACHE_NAME = 'resto-api-v2';
 
-// Fichiers à mettre en cache immédiatement (shell de l'application)
 const STATIC_CACHE = [
   '/',
   '/login.html',
@@ -13,13 +12,11 @@ const STATIC_CACHE = [
   '/qrcodes.html',
   '/suivi.html',
   '/subscription.html',
-  '/subscription-renew.html',
-  '/transactions.html',
   '/forgot-password.html',
   '/reset-password.html',
   '/set-password.html',
   '/magic.html',
-  '/styles.css',
+  '/sw.js',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png'
@@ -27,31 +24,23 @@ const STATIC_CACHE = [
 
 // ==================== INSTALL ====================
 self.addEventListener('install', event => {
-  console.log('🚀 Service Worker : installation');
+  console.log('🚀 SW : installation');
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('📦 Mise en cache des fichiers statiques');
-        return cache.addAll(STATIC_CACHE).catch(err => {
-          console.warn('⚠️ Certains fichiers n\'ont pas pu être mis en cache :', err);
-        });
-      })
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll(STATIC_CACHE).catch(err => {
+        console.warn('⚠️ Cache partiel :', err);
+      });
+    }).then(() => self.skipWaiting())
   );
 });
 
 // ==================== ACTIVATE ====================
 self.addEventListener('activate', event => {
-  console.log('✅ Service Worker : activé');
+  console.log('✅ SW : activé');
   event.waitUntil(
-    caches.keys().then(cacheNames => {
+    caches.keys().then(names => {
       return Promise.all(
-        cacheNames
-          .filter(name => name !== CACHE_NAME && name !== API_CACHE_NAME)
-          .map(name => {
-            console.log('🗑️ Suppression ancien cache :', name);
-            return caches.delete(name);
-          })
+        names.filter(n => n !== CACHE_NAME && n !== API_CACHE_NAME).map(n => caches.delete(n))
       );
     }).then(() => self.clients.claim())
   );
@@ -61,28 +50,45 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // Ne pas intercepter les requêtes Supabase
-  if (url.hostname.includes('supabase.co')) {
+  // Ignorer Supabase et les requêtes non GET
+  if (url.hostname.includes('supabase.co') || event.request.method !== 'GET') {
     return;
   }
 
-  // Stratégie Network First pour les API
+  // API : Network First (sans cache pour les POST)
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(networkFirst(event.request));
     return;
   }
 
-  // Stratégie Cache First pour les fichiers statiques
+  // Statique : Cache First
   event.respondWith(cacheFirst(event.request));
 });
 
-// ==================== STRATÉGIES ====================
+// ==================== PUSH ====================
+self.addEventListener('push', function(event) {
+  const data = event.data ? event.data.json() : {};
+  const title = data.title || 'RestApp 7★';
+  const options = {
+    body: data.body || 'Nouvelle commande reçue !',
+    icon: '/android-chrome-192x192.png',
+    badge: '/favicon-32x32.png',
+    vibrate: [200, 100, 200],
+    tag: 'commande',
+    requireInteraction: true
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
 
-// Cache First : sert le cache, sinon réseau (et met en cache)
+self.addEventListener('notificationclick', function(event) {
+  event.notification.close();
+  event.waitUntil(clients.openWindow('/resto.html'));
+});
+
+// ==================== STRATÉGIES ====================
 async function cacheFirst(request) {
   const cached = await caches.match(request);
   if (cached) return cached;
-
   try {
     const response = await fetch(request);
     if (response && response.status === 200) {
@@ -91,7 +97,6 @@ async function cacheFirst(request) {
     }
     return response;
   } catch (err) {
-    // Offline fallback pour les pages HTML
     if (request.headers.get('accept')?.includes('text/html')) {
       return caches.match('/');
     }
@@ -99,7 +104,6 @@ async function cacheFirst(request) {
   }
 }
 
-// Network First : essaie le réseau d'abord, puis le cache
 async function networkFirst(request) {
   try {
     const response = await fetch(request);
