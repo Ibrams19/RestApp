@@ -579,6 +579,28 @@
                     document.getElementById('panier-moyen').textContent = Math.round(stats.panierMoyen || 0).toLocaleString() + ' FCFA';
                     afficherTopPlats(stats.topPlats || []);
                     updateEvolutionChart(stats.evolution || []);
+                    // Mettre à jour les comparaisons
+                    var caEvo = stats.caEvolution || 0;
+                    var cmdEvo = stats.commandesEvolution || 0;
+
+                    var caEl = document.getElementById('comparison-ca');
+                    var cmdEl = document.getElementById('comparison-commandes');
+
+                    if (caEvo > 0) {
+                        caEl.innerHTML = '📈 <b style="color:#27AE60;">+' + caEvo + '%</b> vs période précédente';
+                    } else if (caEvo < 0) {
+                        caEl.innerHTML = '📉 <b style="color:#E74C3C;">' + caEvo + '%</b> vs période précédente';
+                    } else {
+                        caEl.innerHTML = '➡️ <b>Stable</b> vs période précédente';
+                    }
+
+                    if (cmdEvo > 0) {
+                        cmdEl.innerHTML = '📈 <b style="color:#27AE60;">+' + cmdEvo + '%</b> de commandes';
+                    } else if (cmdEvo < 0) {
+                        cmdEl.innerHTML = '📉 <b style="color:#E74C3C;">' + cmdEvo + '%</b> de commandes';
+                    } else {
+                        cmdEl.innerHTML = '➡️ <b>Stable</b>';
+                    }
                 }
             } catch(e) { console.error('Erreur stats:', e); }
         }

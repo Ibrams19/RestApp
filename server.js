@@ -1372,6 +1372,45 @@ app.get('/api/stats/:restoId', checkRole(['proprietaire', 'gerant', 'superadmin'
       .map(([nom, quantite]) => ({ nom, quantite }));
   }
 
+    // Calcul période précédente pour comparaison
+  let prevStartDate = null;
+  let prevEndDate = null;
+  
+  if (periode === 'day') {
+    prevStartDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    prevEndDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  } else if (periode === 'week') {
+    prevStartDate = new Date(now);
+    prevStartDate.setDate(now.getDate() - 14);
+    prevEndDate = new Date(now);
+    prevEndDate.setDate(now.getDate() - 7);
+  } else if (periode === 'month') {
+    prevStartDate = new Date(now);
+    prevStartDate.setMonth(now.getMonth() - 2);
+    prevEndDate = new Date(now);
+    prevEndDate.setMonth(now.getMonth() - 1);
+  }
+
+  let prevCaTotal = 0;
+  let prevNbCommandes = 0;
+
+  if (prevStartDate && prevEndDate) {
+    const { data: prevCommandes } = await supabase
+      .from('commandes')
+      .select('id, total')
+      .eq('resto_id', targetRestoId)
+      .eq('statut', 'paye')
+      .gte('date_commande', prevStartDate.toISOString())
+      .lt('date_commande', prevEndDate.toISOString());
+
+    prevCaTotal = prevCommandes?.reduce((s, c) => s + (c.total || 0), 0) || 0;
+    prevNbCommandes = prevCommandes?.length || 0;
+  }
+
+  // Calcul des tendances
+  const caEvolution = prevCaTotal > 0 ? Math.round(((caTotal - prevCaTotal) / prevCaTotal) * 100) : 0;
+  const commandesEvolution = prevNbCommandes > 0 ? Math.round(((nbCommandes - prevNbCommandes) / prevNbCommandes) * 100) : 0;
+
   res.json({ 
     caTotal: Math.round(caTotal), 
     nbCommandes, 
@@ -1382,7 +1421,11 @@ app.get('/api/stats/:restoId', checkRole(['proprietaire', 'gerant', 'superadmin'
     nbQR,
     nbManuel,
     nbDistance,
-    topPlats 
+    topPlats,
+    prevCaTotal: Math.round(prevCaTotal),
+    prevNbCommandes,
+    caEvolution,
+    commandesEvolution
   });
 });
 
