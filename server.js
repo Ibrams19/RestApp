@@ -379,10 +379,13 @@ if (!profile) {
 app.post('/api/register', async (req, res) => {
   const { email, motDePasse, nomRestaurant, telephone, adresse } = req.body;
   
-  if (!email || !motDePasse || !nomRestaurant) {
+  // Si motDePasse est vide, on génère un placeholder (sera remplacé par lien magique)
+const password = motDePasse || crypto.randomBytes(16).toString('hex');
+
+if (!email || !nomRestaurant) {
     return res.status(400).json({ 
       error: 'validation_error',
-      message: 'Email, mot de passe et nom du restaurant sont requis.',
+      message: 'Email et nom du restaurant sont requis.',
       code: 'MISSING_FIELDS'
     });
   }
@@ -392,14 +395,6 @@ app.post('/api/register', async (req, res) => {
       error: 'validation_error',
       message: 'Format d\'email invalide.',
       code: 'INVALID_EMAIL'
-    });
-  }
-
-  if (motDePasse.length < 8) {
-    return res.status(400).json({ 
-      error: 'validation_error',
-      message: 'Le mot de passe doit contenir au moins 8 caractères.',
-      code: 'WEAK_PASSWORD'
     });
   }
 
@@ -425,7 +420,7 @@ app.post('/api/register', async (req, res) => {
     });
   }
 
-  const hashedPassword = await bcrypt.hash(motDePasse, SALT_ROUNDS);
+  const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
   const baseSlug = nomRestaurant.toLowerCase().replace(/[^a-z0-9]/g, '-').substring(0, 50);
   const slug = `${baseSlug}-${Date.now().toString(36)}`;
   
