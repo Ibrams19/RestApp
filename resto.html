@@ -246,7 +246,12 @@
         function init(){
             var token=localStorage.getItem(TOKEN_KEY);
             if(!token){location.href='/login.html';return;}
-            try{var p=JSON.parse(atob(token.split('.')[1]));userRole=p.role;userId=p.id;currentResto=p.resto_id;window.restoName=p.restaurant_name||'Mon établissement';// Si le nom n'est pas dans le token (serveur/gérant invité), le récupérer depuis l'API
+            try{var p=JSON.parse(atob(token.split('.')[1]));userRole=p.role;userId=p.id;currentResto=p.resto_id;window.restoName = (p.restaurant_name || 'Mon établissement')
+                .replace(/â˜…/g, '⭐')
+                .replace(/â/g, '')
+                .replace(/˜/g, '')
+                .replace(/…/g, '')
+                .replace(/[^\w\séèêëàâçùûôîïÉÈÊËÀÂÇÙÛÔÎÏ⭐-]/g, '');// Si le nom n'est pas dans le token (serveur/gérant invité), le récupérer depuis l'API
             if(!p.restaurant_name){
                 fetch('/api/restaurant/subscription',{
                     headers:{'Authorization':'Bearer '+token}
