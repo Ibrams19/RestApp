@@ -1410,6 +1410,51 @@ app.get('/api/stats/:restoId', checkRole(['proprietaire', 'gerant', 'superadmin'
   // Calcul des tendances
   const caEvolution = prevCaTotal > 0 ? Math.round(((caTotal - prevCaTotal) / prevCaTotal) * 100) : 0;
   const commandesEvolution = prevNbCommandes > 0 ? Math.round(((nbCommandes - prevNbCommandes) / prevNbCommandes) * 100) : 0;
+    // Données d'évolution (par heure pour "day", par jour pour "week"/"month")
+  let evolution = [];
+  
+  if (periode === 'day') {
+    // Par tranche de 2h
+    for (let h = 8; h <= 22; h += 2) {
+      const slotStart = new Date(startDate);
+      slotStart.setHours(h, 0, 0, 0);
+      const slotEnd = new Date(startDate);
+      slotEnd.setHours(h + 2, 0, 0, 0);
+      
+      const caSlot = commandes
+        ?.filter(c => new Date(c.date_commande) >= slotStart && new Date(c.date_commande) < slotEnd)
+        .reduce((s, c) => s + (c.total || 0), 0) || 0;
+      
+      evolution.push({ date: `${h}h`, total: Math.round(caSlot) });
+    }
+  } else if (periode === 'week') {
+    for (let d = 0; d < 7; d++) {
+      const dayStart = new Date(startDate);
+      dayStart.setDate(dayStart.getDate() + d);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+      
+      const caDay = commandes
+        ?.filter(c => new Date(c.date_commande) >= dayStart && new Date(c.date_commande) < dayEnd)
+        .reduce((s, c) => s + (c.total || 0), 0) || 0;
+      
+      evolution.push({ date: dayStart.toLocaleDateString('fr-FR', { weekday: 'short' }), total: Math.round(caDay) });
+    }
+  } else if (periode === 'month') {
+    for (let w = 0; w < 4; w++) {
+      const weekStart = new Date(startDate);
+      weekStart.setDate(weekStart.getDate() + (w * 7));
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 7);
+      
+      const caWeek = commandes
+        ?.filter(c => new Date(c.date_commande) >= weekStart && new Date(c.date_commande) < weekEnd)
+        .reduce((s, c) => s + (c.total || 0), 0) || 0;
+      
+      evolution.push({ date: 'Sem ' + (w + 1), total: Math.round(caWeek) });
+    }
+  }
 
   res.json({ 
     caTotal: Math.round(caTotal), 
@@ -1425,7 +1470,8 @@ app.get('/api/stats/:restoId', checkRole(['proprietaire', 'gerant', 'superadmin'
     prevCaTotal: Math.round(prevCaTotal),
     prevNbCommandes,
     caEvolution,
-    commandesEvolution
+    commandesEvolution,
+    evolution
   });
 });
 
