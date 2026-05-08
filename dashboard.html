@@ -330,7 +330,7 @@
                 <div class="stat-value" id="nb-commandes">0</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">🛒</div>
+                <div class="stat-icon">💳</div>
                 <div class="stat-label">Panier moyen</div>
                 <div class="stat-value" id="panier-moyen">0 FCFA</div>
             </div>
@@ -899,93 +899,123 @@ async function exportPDF() {
         
         const restoName = document.getElementById('resto-name')?.textContent || 'Restaurant';
         const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+        const heure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         const ca = document.getElementById('ca-total').textContent;
         const nbCmd = document.getElementById('nb-commandes').textContent;
         const panier = document.getElementById('panier-moyen').textContent;
         const periode = currentPeriod === 'day' ? 'Aujourd\'hui' : (currentPeriod === 'week' ? 'Cette semaine' : 'Ce mois');
-        
-        // En-tête
+
+        // Fond de page
+        pdf.setFillColor(250, 248, 245);
+        pdf.rect(0, 0, 210, 297, 'F');
+
+        // Bandeau haut élégant
         pdf.setFillColor(13, 13, 13);
-        pdf.rect(0, 0, 210, 30, 'F');
+        pdf.rect(0, 0, 210, 50, 'F');
+
+        // Liseré doré
+        pdf.setFillColor(198, 164, 63);
+        pdf.rect(0, 50, 210, 3, 'F');
+
+        // Logo
         pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(18);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('RestApp 7★', 15, 15);
+        pdf.setFontSize(24);
+        pdf.setFont('Times', 'bold');
+        pdf.text('7★', 15, 28);
         pdf.setFontSize(10);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text('Rapport d\'activité', 15, 22);
+        pdf.setFont('Helvetica', 'normal');
+        pdf.text('RESTAPP', 35, 22);
+        pdf.text('Rapport d\'activité', 35, 30);
 
-        // Nom restaurant
-        pdf.setTextColor(198, 164, 63);
-        pdf.setFontSize(16);
-        pdf.text(restoName, 15, 45);
+        // Date
+        pdf.setTextColor(180, 180, 180);
+        pdf.setFontSize(9);
+        pdf.text(date + ' à ' + heure, 150, 22, { align: 'right' });
+        pdf.text(periode, 150, 30, { align: 'right' });
 
-        // Période
-        pdf.setTextColor(100, 100, 100);
-        pdf.setFontSize(10);
-        pdf.text(periode + ' — ' + date, 15, 55);
+        // Nom établissement
+        pdf.setTextColor(40, 40, 40);
+        pdf.setFontSize(20);
+        pdf.setFont('Times', 'bold');
+        pdf.text(restoName, 15, 72);
 
-        // Ligne de séparation
+        // Ligne ornementale
         pdf.setDrawColor(198, 164, 63);
-        pdf.setLineWidth(0.5);
-        pdf.line(15, 62, 195, 62);
+        pdf.setLineWidth(0.3);
+        pdf.line(15, 78, 100, 78);
 
-        // Stats
-        pdf.setTextColor(40, 40, 40);
-        pdf.setFontSize(14);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('Indicateurs clés', 15, 75);
+        // Section Indicateurs
+        pdf.setFillColor(255, 255, 255);
+        pdf.roundedRect(15, 88, 180, 50, 5, 5, 'F');
+        pdf.setDrawColor(220, 215, 200);
+        pdf.roundedRect(15, 88, 180, 50, 5, 5, 'D');
 
-        pdf.setFontSize(12);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text('Chiffre d\'affaires :', 20, 88);
-        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(11);
+        pdf.setFont('Helvetica', 'bold');
+        pdf.setTextColor(100, 100, 100);
+        pdf.text('INDICATEURS CLÉS', 20, 100);
+
+        // 3 colonnes
+        pdf.setFontSize(22);
+        pdf.setFont('Times', 'bold');
         pdf.setTextColor(198, 164, 63);
-        pdf.text(ca, 100, 88);
+        pdf.text(ca, 25, 125);
+        pdf.text(nbCmd, 95, 125);
+        pdf.text(panier, 155, 125);
 
-        pdf.setTextColor(40, 40, 40);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text('Nombre de commandes :', 20, 100);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(198, 164, 63);
-        pdf.text(nbCmd, 100, 100);
+        pdf.setFontSize(8);
+        pdf.setFont('Helvetica', 'normal');
+        pdf.setTextColor(130, 130, 130);
+        pdf.text('Chiffre d\'affaires', 25, 133);
+        pdf.text('Commandes', 95, 133);
+        pdf.text('Ticket moyen', 155, 133);
 
-        pdf.setTextColor(40, 40, 40);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text('Panier moyen :', 20, 112);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(198, 164, 63);
-        pdf.text(panier, 100, 112);
+        // Section Top plats
+        pdf.setFillColor(255, 255, 255);
+        pdf.roundedRect(15, 150, 180, 80, 5, 5, 'F');
+        pdf.setDrawColor(220, 215, 200);
+        pdf.roundedRect(15, 150, 180, 80, 5, 5, 'D');
 
-        // Top plats
-        pdf.setTextColor(40, 40, 40);
-        pdf.setFontSize(14);
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('Top 5 des plats', 15, 132);
+        pdf.setFontSize(11);
+        pdf.setFont('Helvetica', 'bold');
+        pdf.setTextColor(100, 100, 100);
+        pdf.text('TOP 5 — PLATS LES PLUS VENDUS', 20, 164);
 
         const topPlatsEl = document.querySelectorAll('.top-plats-list li');
-        let y = 142;
-        pdf.setFontSize(11);
-        topPlatsEl.forEach((el, i) => {
-            if (i >= 5) return;
-            const text = el.textContent.trim();
-            pdf.setFont('helvetica', 'normal');
-            pdf.setTextColor(60, 60, 60);
-            pdf.text((i + 1) + '. ' + text, 20, y);
-            y += 8;
-        });
+        let y = 176;
+        if (topPlatsEl.length === 0) {
+            pdf.setFontSize(10);
+            pdf.setFont('Helvetica', 'normal');
+            pdf.setTextColor(150, 150, 150);
+            pdf.text('Aucune vente sur cette période', 20, y);
+        } else {
+            topPlatsEl.forEach((el, i) => {
+                if (i >= 5) return;
+                const text = el.textContent.trim();
+                pdf.setFontSize(10);
+                pdf.setFont('Helvetica', 'normal');
+                pdf.setTextColor(60, 60, 60);
+                pdf.text((i + 1) + '.', 22, y);
+                pdf.text(text.split('vendu')[0].trim(), 32, y);
+                pdf.setTextColor(198, 164, 63);
+                pdf.setFont('Helvetica', 'bold');
+                pdf.text(text.split('vendu')[1] ? text.split('vendu')[1].trim() : '', 185, y, { align: 'right' });
+                y += 10;
+            });
+        }
 
         // Pied de page
-        pdf.setFontSize(8);
-        pdf.setTextColor(150, 150, 150);
-        pdf.text('Généré par RestApp 7★ — ' + date, 15, 285);
+        pdf.setFontSize(7);
+        pdf.setTextColor(180, 180, 180);
+        pdf.text('Rapport généré par RestApp 7★ — ' + date, 15, 290);
+        pdf.text('www.restapps.net', 195, 290, { align: 'right' });
 
         // Téléchargement
         const pdfBlob = pdf.output('blob');
         const pdfUrl = URL.createObjectURL(pdfBlob);
         const link = document.createElement('a');
         link.href = pdfUrl;
-        link.download = 'rapport-' + restoName.replace(/[^a-zA-Z0-9]/g, '-') + '-' + date.replace(/\s+/g, '-') + '.pdf';
+        link.download = 'Rapport-' + restoName.replace(/[^a-zA-Z0-9]/g, '-') + '-' + date.replace(/\s+/g, '-') + '.pdf';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
