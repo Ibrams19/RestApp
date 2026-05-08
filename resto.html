@@ -266,6 +266,10 @@
                 });
             }if(!currentResto){showToast('Erreur compte','error');return;}localStorage.setItem('resto_id',currentResto);localStorage.setItem('resto_role',userRole);}catch(e){location.href='/login.html';return;}
             applyTheme();initUI();initWebSocket();chargerCommandes();startPolling();
+            // Restaurer l'état visuel de la cloche
+            if (localStorage.getItem('notif_active') === 'true') {
+                updateNotifButton(true);
+            }
             // Vérifier si déjà abonné aux notifications
             if ('serviceWorker' in navigator && 'PushManager' in window) {
                 navigator.serviceWorker.ready.then(function(reg) {
@@ -543,13 +547,29 @@ async function subscribeToPush() {
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('resto_token') },
             body: JSON.stringify({ subscription: sub })
         });
-        document.getElementById('btn-notif').style.background = '#27AE60';
-        document.getElementById('btn-notif').style.color = 'white';
-        document.getElementById('btn-notif').style.borderColor = '#27AE60';
-        document.getElementById('btn-notif').textContent = '🔔✓';
+        // Sauvegarder l'état
+        localStorage.setItem('notif_active', 'true');
+        updateNotifButton(true);
         showToast('✅ Notifications activées !', 'success');
     } catch(e) {
+        localStorage.setItem('notif_active', 'false');
+        updateNotifButton(false);
         showToast('❌ Notifications refusées', 'error');
+    }
+}
+
+function updateNotifButton(active) {
+    const btn = document.getElementById('btn-notif');
+    if (active) {
+        btn.style.background = '#27AE60';
+        btn.style.color = 'white';
+        btn.style.borderColor = '#27AE60';
+        btn.textContent = '🔔✓';
+    } else {
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+        btn.textContent = '🔔';
     }
 }
 
