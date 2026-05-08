@@ -243,6 +243,21 @@
         var previousStats={en_attente:0,cuisine:0,pret:0,servi:0,paye:0};
         var crPanier=[],crMenu=[];
 
+        function updateNotifButton(active) {
+    const btn = document.getElementById('btn-notif');
+    if (active) {
+        btn.style.background = '#27AE60';
+        btn.style.color = 'white';
+        btn.style.borderColor = '#27AE60';
+        btn.textContent = '🔔✓';
+    } else {
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.style.borderColor = '';
+        btn.textContent = '🔔';
+    }
+}
+
         function init(){
             var token=localStorage.getItem(TOKEN_KEY);
             if(!token){location.href='/login.html';return;}
@@ -270,20 +285,7 @@
             if (localStorage.getItem('notif_active') === 'true') {
                 updateNotifButton(true);
             }
-            // Vérifier si déjà abonné aux notifications
-            if ('serviceWorker' in navigator && 'PushManager' in window) {
-                navigator.serviceWorker.ready.then(function(reg) {
-                    reg.pushManager.getSubscription().then(function(sub) {
-                        if (sub) {
-                            // Déjà abonné
-                            document.getElementById('btn-notif').style.background = '#27AE60';
-                            document.getElementById('btn-notif').style.color = 'white';
-                            document.getElementById('btn-notif').style.borderColor = '#27AE60';
-                            document.getElementById('btn-notif').textContent = '🔔✓';
-                        }
-                    });
-                });
-            }
+    
         }
         function applyTheme(){var s=localStorage.getItem(THEME_KEY);if(s==='dark'){document.body.classList.add('dark');document.getElementById('theme-toggle').textContent='☀️';}else{document.body.classList.remove('dark');document.getElementById('theme-toggle').textContent='🌙';}}
         function toggleTheme(){document.body.classList.toggle('dark');var d=document.body.classList.contains('dark');localStorage.setItem(THEME_KEY,d?'dark':'light');document.getElementById('theme-toggle').textContent=d?'☀️':'🌙';}
@@ -558,20 +560,6 @@ async function subscribeToPush() {
     }
 }
 
-function updateNotifButton(active) {
-    const btn = document.getElementById('btn-notif');
-    if (active) {
-        btn.style.background = '#27AE60';
-        btn.style.color = 'white';
-        btn.style.borderColor = '#27AE60';
-        btn.textContent = '🔔✓';
-    } else {
-        btn.style.background = '';
-        btn.style.color = '';
-        btn.style.borderColor = '';
-        btn.textContent = '🔔';
-    }
-}
 
 function urlBase64ToUint8Array(b64) {
     const pad = '='.repeat((4 - b64.length % 4) % 4);
