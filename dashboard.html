@@ -897,125 +897,130 @@ async function exportPDF() {
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
         
-        const restoName = document.getElementById('resto-name')?.textContent || 'Restaurant';
+        const rawName = document.getElementById('resto-name')?.textContent || 'Restaurant';
+        const restoName = rawName.replace(/[à☐]/g, '').trim() || rawName;
         const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
         const heure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        const ca = document.getElementById('ca-total').textContent;
-        const nbCmd = document.getElementById('nb-commandes').textContent;
-        const panier = document.getElementById('panier-moyen').textContent;
-        const periode = currentPeriod === 'day' ? 'Aujourd\'hui' : (currentPeriod === 'week' ? 'Cette semaine' : 'Ce mois');
+        const periode = currentPeriod === 'day' ? "Aujourd'hui" : (currentPeriod === 'week' ? 'Cette semaine' : 'Ce mois');
 
-        // Fond de page
-        pdf.setFillColor(250, 248, 245);
+        // Nettoyer les chiffres (enlever espaces insécables)
+        const cleanNumber = (str) => str.replace(/[\s\u202F\u00A0]/g, ' ').replace(/\//g, '').trim();
+        
+        const ca = cleanNumber(document.getElementById('ca-total').textContent.replace('FCFA', '').trim());
+        const nbCmd = document.getElementById('nb-commandes').textContent.trim();
+        const panier = cleanNumber(document.getElementById('panier-moyen').textContent.replace('FCFA', '').trim());
+
+        // Fond blanc
+        pdf.setFillColor(255, 255, 255);
         pdf.rect(0, 0, 210, 297, 'F');
 
-        // Bandeau haut élégant
-        pdf.setFillColor(13, 13, 13);
-        pdf.rect(0, 0, 210, 50, 'F');
-
-        // Liseré doré
+        // Ligne supérieure dorée
         pdf.setFillColor(198, 164, 63);
-        pdf.rect(0, 50, 210, 3, 'F');
+        pdf.rect(0, 0, 210, 4, 'F');
 
-        // Logo
-        pdf.setTextColor(255, 255, 255);
-        pdf.setFontSize(24);
-        pdf.setFont('Times', 'bold');
-        pdf.text('7★', 15, 28);
-        pdf.setFontSize(10);
-        pdf.setFont('Helvetica', 'normal');
-        pdf.text('RESTAPP', 35, 22);
-        pdf.text('Rapport d\'activité', 35, 30);
-
-        // Date
-        pdf.setTextColor(180, 180, 180);
-        pdf.setFontSize(9);
-        pdf.text(date + ' à ' + heure, 150, 22, { align: 'right' });
-        pdf.text(periode, 150, 30, { align: 'right' });
-
-        // Nom établissement
-        pdf.setTextColor(40, 40, 40);
-        pdf.setFontSize(20);
-        pdf.setFont('Times', 'bold');
-        pdf.text(restoName, 15, 72);
-
-        // Ligne ornementale
-        pdf.setDrawColor(198, 164, 63);
-        pdf.setLineWidth(0.3);
-        pdf.line(15, 78, 100, 78);
-
-        // Section Indicateurs
-        pdf.setFillColor(255, 255, 255);
-        pdf.roundedRect(15, 88, 180, 50, 5, 5, 'F');
-        pdf.setDrawColor(220, 215, 200);
-        pdf.roundedRect(15, 88, 180, 50, 5, 5, 'D');
-
-        pdf.setFontSize(11);
-        pdf.setFont('Helvetica', 'bold');
-        pdf.setTextColor(100, 100, 100);
-        pdf.text('INDICATEURS CLÉS', 20, 100);
-
-        // 3 colonnes
+        // En-tête
+        pdf.setTextColor(30, 30, 30);
         pdf.setFontSize(22);
         pdf.setFont('Times', 'bold');
-        pdf.setTextColor(198, 164, 63);
-        pdf.text(ca, 25, 125);
-        pdf.text(nbCmd, 95, 125);
-        pdf.text(panier, 155, 125);
+        pdf.text(restoName, 15, 22);
 
-        pdf.setFontSize(8);
+        pdf.setFontSize(9);
         pdf.setFont('Helvetica', 'normal');
-        pdf.setTextColor(130, 130, 130);
-        pdf.text('Chiffre d\'affaires', 25, 133);
-        pdf.text('Commandes', 95, 133);
-        pdf.text('Ticket moyen', 155, 133);
+        pdf.setTextColor(140, 140, 140);
+        pdf.text(periode + ' — ' + date + ' à ' + heure, 15, 30);
+
+        // Ligne séparatrice
+        pdf.setDrawColor(220, 215, 205);
+        pdf.setLineWidth(0.3);
+        pdf.line(15, 36, 195, 36);
+
+        // Section KPI
+        pdf.setFontSize(13);
+        pdf.setFont('Helvetica', 'bold');
+        pdf.setTextColor(60, 60, 60);
+        pdf.text('Indicateurs', 15, 50);
+
+        const kpis = [
+            { label: 'Chiffre d\'affaires', value: ca + ' FCFA' },
+            { label: 'Commandes', value: nbCmd },
+            { label: 'Ticket moyen', value: panier + ' FCFA' }
+        ];
+
+        kpis.forEach((kpi, i) => {
+            const x = 15 + (i * 62);
+            pdf.setFillColor(250, 248, 245);
+            pdf.roundedRect(x, 55, 58, 28, 4, 4, 'F');
+            pdf.setFontSize(9);
+            pdf.setFont('Helvetica', 'normal');
+            pdf.setTextColor(130, 130, 130);
+            pdf.text(kpi.label, x + 4, 65);
+            pdf.setFontSize(15);
+            pdf.setFont('Times', 'bold');
+            pdf.setTextColor(198, 164, 63);
+            pdf.text(kpi.value, x + 4, 78);
+        });
 
         // Section Top plats
-        pdf.setFillColor(255, 255, 255);
-        pdf.roundedRect(15, 150, 180, 80, 5, 5, 'F');
-        pdf.setDrawColor(220, 215, 200);
-        pdf.roundedRect(15, 150, 180, 80, 5, 5, 'D');
-
-        pdf.setFontSize(11);
+        pdf.setFontSize(13);
         pdf.setFont('Helvetica', 'bold');
-        pdf.setTextColor(100, 100, 100);
-        pdf.text('TOP 5 — PLATS LES PLUS VENDUS', 20, 164);
+        pdf.setTextColor(60, 60, 60);
+        pdf.text('Top 5 des plats', 15, 102);
 
         const topPlatsEl = document.querySelectorAll('.top-plats-list li');
-        let y = 176;
+        let y = 112;
+
         if (topPlatsEl.length === 0) {
             pdf.setFontSize(10);
             pdf.setFont('Helvetica', 'normal');
             pdf.setTextColor(150, 150, 150);
             pdf.text('Aucune vente sur cette période', 20, y);
         } else {
+            // Ligne d'en-tête du tableau
+            pdf.setFillColor(250, 248, 245);
+            pdf.rect(15, y - 4, 180, 8, 'F');
+            pdf.setFontSize(8);
+            pdf.setFont('Helvetica', 'bold');
+            pdf.setTextColor(130, 130, 130);
+            pdf.text('#', 18, y + 1);
+            pdf.text('Plat', 28, y + 1);
+            pdf.text('Ventes', 190, y + 1, { align: 'right' });
+            y += 10;
+
             topPlatsEl.forEach((el, i) => {
                 if (i >= 5) return;
                 const text = el.textContent.trim();
-                pdf.setFontSize(10);
+                // Extraire le nom et la quantité
+                const parts = text.split('vendu');
+                const nom = parts[0] ? parts[0].replace(/^\d+\s*/, '').trim() : text;
+                const qte = parts[1] ? parts[1].trim() : '';
+
+                pdf.setFontSize(9);
                 pdf.setFont('Helvetica', 'normal');
                 pdf.setTextColor(60, 60, 60);
-                pdf.text((i + 1) + '.', 22, y);
-                pdf.text(text.split('vendu')[0].trim(), 32, y);
-                pdf.setTextColor(198, 164, 63);
+                pdf.text(String(i + 1), 18, y);
+                pdf.text(nom, 28, y);
                 pdf.setFont('Helvetica', 'bold');
-                pdf.text(text.split('vendu')[1] ? text.split('vendu')[1].trim() : '', 185, y, { align: 'right' });
-                y += 10;
+                pdf.setTextColor(198, 164, 63);
+                pdf.text(qte, 190, y, { align: 'right' });
+
+                if (y > 260) return; // Sécurité ne pas dépasser la page
+                y += 8;
             });
         }
 
         // Pied de page
         pdf.setFontSize(7);
         pdf.setTextColor(180, 180, 180);
-        pdf.text('Rapport généré par RestApp 7★ — ' + date, 15, 290);
-        pdf.text('www.restapps.net', 195, 290, { align: 'right' });
+        pdf.text('RestApp 7★ — www.restapps.net', 15, 290);
+        pdf.text(date, 195, 290, { align: 'right' });
 
         // Téléchargement
+        const safeName = restoName.replace(/[^a-zA-Z0-9éèêëàâçùûôîïÉÈÊËÀÂÇÙÛÔÎÏ -]/g, '').trim() || 'rapport';
         const pdfBlob = pdf.output('blob');
         const pdfUrl = URL.createObjectURL(pdfBlob);
         const link = document.createElement('a');
         link.href = pdfUrl;
-        link.download = 'Rapport-' + restoName.replace(/[^a-zA-Z0-9]/g, '-') + '-' + date.replace(/\s+/g, '-') + '.pdf';
+        link.download = 'Rapport-' + safeName + '-' + date.replace(/\s+/g, '-') + '.pdf';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -1023,6 +1028,7 @@ async function exportPDF() {
 
         showToast('✅ Rapport exporté !', 'success');
     } catch(e) {
+        console.error('PDF Error:', e);
         showToast('❌ Erreur export', 'error');
     } finally {
         btn.textContent = '📥 Exporter PDF';
