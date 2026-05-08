@@ -903,6 +903,8 @@ async function exportPDF() {
         var dateStr = d.getDate() + ' ' + mois[d.getMonth()] + ' ' + d.getFullYear();
         var periode = currentPeriod === 'day' ? "Aujourd'hui" : (currentPeriod === 'week' ? 'Cette semaine' : 'Ce mois');
         var resto = document.getElementById('resto-name').textContent.replace(/[^\w\séèêëàâçùûôîïÉÈÊËÀÂÇÙÛÔÎÏ-]/g, '⭐');
+        resto = resto.replace(/★/g, '⭐').replace(/â˜…/g, '⭐');
+        resto = resto.replace(/\uFFFD/g, '⭐').replace(/[^\w\séèêëàâçùûôîïÉÈÊËÀÂÇÙÛÔÎÏ⭐-]/g, '');
 
         // Nettoyage TOTAL des nombres
         var caNum = parseInt(String(stats.caTotal).replace(/\D/g, '')) || 0;
@@ -914,7 +916,7 @@ async function exportPDF() {
         // Bandeau
         doc.setFillColor(18,18,18); doc.rect(0,0,210,35,'F');
         doc.setFillColor(198,164,63); doc.rect(0,35,210,2,'F');
-        doc.setTextColor(255,255,255); doc.setFontSize(18); doc.text('RestApp 7★', 15, 18);
+        doc.setTextColor(255,255,255); doc.setFontSize(18); doc.text('RestApp 7\u2605', 15, 18);
         doc.setFontSize(8); doc.setTextColor(170,170,170); doc.text('Rapport d\'activite', 15, 27);
 
         doc.setTextColor(30,30,30); doc.setFontSize(16); doc.text(resto, 15, 52);
@@ -948,7 +950,7 @@ async function exportPDF() {
             });
         }
 
-        doc.setFontSize(7); doc.setTextColor(180,180,180); doc.text('RestApp 7★ — restapps.net', 15, 290);
+        doc.setFontSize(7); doc.setTextColor(180,180,180); doc.text('RestApp 7\u2605 — restapps.net', 15, 290);
         doc.save('Rapport-' + resto.replace(/[^a-zA-Z0-9]/g,'-').substring(0,25) + '.pdf');
         showToast('✅ Exporté !', 'success');
     } catch(e) { console.error(e); showToast('❌ Erreur', 'error'); }
