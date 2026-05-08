@@ -248,12 +248,12 @@
             if(!token){location.href='/login.html';return;}
             try{var p=JSON.parse(atob(token.split('.')[1]));userRole=p.role;userId=p.id;currentResto=p.resto_id;
             window.restoName = (p.restaurant_name || 'Mon établissement');
-            // 1. Remplacer la séquence UTF-8 mal encodée de ★
-            window.restoName = window.restoName.replace(/Ã¢Ë†Â¦/g, 'Etoile').replace(/â˜…/g, 'Etoile').replace(/âœ/g, 'Etoile');
-            // 2. Remplacer tout ce qui n'est pas standard (garde : lettres, accents SAUF â, espace, tiret)
-            window.restoName = window.restoName.replace(/[^a-zA-Z0-9\séèêëàçùûôîïÉÈÊËÀÇÙÛÔÎÏ-]/g, '');
-            // 3. Nettoyer les doubles espaces
-            window.restoName = window.restoName.replace(/\s+/g, ' ').trim();
+            // Remplacer UNIQUEMENT l'étoile (et ses variantes) par "Etoile"
+            window.restoName = window.restoName
+                .replace(/★/g, 'Etoile')
+                .replace(/⭐/g, 'Etoile')
+                .replace(/â˜…/g, 'Etoile')
+                .replace(/â/g, 'Etoile');
             if (!window.restoName || window.restoName.length < 2) window.restoName = 'Restaurant';
             if(!p.restaurant_name){
                 fetch('/api/restaurant/subscription',{
@@ -505,7 +505,7 @@
                 .replace(/È/g, '&Egrave;')
                 .replace(/À/g, '&Agrave;')
                 .replace(/Ç/g, '&Ccedil;');
-            document.getElementById('recu-print').innerHTML='<div style="text-align:center;margin-bottom:16px;"><div style="font-size:22px;font-weight:bold;">🍽️ '+nom.replace(/[^a-zA-Z0-9\séèêëàçùûôîïÉÈÊËÀÇÙÛÔÎÏ-]/g, '')+'</div><div style="font-size:11px;color:#888;">'+ds+' à '+hs+'</div><div style="font-size:11px;color:#888;">Commande #'+commandeId+'</div></div><div style="border-top:1px dashed #ddd;border-bottom:1px dashed #ddd;padding:8px 0;margin-bottom:10px;font-size:12px;color:#666;">Table : '+table+' | Client : '+escapeHtml(client)+'</div><table style="width:100%;font-size:12px;margin-bottom:10px;">'+items.map(function(i){return'<tr><td style="padding:3px 0;">'+escapeHtml(i.nom)+' ×'+i.quantite+'</td><td style="text-align:right;">'+((i.prix||0)*(i.quantite||1)).toLocaleString()+' F</td></tr>';}).join('')+'</table><div style="border-top:2px solid #000;padding-top:8px;display:flex;justify-content:space-between;font-size:16px;font-weight:bold;"><span>TOTAL</span><span>'+total.toLocaleString()+' FCFA</span></div><div style="text-align:center;margin-top:16px;font-size:11px;color:#888;">Merci de votre visite !</div><div style="display:flex;gap:8px;margin-top:16px;"><button onclick="window.print()" style="flex:1;padding:10px;background:#C6A43F;color:white;border:none;border-radius:20px;font-weight:600;cursor:pointer;">🖨️ Imprimer</button><button onclick="document.getElementById(\'modal-recu\').style.display=\'none\'" style="flex:1;padding:10px;background:#f0f0f0;border:none;border-radius:20px;cursor:pointer;">Fermer</button></div>';
+            document.getElementById('recu-print').innerHTML='<div style="text-align:center;margin-bottom:16px;"><div style="font-size:22px;font-weight:bold;">🍽️ '+nom.replace(/â/g,'Etoile').replace(/★/g,'Etoile').replace(/⭐/g,'Etoile')+'</div><div style="font-size:11px;color:#888;">'+ds+' à '+hs+'</div><div style="font-size:11px;color:#888;">Commande #'+commandeId+'</div></div><div style="border-top:1px dashed #ddd;border-bottom:1px dashed #ddd;padding:8px 0;margin-bottom:10px;font-size:12px;color:#666;">Table : '+table+' | Client : '+escapeHtml(client)+'</div><table style="width:100%;font-size:12px;margin-bottom:10px;">'+items.map(function(i){return'<tr><td style="padding:3px 0;">'+escapeHtml(i.nom)+' ×'+i.quantite+'</td><td style="text-align:right;">'+((i.prix||0)*(i.quantite||1)).toLocaleString()+' F</td></tr>';}).join('')+'</table><div style="border-top:2px solid #000;padding-top:8px;display:flex;justify-content:space-between;font-size:16px;font-weight:bold;"><span>TOTAL</span><span>'+total.toLocaleString()+' FCFA</span></div><div style="text-align:center;margin-top:16px;font-size:11px;color:#888;">Merci de votre visite !</div><div style="display:flex;gap:8px;margin-top:16px;"><button onclick="window.print()" style="flex:1;padding:10px;background:#C6A43F;color:white;border:none;border-radius:20px;font-weight:600;cursor:pointer;">🖨️ Imprimer</button><button onclick="document.getElementById(\'modal-recu\').style.display=\'none\'" style="flex:1;padding:10px;background:#f0f0f0;border:none;border-radius:20px;cursor:pointer;">Fermer</button></div>';
             document.getElementById('modal-recu').style.display='flex';
         }
 
