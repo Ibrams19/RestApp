@@ -266,6 +266,20 @@
                 });
             }if(!currentResto){showToast('Erreur compte','error');return;}localStorage.setItem('resto_id',currentResto);localStorage.setItem('resto_role',userRole);}catch(e){location.href='/login.html';return;}
             applyTheme();initUI();initWebSocket();chargerCommandes();startPolling();
+            // Vérifier si déjà abonné aux notifications
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
+                navigator.serviceWorker.ready.then(function(reg) {
+                    reg.pushManager.getSubscription().then(function(sub) {
+                        if (sub) {
+                            // Déjà abonné
+                            document.getElementById('btn-notif').style.background = '#27AE60';
+                            document.getElementById('btn-notif').style.color = 'white';
+                            document.getElementById('btn-notif').style.borderColor = '#27AE60';
+                            document.getElementById('btn-notif').textContent = '🔔✓';
+                        }
+                    });
+                });
+            }
         }
         function applyTheme(){var s=localStorage.getItem(THEME_KEY);if(s==='dark'){document.body.classList.add('dark');document.getElementById('theme-toggle').textContent='☀️';}else{document.body.classList.remove('dark');document.getElementById('theme-toggle').textContent='🌙';}}
         function toggleTheme(){document.body.classList.toggle('dark');var d=document.body.classList.contains('dark');localStorage.setItem(THEME_KEY,d?'dark':'light');document.getElementById('theme-toggle').textContent=d?'☀️':'🌙';}
