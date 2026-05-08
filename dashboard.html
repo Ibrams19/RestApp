@@ -902,7 +902,7 @@ async function exportPDF() {
         var mois = ['janvier','fevrier','mars','avril','mai','juin','juillet','aout','septembre','octobre','novembre','decembre'];
         var dateStr = d.getDate() + ' ' + mois[d.getMonth()] + ' ' + d.getFullYear();
         var periode = currentPeriod === 'day' ? "Aujourd'hui" : (currentPeriod === 'week' ? 'Cette semaine' : 'Ce mois');
-        var resto = document.getElementById('resto-name').textContent;
+        var resto = document.getElementById('resto-name').textContent.replace(/[^\w\séèêëàâçùûôîïÉÈÊËÀÂÇÙÛÔÎÏ-]/g, '⭐');
 
         // Nettoyage TOTAL des nombres
         var caNum = parseInt(String(stats.caTotal).replace(/\D/g, '')) || 0;
