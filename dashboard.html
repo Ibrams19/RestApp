@@ -888,119 +888,117 @@
             if (evolutionChart) evolutionChart.destroy();
         });
         // ==================== EXPORT PDF ====================
-        async function exportPDF() {
-            const btn = document.getElementById('btn-export-pdf');
-            const originalText = btn.textContent;
-            btn.textContent = '⏳ Génération…';
-            btn.disabled = true;
+async function exportPDF() {
+    const btn = document.getElementById('btn-export-pdf');
+    btn.textContent = '⏳ Génération…';
+    btn.disabled = true;
 
-            try {
-                // Capturer le dashboard
-                // Capturer seulement les stats + graphiques + top plats
-                const element = document.createElement('div');
-                element.style.padding = '20px';
-                element.style.background = getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#faf8f5';
+    try {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        
+        const restoName = document.getElementById('resto-name')?.textContent || 'Restaurant';
+        const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+        const ca = document.getElementById('ca-total').textContent;
+        const nbCmd = document.getElementById('nb-commandes').textContent;
+        const panier = document.getElementById('panier-moyen').textContent;
+        const periode = currentPeriod === 'day' ? 'Aujourd\'hui' : (currentPeriod === 'week' ? 'Cette semaine' : 'Ce mois');
+        
+        // En-tête
+        pdf.setFillColor(13, 13, 13);
+        pdf.rect(0, 0, 210, 30, 'F');
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(18);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('RestApp 7★', 15, 15);
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text('Rapport d\'activité', 15, 22);
 
-                // Titre
-                const title = document.createElement('h2');
-                title.textContent = document.getElementById('resto-name')?.textContent || 'Restaurant';
-                title.style.cssText = 'font-family:Georgia,serif;font-size:24px;color:#C6A43F;text-align:center;margin-bottom:20px;';
-                element.appendChild(title);
+        // Nom restaurant
+        pdf.setTextColor(198, 164, 63);
+        pdf.setFontSize(16);
+        pdf.text(restoName, 15, 45);
 
-                // Stats
-                const statsClone = document.querySelector('.stats-grid').cloneNode(true);
-                element.appendChild(statsClone);
+        // Période
+        pdf.setTextColor(100, 100, 100);
+        pdf.setFontSize(10);
+        pdf.text(periode + ' — ' + date, 15, 55);
 
-                // Graphique
-                const chartClone = document.querySelector('.chart-card').cloneNode(true);
-                // Remplacer le canvas par une image
-                const originalCanvas = document.getElementById('evolution-chart');
-                const chartImg = document.createElement('img');
-                chartImg.src = originalCanvas.toDataURL('image/png');
-                chartImg.style.width = '100%';
-                chartImg.style.maxHeight = '280px';
-                chartClone.querySelector('canvas').replaceWith(chartImg);
-                element.appendChild(chartClone);
+        // Ligne de séparation
+        pdf.setDrawColor(198, 164, 63);
+        pdf.setLineWidth(0.5);
+        pdf.line(15, 62, 195, 62);
 
-                // Top plats
-                const topPlatsClone = document.querySelectorAll('.chart-card')[1].cloneNode(true);
-                element.appendChild(topPlatsClone);
+        // Stats
+        pdf.setTextColor(40, 40, 40);
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Indicateurs clés', 15, 75);
 
-                // Date
-                const dateEl = document.createElement('p');
-                dateEl.textContent = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-                dateEl.style.cssText = 'text-align:center;color:#999;font-size:11px;margin-top:20px;';
-                element.appendChild(dateEl);
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text('Chiffre d\'affaires :', 20, 88);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(198, 164, 63);
+        pdf.text(ca, 100, 88);
 
-                // Ajouter temporairement au DOM pour html2canvas
-                element.style.position = 'absolute';
-                element.style.left = '-9999px';
-                document.body.appendChild(element);
-                const canvas = await html2canvas(element, {
-                    backgroundColor: getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#faf8f5',
-                    scale: 2,
-                    useCORS: true,
-                    logging: false
-                });
-                // Nettoyer l'élément temporaire
-                document.body.removeChild(element);
+        pdf.setTextColor(40, 40, 40);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text('Nombre de commandes :', 20, 100);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(198, 164, 63);
+        pdf.text(nbCmd, 100, 100);
 
-                // Créer le PDF (format A4)
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                
-                const imgWidth = 190;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                
-                // Nom du restaurant
-                const restoName = document.getElementById('resto-name')?.textContent || 'Restaurant';
-                
-                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 15, imgWidth, Math.min(imgHeight, 260));
-                
-                // Si l'image est trop grande, ajouter des pages
-                if (imgHeight > 260) {
-                    let remainingHeight = imgHeight - 260;
-                    let yOffset = -260;
-                    while (remainingHeight > 0) {
-                        pdf.addPage();
-                        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, yOffset, imgWidth, imgHeight);
-                        remainingHeight -= 260;
-                        yOffset -= 260;
-                    }
-                }
+        pdf.setTextColor(40, 40, 40);
+        pdf.setFont('helvetica', 'normal');
+        pdf.text('Panier moyen :', 20, 112);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(198, 164, 63);
+        pdf.text(panier, 100, 112);
 
-                // Pied de page
-                const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-                pdf.setFontSize(8);
-                pdf.setTextColor(150);
-                pdf.text(`RestApp 7★ — ${restoName} — ${date}`, 10, 290);
+        // Top plats
+        pdf.setTextColor(40, 40, 40);
+        pdf.setFontSize(14);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Top 5 des plats', 15, 132);
 
-                // Téléchargement compatible mobile
-                const pdfBlob = pdf.output('blob');
-                const pdfUrl = URL.createObjectURL(pdfBlob);
+        const topPlatsEl = document.querySelectorAll('.top-plats-list li');
+        let y = 142;
+        pdf.setFontSize(11);
+        topPlatsEl.forEach((el, i) => {
+            if (i >= 5) return;
+            const text = el.textContent.trim();
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(60, 60, 60);
+            pdf.text((i + 1) + '. ' + text, 20, y);
+            y += 8;
+        });
 
-                // Méthode 1 : Téléchargement direct
-                const link = document.createElement('a');
-                link.href = pdfUrl;
-                link.download = `dashboard-${restoName.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '')}-${date.replace(/\s+/g, '-')}.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+        // Pied de page
+        pdf.setFontSize(8);
+        pdf.setTextColor(150, 150, 150);
+        pdf.text('Généré par RestApp 7★ — ' + date, 15, 285);
 
-                // Méthode 2 : Fallback mobile - ouvrir dans un nouvel onglet
-                setTimeout(() => {
-                    window.open(pdfUrl, '_blank');
-                }, 500);
-                
-                showToast('✅ PDF exporté avec succès !', 'success');
-            } catch(e) {
-                console.error('Erreur export PDF:', e);
-                showToast('❌ Erreur lors de l\'export', 'error');
-            } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
-        }
+        // Téléchargement
+        const pdfBlob = pdf.output('blob');
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = pdfUrl;
+        link.download = 'rapport-' + restoName.replace(/[^a-zA-Z0-9]/g, '-') + '-' + date.replace(/\s+/g, '-') + '.pdf';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => window.open(pdfUrl, '_blank'), 500);
+
+        showToast('✅ Rapport exporté !', 'success');
+    } catch(e) {
+        showToast('❌ Erreur export', 'error');
+    } finally {
+        btn.textContent = '📥 Exporter PDF';
+        btn.disabled = false;
+    }
+}
 
         // Ajouter l'event listener dans initEventListeners()
         // Cherche "function initEventListeners()" et ajoute à l'intérieur :
