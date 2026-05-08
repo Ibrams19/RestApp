@@ -889,124 +889,102 @@
         });
         // ==================== EXPORT PDF ====================
 async function exportPDF() {
-    const btn = document.getElementById('btn-export-pdf');
+    var btn = document.getElementById('btn-export-pdf');
     btn.textContent = '⏳ Génération…';
     btn.disabled = true;
 
     try {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        
-        // Récupérer depuis l'API pour avoir des nombres propres
-        const token = localStorage.getItem('resto_token');
-        const res = await fetch('/api/stats/' + currentResto + '?periode=' + currentPeriod, {
+        var token = localStorage.getItem('resto_token');
+        var r = await fetch('/api/stats/' + currentResto + '?periode=' + currentPeriod, {
             headers: { 'Authorization': 'Bearer ' + token }
         });
-        const stats = await res.json();
-        
-        const restoName = document.getElementById('resto-name')?.textContent || 'Restaurant';
-        const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-        const periode = currentPeriod === 'day' ? "Aujourd'hui" : (currentPeriod === 'week' ? 'Cette semaine' : 'Ce mois');
-        
-        // Nombres propres depuis l'API (PAS depuis le DOM)
-        const ca = stats.caTotal || 0;
-        const cmd = stats.nbCommandes || 0;
-        const panier = stats.panierMoyen || 0;
-        const plats = stats.topPlats || [];
+        var stats = await r.json();
 
-        // === PAGE 1 ===
-        
-        // Fond
-        pdf.setFillColor(255, 255, 255);
-        pdf.rect(0, 0, 210, 297, 'F');
+        var jsPDF = window.jspdf.jsPDF;
+        var pdf = new jsPDF('p', 'mm', 'a4');
+        var now = new Date();
+        var dateStr = now.getDate() + ' ' + ['janvier','fevrier','mars','avril','mai','juin','juillet','aout','septembre','octobre','novembre','decembre'][now.getMonth()] + ' ' + now.getFullYear();
+        var periode = currentPeriod === 'day' ? 'Aujourd\'hui' : (currentPeriod === 'week' ? 'Cette semaine' : 'Ce mois');
+        var resto = document.getElementById('resto-name').textContent;
 
-        // Bandeau noir
-        pdf.setFillColor(18, 18, 18);
-        pdf.rect(0, 0, 210, 35, 'F');
-        pdf.setFillColor(198, 164, 63);
-        pdf.rect(0, 35, 210, 2, 'F');
+        // Bandeau
+        pdf.setFillColor(18,18,18);
+        pdf.rect(0,0,210,35,'F');
+        pdf.setFillColor(198,164,63);
+        pdf.rect(0,35,210,2,'F');
 
-        // Logo
-        pdf.setTextColor(255, 255, 255);
+        pdf.setTextColor(255,255,255);
         pdf.setFontSize(18);
-        pdf.setFont('Times', 'bold');
-        pdf.text('RestApp 7' + String.fromCharCode(9733), 15, 18);
+        pdf.text('RestApp 7★', 15, 18);
         pdf.setFontSize(8);
-        pdf.setFont('Helvetica', 'normal');
-        pdf.setTextColor(170, 170, 170);
+        pdf.setTextColor(170,170,170);
         pdf.text('Rapport d\'activite', 15, 27);
 
-        // Nom restaurant
-        pdf.setTextColor(30, 30, 30);
+        // Nom
+        pdf.setTextColor(30,30,30);
         pdf.setFontSize(16);
-        pdf.setFont('Times', 'bold');
-        pdf.text(restoName, 15, 52);
+        pdf.text(resto, 15, 52);
 
         // Date
         pdf.setFontSize(9);
-        pdf.setFont('Helvetica', 'normal');
-        pdf.setTextColor(140, 140, 140);
-        pdf.text(periode + '  —  ' + date, 15, 60);
+        pdf.setTextColor(140,140,140);
+        pdf.text(periode + ' — ' + dateStr, 15, 60);
+        pdf.setDrawColor(210,205,195);
+        pdf.line(15,66,195,66);
 
-        // Ligne
-        pdf.setDrawColor(210, 205, 195);
-        pdf.line(15, 66, 195, 66);
-
-        // === INDICATEURS ===
+        // Indicateurs
         pdf.setFontSize(12);
-        pdf.setFont('Helvetica', 'bold');
-        pdf.setTextColor(50, 50, 50);
+        pdf.setTextColor(50,50,50);
         pdf.text('Indicateurs', 15, 80);
 
+        // CA
         pdf.setFontSize(11);
-        pdf.setFont('Helvetica', 'normal');
-        pdf.setTextColor(80, 80, 80);
-        
+        pdf.setTextColor(80,80,80);
         pdf.text('Chiffre d\'affaires', 20, 94);
+        pdf.setTextColor(198,164,63);
+        pdf.text(String(stats.caTotal).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' FCFA', 120, 94);
+
+        // Commandes
+        pdf.setTextColor(80,80,80);
         pdf.text('Commandes', 20, 108);
+        pdf.setTextColor(198,164,63);
+        pdf.text(String(stats.nbCommandes), 120, 108);
+
+        // Panier
+        pdf.setTextColor(80,80,80);
         pdf.text('Ticket moyen', 20, 122);
+        pdf.setTextColor(198,164,63);
+        pdf.text(String(stats.panierMoyen).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' FCFA', 120, 122);
 
-        pdf.setFont('Helvetica', 'bold');
-        pdf.setTextColor(198, 164, 63);
-        pdf.text(ca.toLocaleString('fr-FR') + ' FCFA', 120, 94);
-        pdf.text(cmd.toString(), 120, 108);
-        pdf.text(panier.toLocaleString('fr-FR') + ' FCFA', 120, 122);
-
-        // === TOP PLATS ===
+        // Top plats
         pdf.setFontSize(12);
-        pdf.setFont('Helvetica', 'bold');
-        pdf.setTextColor(50, 50, 50);
+        pdf.setTextColor(50,50,50);
         pdf.text('Top 5 des plats', 15, 148);
 
-        let y = 160;
+        var y = 160;
+        var plats = stats.topPlats || [];
         if (plats.length === 0) {
             pdf.setFontSize(10);
-            pdf.setFont('Helvetica', 'normal');
-            pdf.setTextColor(150, 150, 150);
+            pdf.setTextColor(150,150,150);
             pdf.text('Aucune vente', 20, y);
         } else {
-            plats.slice(0, 5).forEach(function(p, i) {
+            plats.slice(0,5).forEach(function(p, i) {
                 pdf.setFontSize(10);
-                pdf.setFont('Helvetica', 'normal');
-                pdf.setTextColor(50, 50, 50);
-                pdf.text((i + 1) + '.  ' + p.nom, 20, y);
-                pdf.setFont('Helvetica', 'bold');
-                pdf.setTextColor(198, 164, 63);
-                pdf.text(p.quantite + ' vente' + (p.quantite > 1 ? 's' : ''), 170, y);
+                pdf.setTextColor(50,50,50);
+                pdf.text((i+1) + '. ' + p.nom, 20, y);
+                pdf.setTextColor(198,164,63);
+                pdf.text(p.quantite + ' vente' + (p.quantite>1?'s':''), 170, y);
                 y += 9;
             });
         }
 
-        // === PIED ===
         pdf.setFontSize(7);
-        pdf.setTextColor(180, 180, 180);
-        pdf.text('RestApp 7' + String.fromCharCode(9733) + '  —  www.restapps.net', 15, 290);
+        pdf.setTextColor(180,180,180);
+        pdf.text('RestApp 7★ — restapps.net', 15, 290);
 
-        // Téléchargement
-        var safeName = restoName.replace(/[^a-zA-Z0-9]/g, '-').substring(0, 25);
-        pdf.save('Rapport-' + safeName + '-' + date.replace(/\s+/g, '-') + '.pdf');
-
-        showToast('✅ Rapport exporté !', 'success');
+        var fn = resto.replace(/[^a-zA-Z0-9]/g, '-').substring(0,25);
+        pdf.save('Rapport-' + fn + '-' + dateStr.replace(/\s+/g, '-') + '.pdf');
+        showToast('✅ Exporté !', 'success');
     } catch(e) {
         console.error(e);
         showToast('❌ Erreur', 'error');
