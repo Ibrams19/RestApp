@@ -862,6 +862,31 @@ app.post('/api/commande', commandLimiter, async (req, res) => {
     total: Math.round(Number(total)),
     statut: 'en_attente'
   });
+  // Envoi notification push aux employés du restaurant
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  try {
+    const { data: profils } = await supabase.from('profiles').select('id').eq('resto_id', restoId);
+    if (profils && profils.length > 0) {
+      const userIds = profils.map(p => p.id);
+      const { data: subs } = await supabase.from('push_subscriptions').select('subscription, user_id').in('user_id', userIds);
+      if (subs && subs.length > 0) {
+        for (const s of subs) {
+          try {
+            await webpush.sendNotification(JSON.parse(s.subscription), JSON.stringify({
+              title: '🛎️ Nouvelle commande !',
+              body: `Table ${tableId} | ${name} | ${total.toLocaleString()} FCFA`,
+              url: '/resto.html'
+            }));
+          } catch(err) {
+            if (err.statusCode === 410 || err.statusCode === 404) {
+              await supabase.from('push_subscriptions').delete().eq('user_id', s.user_id);
+            }
+          }
+        }
+      }
+    }
+  } catch(e) { console.error('Push error:', e.message); }
+}
 
   logSecurity('INFO', 'Nouvelle commande', { restoId, commandeId: commande.id });
 
@@ -938,6 +963,31 @@ app.post('/api/commande-manuelle', authMiddleware, async (req, res) => {
     statut: 'paye',
     source: commandeSource
   });
+  // Envoi notification push aux employés du restaurant
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  try {
+    const { data: profils } = await supabase.from('profiles').select('id').eq('resto_id', restoId);
+    if (profils && profils.length > 0) {
+      const userIds = profils.map(p => p.id);
+      const { data: subs } = await supabase.from('push_subscriptions').select('subscription, user_id').in('user_id', userIds);
+      if (subs && subs.length > 0) {
+        for (const s of subs) {
+          try {
+            await webpush.sendNotification(JSON.parse(s.subscription), JSON.stringify({
+              title: '🛎️ Nouvelle commande !',
+              body: `Table ${tableId} | ${name} | ${total.toLocaleString()} FCFA`,
+              url: '/resto.html'
+            }));
+          } catch(err) {
+            if (err.statusCode === 410 || err.statusCode === 404) {
+              await supabase.from('push_subscriptions').delete().eq('user_id', s.user_id);
+            }
+          }
+        }
+      }
+    }
+  } catch(e) { console.error('Push error:', e.message); }
+}
 
   logSecurity('INFO', 'Commande manuelle créée', { restoId, commandeId: commande.id, source: commandeSource });
 
