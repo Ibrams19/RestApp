@@ -376,12 +376,23 @@
                 notifBtn.addEventListener('click', handleNotifClick);
             }
 
-            // Ajoute après les écouteurs des tab-btn existants
+            // Écouteurs pour les boutons de PÉRIODE (à garder en premier)
             document.querySelectorAll('.periode-btn').forEach(function(b){
-                b.addEventListener('click', function(){
+                b.addEventListener('click', function(e){
+                    e.stopPropagation(); // Empêche le conflit
                     document.querySelectorAll('.periode-btn').forEach(function(x){x.classList.remove('active');});
                     this.classList.add('active');
                     currentPeriode = this.dataset.periode;
+                    afficherCommandes();
+                });
+            });
+
+            // Écouteurs pour les boutons de STATUT (avec :not(.periode-btn))
+            document.querySelectorAll('.tab-btn:not(.periode-btn)').forEach(function(b){
+                b.addEventListener('click', function(){
+                    document.querySelectorAll('.tab-btn:not(.periode-btn)').forEach(function(x){x.classList.remove('active');});
+                    this.classList.add('active');
+                    currentFilter = this.dataset.status;
                     afficherCommandes();
                 });
             });
