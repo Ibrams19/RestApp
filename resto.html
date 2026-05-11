@@ -302,30 +302,48 @@
                 btn.title = isIOS ? '🔔 Activer le son' : '🔔 Activer le son et les notifications';
             }
         }
-
         function init(){
-            var currentResto=null,currentFilter='all',currentPeriode='all',allCommandes=[],userRole=null,userId=null,pollingTimer=null,socket=null,isLoading=false;
             var token=localStorage.getItem(TOKEN_KEY);
             if(!token){location.href='/login.html';return;}
-            try{var p=JSON.parse(atob(token.split('.')[1]));userRole=p.role;userId=p.id;currentResto=p.resto_id;
-            window.restoName = (p.restaurant_name || 'Mon établissement');
-            window.restoName = window.restoName
-                .replace(/★/g, 'Etoile')
-                .replace(/⭐/g, 'Etoile')
-                .replace(/â˜…/g, 'Etoile')
-                .replace(/â/g, 'Etoile');
-            if (!window.restoName || window.restoName.length < 2) window.restoName = 'Restaurant';
-            if(!p.restaurant_name){
-                fetch('/api/restaurant/subscription',{
-                    headers:{'Authorization':'Bearer '+token}
-                }).then(function(r){return r.json();})
-                .then(function(d){
-                    if(d.restaurant_name){
-                        window.restoName=d.restaurant_name;
-                    }
-                });
-            }if(!currentResto){showToast('Erreur compte','error');return;}localStorage.setItem('resto_id',currentResto);localStorage.setItem('resto_role',userRole);}catch(e){location.href='/login.html';return;}
-            applyTheme();initUI();initWebSocket();chargerCommandes();startPolling();
+            try{
+                var p=JSON.parse(atob(token.split('.')[1]));
+                userRole=p.role;
+                userId=p.id;
+                currentResto=p.resto_id;
+                window.restoName = (p.restaurant_name || 'Mon établissement');
+                window.restoName = window.restoName
+                    .replace(/★/g, 'Etoile')
+                    .replace(/⭐/g, 'Etoile')
+                    .replace(/â˜…/g, 'Etoile')
+                    .replace(/â/g, 'Etoile');
+                if (!window.restoName || window.restoName.length < 2) window.restoName = 'Restaurant';
+                if(!p.restaurant_name){
+                    fetch('/api/restaurant/subscription',{
+                        headers:{'Authorization':'Bearer '+token}
+                    }).then(function(r){return r.json();})
+                    .then(function(d){
+                        if(d.restaurant_name){
+                            window.restoName=d.restaurant_name;
+                        }
+                    });
+                }
+                if(!currentResto){showToast('Erreur compte','error');return;}
+                localStorage.setItem('resto_id',currentResto);
+                localStorage.setItem('resto_role',userRole);
+            }catch(e){
+                location.href='/login.html';
+                return;
+            }
+            
+            // Initialiser currentPeriode à 'all'
+            currentPeriode = 'all';
+            
+            applyTheme();
+            initUI();
+            initWebSocket();
+            chargerCommandes();
+            startPolling();
+            
             // Restaurer l'état visuel de la cloche
             if (localStorage.getItem('notif_active') === 'true') {
                 notifSoundEnabled = true;
