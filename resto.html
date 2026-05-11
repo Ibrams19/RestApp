@@ -398,7 +398,6 @@
             });
             
             document.getElementById('logout-btn').addEventListener('click',function(){if(socket)socket.disconnect();if(pollingTimer)clearInterval(pollingTimer);localStorage.clear();location.href='/login.html';});
-            document.querySelectorAll('.tab-btn').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab-btn').forEach(function(x){x.classList.remove('active');});this.classList.add('active');currentFilter=this.dataset.status;afficherCommandes();});});
             document.getElementById('btn-commande-rapide').addEventListener('click',ouvrirCommandeRapide);
             document.getElementById('cr-cancel').addEventListener('click',fermerCommandeRapide);
             document.getElementById('cr-close-top').addEventListener('click',fermerCommandeRapide);
