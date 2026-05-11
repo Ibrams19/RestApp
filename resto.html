@@ -282,7 +282,7 @@
         }
     (function() {
         var TOKEN_KEY='resto_token',THEME_KEY='resto_theme',POLLING_INTERVAL=8000;
-        var currentResto=null,currentFilter='all',allCommandes=[],userRole=null,userId=null,pollingTimer=null,socket=null,isLoading=false;
+        currentPeriode = 'all';
         var previousStats={en_attente:0,cuisine:0,pret:0,servi:0,paye:0};
         var crPanier=[],crMenu=[];
 
@@ -594,100 +594,83 @@
         }
 
         function afficherCommandes(){
-            var f = allCommandes.slice();
-            var sp = {en_attente:0,cuisine:1,pret:2,servi:3,paye:4};
-            f.sort(function(a,b){return sp[a.statut]!==sp[b.statut]?sp[a.statut]-sp[b.statut]:new Date(a.date_commande)-new Date(b.date_commande);});
-            
-            // ===== DEBUG : Afficher les dates des commandes =====
-            console.log('=== DEBUG DATES ===');
-            console.log('Date actuelle:', new Date());
-            console.log('Nombre total de commandes:', allCommandes.length);
-            if (allCommandes.length > 0) {
-                console.log('Première commande date_commande:', allCommandes[0].date_commande);
-                console.log('Type de date_commande:', typeof allCommandes[0].date_commande);
-            }
-            // ===== FIN DEBUG =====
-            
-            // ===== FILTRE PAR PÉRIODE =====
-            var maintenant = new Date();
-            var debutPeriode = null;
-            var finHier = null;
-            
-            switch(currentPeriode) {
-                case 'aujourdhui':
-                    debutPeriode = new Date();
-                    debutPeriode.setHours(0, 0, 0, 0);
-                    console.log('Filtre Aujourd\'hui - début:', debutPeriode);
-                    break;
-                case 'hier':
-                    debutPeriode = new Date();
-                    debutPeriode.setDate(debutPeriode.getDate() - 1);
-                    debutPeriode.setHours(0, 0, 0, 0);
-                    finHier = new Date();
-                    finHier.setHours(0, 0, 0, 0);
-                    console.log('Filtre Hier - début:', debutPeriode, 'fin:', finHier);
-                    break;
-                case '7jours':
-                    debutPeriode = new Date();
-                    debutPeriode.setDate(debutPeriode.getDate() - 7);
-                    debutPeriode.setHours(0, 0, 0, 0);
-                    console.log('Filtre 7 jours - début:', debutPeriode);
-                    break;
-                case 'mois':
-                    debutPeriode = new Date(maintenant.getFullYear(), maintenant.getMonth(), 1);
-                    debutPeriode.setHours(0, 0, 0, 0);
-                    console.log('Filtre Ce mois - début:', debutPeriode);
-                    break;
-                default:
-                    console.log('Filtre: Tout (pas de filtre période)');
-                    break;
-            }
-            
-            if (debutPeriode) {
-                f = f.filter(function(cmd) {
-                    var dateCmd = new Date(cmd.date_commande);
-                    
-                    // DEBUG pour chaque commande
-                    console.log('Commande #' + cmd.id + ' - date_commande:', cmd.date_commande, '→ convertie:', dateCmd);
-                    
-                    if (currentPeriode === 'hier') {
-                        var resultat = dateCmd >= debutPeriode && dateCmd < finHier;
-                        console.log('  → Hier? début:', debutPeriode, 'fin:', finHier, 'cmd:', dateCmd, 'résultat:', resultat);
-                        return resultat;
-                    } else {
-                        var resultat = dateCmd >= debutPeriode;
-                        console.log('  → Après début? début:', debutPeriode, 'cmd:', dateCmd, 'résultat:', resultat);
-                        return resultat;
-                    }
-                });
-            }
-            // ===== FIN FILTRE PÉRIODE =====
-            
-            // ===== FILTRE PAR STATUT =====
-            if(currentFilter !== 'all') {
-                f = f.filter(function(c){return c.statut === currentFilter;});
-            }
-            
-            var c = document.getElementById('commandes-grid');
-            if(!f.length){
-                var msg = 'Aucune commande';
-                if (currentPeriode === 'aujourdhui') msg = 'Aucune commande aujourd\'hui';
-                else if (currentPeriode === 'hier') msg = 'Aucune commande hier';
-                else if (currentPeriode === '7jours') msg = 'Aucune commande ces 7 derniers jours';
-                else if (currentPeriode === 'mois') msg = 'Aucune commande ce mois';
+            try {
+                var f = allCommandes.slice();
+                var sp = {en_attente:0,cuisine:1,pret:2,servi:3,paye:4};
+                f.sort(function(a,b){return sp[a.statut]!==sp[b.statut]?sp[a.statut]-sp[b.statut]:new Date(a.date_commande)-new Date(b.date_commande);});
                 
-                c.innerHTML='<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">'+msg+'</div></div>';
-                return;
+                // ===== FILTRE PAR PÉRIODE =====
+                if (currentPeriode && currentPeriode !== 'all') {
+                    var maintenant = new Date();
+                    var debutPeriode = null;
+                    var finPeriode = null;
+                    
+                    switch(currentPeriode) {
+                        case 'aujourdhui':
+                            debutPeriode = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate());
+                            finPeriode = new Date(debutPeriode.getTime() + 86400000);
+                            break;
+                        case 'hier':
+                            finPeriode = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate());
+                            debutPeriode = new Date(finPeriode.getTime() - 86400000);
+                            break;
+                        case '7jours':
+                            finPeriode = new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate() + 1);
+                            debutPeriode = new Date(finPeriode.getTime() - 7 * 86400000);
+                            break;
+                        case 'mois':
+                            debutPeriode = new Date(maintenant.getFullYear(), maintenant.getMonth(), 1);
+                            finPeriode = new Date(maintenant.getFullYear(), maintenant.getMonth() + 1, 1);
+                            break;
+                    }
+                    
+                    if (debutPeriode && finPeriode) {
+                        f = f.filter(function(cmd) {
+                            var d = cmd.date_commande;
+                            if (!d) return false;
+                            
+                            // Extraire juste la date YYYY-MM-DD
+                            var dateStr = typeof d === 'string' ? d.split('T')[0] : '';
+                            if (!dateStr) return false;
+                            
+                            var parts = dateStr.split('-');
+                            var dateCmd = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                            
+                            return dateCmd >= debutPeriode && dateCmd < finPeriode;
+                        });
+                    }
+                }
+                // ===== FIN FILTRE PÉRIODE =====
+                
+                // Filtre par statut
+                if(currentFilter !== 'all') {
+                    f = f.filter(function(c){return c.statut === currentFilter;});
+                }
+                
+                var c = document.getElementById('commandes-grid');
+                if(!f.length){
+                    var msg = 'Aucune commande';
+                    if (currentPeriode === 'aujourdhui') msg = 'Aucune commande aujourd\'hui';
+                    else if (currentPeriode === 'hier') msg = 'Aucune commande hier';
+                    else if (currentPeriode === '7jours') msg = 'Aucune commande ces 7 derniers jours';
+                    else if (currentPeriode === 'mois') msg = 'Aucune commande ce mois';
+                    
+                    c.innerHTML='<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">'+msg+'</div></div>';
+                    return;
+                }
+                
+                c.innerHTML=f.map(function(cmd){
+                    var actions=getActionsForCommand(cmd.statut,userRole);
+                    var u=isUrgent(cmd.date_commande,cmd.statut),t=getTimeAgo(cmd.date_commande);
+                    var d=cmd.details&&cmd.details.length?cmd.details.map(function(d){return'<div class="detail-line"><span><span class="detail-name">'+escapeHtml(d.nom_plat||'')+'</span><span class="detail-qty">×'+(d.quantite||0)+'</span></span><span class="detail-price">'+((d.prix_unitaire||0)*(d.quantite||0)).toLocaleString()+' FCFA</span></div>';}).join(''):'<div class="detail-line">Aucun détail</div>';
+                    var ah=actions.length?actions.map(function(act){return'<button class="btn-action '+act.class+'" data-cmd-id="'+cmd.id+'" data-action="'+act.action+'">'+act.label+'</button>';}).join(''):(cmd.statut==='paye'?'<span style="color:#27AE60;">✓ Finalisée</span>':'<span style="color:var(--text-secondary);">⏳ En attente</span>');
+                    return'<div class="commande-card'+(u?' urgent':'')+'"><div class="commande-header"><div style="display:flex;gap:10px;align-items:center;"><span class="table-badge">Table '+(cmd.table_numero||cmd.table_id)+'</span>'+(cmd.client_nom?'<span class="client-badge">👤 '+escapeHtml(cmd.client_nom)+'</span>':'')+'</div><span class="statut-badge statut-'+cmd.statut+'">'+getStatutText(cmd.statut)+'</span></div><div class="commande-body">'+d+'<div class="commande-total"><span>Total</span><span>'+(cmd.total||0).toLocaleString()+' FCFA</span></div><div class="commande-actions">'+ah+'</div>'+(t?'<div class="commande-time'+(u?' urgent-text':'')+'">🕐 '+t+(u?' — Action requise':'')+'</div>':'')+'</div></div>';
+                }).join('');
+                c.querySelectorAll('.btn-action').forEach(function(b){b.addEventListener('click',function(){changerStatut(parseInt(this.dataset.cmdId),this.dataset.action,this);});});
+            } catch(err) {
+                console.error('Erreur dans afficherCommandes:', err);
+                document.getElementById('commandes-grid').innerHTML='<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-text">Erreur d\'affichage</div></div>';
             }
-            
-            c.innerHTML=f.map(function(cmd){
-                var actions=getActionsForCommand(cmd.statut,userRole);
-                var u=isUrgent(cmd.date_commande,cmd.statut),t=getTimeAgo(cmd.date_commande);
-                var d=cmd.details&&cmd.details.length?cmd.details.map(function(d){return'<div class="detail-line"><span><span class="detail-name">'+escapeHtml(d.nom_plat)+'</span><span class="detail-qty">×'+d.quantite+'</span></span><span class="detail-price">'+((d.prix_unitaire||0)*(d.quantite||0)).toLocaleString()+' FCFA</span></div>';}).join(''):'<div class="detail-line">Aucun détail</div>';
-                var ah=actions.length?actions.map(function(act){return'<button class="btn-action '+act.class+'" data-cmd-id="'+cmd.id+'" data-action="'+act.action+'">'+act.label+'</button>';}).join(''):(cmd.statut==='paye'?'<span style="color:#27AE60;">✓ Finalisée</span>':'<span style="color:var(--text-secondary);">⏳ En attente</span>');
-                return'<div class="commande-card'+(u?' urgent':'')+'"><div class="commande-header"><div style="display:flex;gap:10px;align-items:center;"><span class="table-badge">Table '+(cmd.table_numero||cmd.table_id)+'</span>'+(cmd.client_nom?'<span class="client-badge">👤 '+escapeHtml(cmd.client_nom)+'</span>':'')+'</div><span class="statut-badge statut-'+cmd.statut+'">'+getStatutText(cmd.statut)+'</span></div><div class="commande-body">'+d+'<div class="commande-total"><span>Total</span><span>'+(cmd.total||0).toLocaleString()+' FCFA</span></div><div class="commande-actions">'+ah+'</div>'+(t?'<div class="commande-time'+(u?' urgent-text':'')+'">🕐 '+t+(u?' — Action requise':'')+'</div>':'')+'</div></div>';
-            }).join('');
-            c.querySelectorAll('.btn-action').forEach(function(b){b.addEventListener('click',function(){changerStatut(parseInt(this.dataset.cmdId),this.dataset.action,this);});});
         }
 
         async function changerStatut(id,ns,btn){
