@@ -509,6 +509,8 @@ if (!email || !nomRestaurant) {
 
   const magicLink = `${PUBLIC_URL}/set-password.html?token=${magicToken}&email=${encodeURIComponent(email)}`;
 
+  console.log('📧 Tentative envoi email à:', email);
+
   sendEmail(email, 'Bienvenue sur RestApp 7★ ! Définissez votre mot de passe', `
       <h2>Bienvenue ${nomRestaurant} !</h2>
       <p>Votre établissement a été créé avec succès.</p>
@@ -2261,10 +2263,6 @@ app.use('/api/*', (req, res) => {
 app.use((req, res) => {
   res.status(404).sendFile('404.html', { root: __dirname });
 });
-
-// TEST VARIABLES MAILJET
-console.log('🔍 MAILJET_API_KEY présent:', process.env.MAILJET_API_KEY ? 'OUI (' + process.env.MAILJET_API_KEY.substring(0,5) + '...)' : 'NON');
-console.log('🔍 MAILJET_SECRET_KEY présent:', process.env.MAILJET_SECRET_KEY ? 'OUI' : 'NON');
 
 // ==================== LANCEMENT ====================
 const PORT = process.env.PORT || 3001;
