@@ -4,9 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-title" content="Resto 7★">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0d0d0d">
+    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -111,8 +110,10 @@
         body.dark .toast { background: var(--surface-dark); border-color: var(--border-dark); }
         @keyframes slideInRight { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         @keyframes slideOutRight { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
-        @keyframes slideUp { from { transform: translate(-50%, 100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
         .cr-menu-item:hover { background: var(--gold-light) !important; }
+        .cr-qty-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; font-weight: 600; color: var(--text); }
+        .cr-qty-btn:hover { border-color: var(--gold); color: var(--gold); }
+        body.dark .cr-qty-btn { background: var(--surface-dark); border-color: var(--border-dark); color: var(--text-dark); }
         @media print { body * { visibility: hidden; } #recu-print, #recu-print * { visibility: visible; } #recu-print { position: absolute; left: 0; top: 0; width: 100%; } }
         @media (max-width: 768px) { .header { padding: 0 16px; height: 60px; } .commandes-grid { grid-template-columns: 1fr; padding: 0 12px 40px; gap: 12px; } }
         body.dark #modal-commande-rapide > div { background: #1e1e1e !important; }
@@ -124,429 +125,589 @@
         body.dark #cr-table option { background: #2a2a2a; color: #fff; }
         body.dark .cr-menu-item span { color: #e0e0e0 !important; }
         body.dark .cr-menu-item:hover { background: #333 !important; }
-        body.dark #recu-print { background: #1e1e1e !important; color: #f0ece4 !important; }
-        body.dark #recu-print * { color: #f0ece4 !important; }
-        body.dark #recu-print button:first-child { background: #C6A43F !important; color: #fff !important; }
-        body.dark #recu-print button:last-child { background: #333 !important; color: #ccc !important; }
+        body.dark #recu-print {
+            background: #1e1e1e !important;
+            color: #f0ece4 !important;
+        }
+        body.dark #recu-print * {
+            color: #f0ece4 !important;
+        }
+        body.dark #recu-print button:first-child {
+            background: #C6A43F !important;
+            color: #fff !important;
+        }
+        body.dark #recu-print button:last-child {
+            background: #333 !important;
+            color: #ccc !important;
+        }
     </style>
 </head>
 <body>
-    <!-- MÊME HEADER, STATS, TABS, MODALES que ton code original -->
-    <!-- Je les ai omis pour la lisibilité mais ils sont IDENTIQUES -->
+    <header class="header">
+        <div class="logo"><span class="logo-icon">👨‍🍳</span><span>Cuisine</span> & Service</div>
+        <div class="header-right">
+            <button class="btn-icon" id="btn-notif" title="🔔 Activer les notifications">🔔</button>
+            <button class="btn-commande-rapide" id="btn-commande-rapide" style="background:#27AE60;color:white;border:none;padding:10px 18px;border-radius:40px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-sans);display:flex;align-items:center;gap:6px;">⚡ Commande rapide</button>
+            <span class="role-badge" id="role-badge">Chargement…</span>
+            <button class="btn-icon" id="theme-toggle" title="Mode sombre">🌙</button>
+            <button class="btn-logout" id="logout-btn">Quitter</button>
+        </div>
+    </header>
+    <nav class="nav-bar" id="nav-bar"><a href="/proprietaire.html" class="nav-btn" id="nav-proprietaire" style="display:none;">🏢 Mes établissements</a></nav>
+    <div class="stats-row">
+        <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-number" id="count-attente">0</div><div class="stat-label">En attente</div></div>
+        <div class="stat-card"><div class="stat-icon">👨‍🍳</div><div class="stat-number" id="count-cuisine">0</div><div class="stat-label">En cuisine</div></div>
+        <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-number" id="count-pret">0</div><div class="stat-label">Prêtes</div></div>
+        <div class="stat-card"><div class="stat-icon">🍽️</div><div class="stat-number" id="count-servi">0</div><div class="stat-label">Servies</div></div>
+        <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-number" id="count-paye">0</div><div class="stat-label">Payées</div></div>
+    </div>
+    <div class="tabs-container">
+        <button class="tab-btn active" data-status="all">Toutes<span class="tab-count" id="count-all">0</span></button>
+        <button class="tab-btn" data-status="en_attente">⏳ En attente<span class="tab-count" id="tab-count-attente">0</span></button>
+        <button class="tab-btn" data-status="cuisine">🍳 En cuisine<span class="tab-count" id="tab-count-cuisine">0</span></button>
+        <button class="tab-btn" data-status="pret">✅ Prêtes<span class="tab-count" id="tab-count-pret">0</span></button>
+        <button class="tab-btn" data-status="servi">🍽️ Servies<span class="tab-count" id="tab-count-servi">0</span></button>
+        <button class="tab-btn" data-status="paye">💰 Payées<span class="tab-count" id="tab-count-paye">0</span></button>
+    </div>
+    <div class="commandes-grid" id="commandes-grid"></div>
 
-    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-    <script>
-        // ==================== DÉTECTION PLATEFORME ====================
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-        const isAndroid = /Android/.test(navigator.userAgent);
-        const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                      navigator.standalone === true;
+<!-- MODALE COMMANDE RAPIDE -->
+<div class="modal-overlay" id="modal-commande-rapide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;max-width:700px;width:95%;max-height:85vh;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,0.2);display:flex;flex-direction:column;">
         
-        console.log('📱 Plateforme:', { isIOS, isAndroid, isPWA });
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #f0f0f0;">
+            <h3 style="font-family:var(--font-serif);font-size:18px;margin:0;color:#1a1a1a;">⚡ Commande rapide</h3>
+            <button id="cr-close-top" style="background:none;border:none;font-size:20px;cursor:pointer;color:#999;padding:4px 8px;">✕</button>
+        </div>
 
-        // Variables globales pour l'audio
-        var notifSoundEnabled = false;
-        var audioContext = null;
-        var audioUnlocked = false;
+        <!-- Body scrollable -->
+        <div style="overflow-y:auto;flex:1;padding:16px 20px;">
+            
+            <!-- Table + Client -->
+            <div style="display:flex;gap:10px;margin-bottom:14px;">
+                <select id="cr-table" style="flex:1;padding:10px 14px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;color:#1a1a1a;">
+                    <option value="">Choisir une table...</option>
+                </select>
+                <input type="text" id="cr-client" placeholder="Nom du client" maxlength="30" style="flex:1;padding:10px 14px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;color:#1a1a1a;">
+            </div>
 
-        // Élément audio HTML5 comme fallback
-        var audioFallback = null;
+            <!-- Recherche -->
+            <div style="position:relative;margin-bottom:14px;">
+                <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;">🔍</span>
+                <input type="text" id="cr-search" placeholder="Rechercher un plat..." style="width:100%;padding:10px 14px 10px 36px;border:1px solid #e0e0e0;border-radius:10px;font-size:13px;background:#fafafa;color:#1a1a1a;">
+            </div>
 
-        function initAudioFallback() {
-            // Créer un élément audio pour le fallback
-            if (!audioFallback) {
-                audioFallback = new Audio();
-                // Utiliser un son encodé en base64 (beep court)
-                audioFallback.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACAf39/f4B/f3+Af4CAgH9/f3+Af39/gH9/f3+Af3+Af4CAgH9/f3+Af39/gICAgICAgICAf39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gH9/f4B/f3+Af39/gIA=';
-                audioFallback.volume = 0.5;
-                audioFallback.preload = 'auto';
+            <!-- Menu -->
+            <div style="margin-bottom:14px;">
+                <div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">📋 Menu</div>
+                <div id="cr-menu-list" style="max-height:200px;overflow-y:auto;border:1px solid #f0f0f0;border-radius:12px;padding:6px;background:#fafafa;">
+                    <div style="text-align:center;color:#bbb;padding:20px;">🍽️ Chargement...</div>
+                </div>
+            </div>
+
+            <!-- Panier -->
+            <div style="background:#f9f9f9;border-radius:12px;padding:14px;">
+                <div style="font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">🛒 Panier</div>
+                <div id="cr-resume" style="max-height:180px;overflow-y:auto;font-size:13px;color:#666;text-align:center;">
+                    Aucun plat ajouté
+                </div>
+                <div id="cr-total-line" style="display:none;justify-content:space-between;align-items:center;padding-top:10px;margin-top:10px;border-top:2px solid #C6A43F;font-weight:700;font-size:15px;">
+                    <span>Total</span>
+                    <span id="cr-total" style="color:#C6A43F;">0 FCFA</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Boutons -->
+        <div style="padding:14px 20px;border-top:1px solid #f0f0f0;display:flex;gap:10px;">
+            <button id="cr-cancel" style="flex:1;padding:12px;border-radius:40px;border:1px solid #e0e0e0;background:#fff;color:#999;cursor:pointer;font-size:13px;font-weight:500;">Annuler</button>
+            <button id="cr-submit" style="flex:1;padding:12px;border-radius:40px;border:none;background:#C6A43F;color:#fff;font-weight:600;cursor:pointer;font-size:13px;">👨‍🍳 En cuisine</button>
+            <button id="cr-submit-direct" style="flex:1;padding:12px;border-radius:40px;border:none;background:#27AE60;color:#fff;font-weight:600;cursor:pointer;font-size:13px;">🍽️ Servi directement</button>
+        </div>
+    </div>
+</div>
+
+    <!-- MODALE REÇU -->
+    <div class="modal-overlay" id="modal-recu" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:250;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+        <div id="recu-print" style="background:white;border-radius:16px;padding:30px;max-width:380px;width:90%;font-family:'Georgia',serif;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-height:90vh;overflow-y:auto;"></div>
+    </div>
+
+    <div class="toast-container" id="toast-container"></div>
+
+        <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <script>
+        // ========== DÉTECTION PLATEFORME ==========
+        var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        var isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                    navigator.standalone === true;
+        var notifSoundEnabled = false; // Changé à false par défaut
+
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
             }
         }
+    (function() {
+        var TOKEN_KEY='resto_token',THEME_KEY='resto_theme',POLLING_INTERVAL=8000;
+        var currentResto=null,currentFilter='all',allCommandes=[],userRole=null,userId=null,pollingTimer=null,socket=null,isLoading=false;
+        var previousStats={en_attente:0,cuisine:0,pret:0,servi:0,paye:0};
+        var crPanier=[],crMenu=[];
 
-        // ==================== NOTIFICATIONS ====================
         function updateNotifButton(active) {
             const btn = document.getElementById('btn-notif');
-            if (!btn) return;
-            
             if (active) {
                 btn.style.background = '#27AE60';
                 btn.style.color = 'white';
                 btn.style.borderColor = '#27AE60';
                 btn.innerHTML = '🔔✓';
-                btn.title = '🔔 Son activé - Cliquer pour désactiver';
+                btn.title = 'Son activé - Cliquer pour désactiver';
             } else {
                 btn.style.background = '';
                 btn.style.color = '';
                 btn.style.borderColor = '';
                 btn.innerHTML = '🔔';
-                btn.title = isIOS && !isPWA ? 
-                    '📱 Sur iPhone, utilisez Safari et ajoutez à l\'écran d\'accueil' : 
-                    '🔔 Activer le son des commandes';
+                btn.title = isIOS ? '🔔 Activer le son' : '🔔 Activer le son et les notifications';
             }
         }
 
-        // ==================== AUDIO CONTEXT (Web Audio API) ====================
-        function getAudioContext() {
-            if (!audioContext) {
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                audioContext = new AudioContextClass();
-                console.log('🎵 AudioContext créé, état:', audioContext.state);
-            }
-            return audioContext;
-        }
-
-        async function unlockAudio() {
-            if (audioUnlocked) {
-                console.log('🔓 Audio déjà déverrouillé');
-                return true;
-            }
-
-            try {
-                const ctx = getAudioContext();
-                
-                if (ctx.state === 'suspended') {
-                    console.log('🔓 Tentative de déverrouillage audio...');
-                    await ctx.resume();
-                    console.log('✅ AudioContext état après resume:', ctx.state);
-                }
-
-                if (ctx.state === 'running') {
-                    // Jouer un son silencieux pour vraiment déverrouiller
-                    const buffer = ctx.createBuffer(1, 1, 22050);
-                    const source = ctx.createBufferSource();
-                    source.buffer = buffer;
-                    source.connect(ctx.destination);
-                    source.start(0);
-                    
-                    audioUnlocked = true;
-                    console.log('🔓 Audio déverrouillé avec succès');
-                    return true;
-                }
-            } catch(e) {
-                console.error('❌ Échec déverrouillage audio:', e);
-            }
-            return false;
-        }
-
-        // ==================== JOUER LE SON ====================
-        function playNotificationSound() {
-            console.log('🔔 Tentative son - enabled:', notifSoundEnabled, 'unlocked:', audioUnlocked, 'isIOS:', isIOS);
-            
-            if (!notifSoundEnabled) return;
-
-            // Essayer d'abord Web Audio API
-            try {
-                const ctx = getAudioContext();
-                
-                if (ctx.state === 'suspended') {
-                    ctx.resume().then(() => {
-                        audioUnlocked = true;
-                        playBeep(ctx);
-                    }).catch(() => {
-                        playFallback();
-                    });
-                } else {
-                    audioUnlocked = true;
-                    playBeep(ctx);
-                }
-            } catch(e) {
-                console.log('Web Audio échoué, tentative fallback:', e);
-                playFallback();
-            }
-        }
-
-        function playBeep(ctx) {
-            const now = ctx.currentTime;
-            
-            // Son 1 : bip aigu
-            const osc1 = ctx.createOscillator();
-            const gain1 = ctx.createGain();
-            osc1.connect(gain1);
-            gain1.connect(ctx.destination);
-            osc1.type = 'sine';
-            osc1.frequency.setValueAtTime(800, now);
-            osc1.frequency.setValueAtTime(1200, now + 0.1);
-            gain1.gain.setValueAtTime(0.3, now);
-            gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-            osc1.start(now);
-            osc1.stop(now + 0.3);
-
-            // Son 2 : bip plus long
-            const osc2 = ctx.createOscillator();
-            const gain2 = ctx.createGain();
-            osc2.connect(gain2);
-            gain2.connect(ctx.destination);
-            osc2.type = 'square';
-            osc2.frequency.setValueAtTime(600, now + 0.15);
-            gain2.gain.setValueAtTime(0.2, now + 0.15);
-            gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
-            osc2.start(now + 0.15);
-            osc2.stop(now + 0.5);
-            
-            console.log('✅ Bip joué');
-        }
-
-        function playFallback() {
-            try {
-                initAudioFallback();
-                if (audioFallback) {
-                    audioFallback.currentTime = 0;
-                    audioFallback.play().then(() => {
-                        console.log('✅ Fallback audio joué');
-                    }).catch(e => {
-                        console.error('❌ Fallback échoué:', e);
-                    });
-                }
-            } catch(e) {
-                console.error('❌ Aucune méthode audio disponible');
-            }
-        }
-
-        // ==================== GESTIONNAIRE DE CLIC SUR LA CLOCHE ====================
-async function handleNotifClick() {
-    console.log('🔔 Clic cloche - début handler, iOS:', isIOS);
-    
-    // Si déjà actif, désactiver
-    if (notifSoundEnabled) {
-        notifSoundEnabled = false;
-        localStorage.setItem('notif_active', 'false');
-        updateNotifButton(false);
-        showToast('🔕 Son désactivé', 'info');
-        return;
-    }
-
-    // ===== ÉTAPE 1 : ACTIVER LE SON (prioritaire) =====
-    try {
-        const unlocked = await unlockAudio();
-        
-        if (unlocked) {
-            notifSoundEnabled = true;
-            localStorage.setItem('notif_active', 'true');
-            updateNotifButton(true);
-            
-            // Test immédiat du son
-            setTimeout(() => playNotificationSound(), 200);
-            
-            // Message adapté selon le navigateur
-            if (isIOS) {
-                if (isPWA) {
-                    showToast('✅ Son activé ! Bonne réception des commandes 🔔', 'success');
-                } else {
-                    showToast('✅ Son activé ! Pensez à installer l\'app pour les notifications', 'info');
-                }
-            } else {
-                showToast('✅ Son activé ! 🔔', 'success');
-            }
-        } else {
-            // Sur iOS, proposer de réessayer
-            if (isIOS) {
-                showToast('⚠️ Appuyez à nouveau pour activer le son', 'warning');
-            } else {
-                showToast('⚠️ Réessayez - son non disponible', 'warning');
-            }
-            return;
-        }
-    } catch(e) {
-        console.error('❌ Erreur activation audio:', e);
-        showToast('❌ Son non disponible - Réessayez', 'warning');
-        return;
-    }
-
-    // ===== ÉTAPE 2 : NOTIFICATIONS (optionnel, ne bloque pas le son) =====
-    
-    // Sur iOS avec Safari en mode PWA, tenter les notifications
-    if ('Notification' in window) {
-        const currentPermission = Notification.permission;
-        console.log('📬 Permission notification:', currentPermission);
-        
-        // Ne demander la permission QUE si ce n'est pas déjà "denied"
-        if (currentPermission === 'default') {
-            try {
-                // Vérifier si les notifications sont possibles
-                if (isIOS && !isPWA) {
-                    console.log('📱 iOS non-PWA - notifications non supportées');
-                    // Ne rien faire, le son fonctionne déjà
-                } else {
-                    const permission = await Notification.requestPermission();
-                    console.log('📬 Permission accordée:', permission);
-                    
-                    if (permission === 'granted' && 'PushManager' in window) {
-                        try {
-                            const reg = await navigator.serviceWorker.ready;
-                            const sub = await reg.pushManager.subscribe({
-                                userVisibleOnly: true,
-                                applicationServerKey: urlBase64ToUint8Array(VAPID_KEY)
-                            });
-                            
-                            await fetch('/api/push/subscribe', {
-                                method: 'POST',
-                                headers: { 
-                                    'Content-Type': 'application/json', 
-                                    'Authorization': 'Bearer ' + localStorage.getItem('resto_token') 
-                                },
-                                body: JSON.stringify({ subscription: sub })
-                            });
-                            
-                            console.log('✅ Push activé');
-                            showToast('✅ Notifications et son activés !', 'success');
-                        } catch(pushError) {
-                            console.log('⚠️ Push non disponible:', pushError);
-                            // Le son fonctionne déjà, c'est l'essentiel
-                        }
+        function init(){
+            var token=localStorage.getItem(TOKEN_KEY);
+            if(!token){location.href='/login.html';return;}
+            try{var p=JSON.parse(atob(token.split('.')[1]));userRole=p.role;userId=p.id;currentResto=p.resto_id;
+            window.restoName = (p.restaurant_name || 'Mon établissement');
+            window.restoName = window.restoName
+                .replace(/★/g, 'Etoile')
+                .replace(/⭐/g, 'Etoile')
+                .replace(/â˜…/g, 'Etoile')
+                .replace(/â/g, 'Etoile');
+            if (!window.restoName || window.restoName.length < 2) window.restoName = 'Restaurant';
+            if(!p.restaurant_name){
+                fetch('/api/restaurant/subscription',{
+                    headers:{'Authorization':'Bearer '+token}
+                }).then(function(r){return r.json();})
+                .then(function(d){
+                    if(d.restaurant_name){
+                        window.restoName=d.restaurant_name;
                     }
-                }
-            } catch(notifError) {
-                console.log('⚠️ Notifications non disponibles:', notifError);
-                // Sur iOS, c'est normal - ne pas afficher d'erreur
-                if (!isIOS) {
-                    showToast('💡 Le son fonctionne, les notifications sont optionnelles', 'info');
-                }
-            }
-        } else if (currentPermission === 'denied' && isIOS) {
-            // Sur iOS, c'est normal que ce soit refusé
-            console.log('📱 iOS - notifications non supportées sur ce navigateur');
-        }
-    }
-    
-    // Message spécial pour iOS non-PWA après la première activation
-    if (isIOS && !isPWA && !localStorage.getItem('ios_tip_shown')) {
-        localStorage.setItem('ios_tip_shown', 'true');
-        setTimeout(() => {
-            const toast = document.createElement('div');
-            toast.style.cssText = `
-                position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-                background: #1a1a1a; color: white; padding: 16px 20px; border-radius: 16px;
-                z-index: 99999; font-size: 13px; text-align: center; max-width: 90%;
-                box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: slideUp 0.5s ease;
-            `;
-            toast.innerHTML = `
-                <div style="font-size:16px;margin-bottom:8px;">📱 <b>Pour recevoir les commandes</b></div>
-                <div style="font-size:12px;opacity:0.9;line-height:1.5;margin-bottom:10px;">
-                    ✅ Le son est activé !<br>
-                    🔔 Pour les notifications :<br>
-                    Ouvrez dans <b>Safari</b> → <b>Partager</b> → <b>Écran d'accueil</b>
-                </div>
-                <button onclick="this.parentElement.remove()" style="
-                    background:#C6A43F; border:none; color:white;
-                    padding:8px 20px; border-radius:20px; font-weight:600;
-                ">Compris 👍</button>
-            `;
-            document.body.appendChild(toast);
-        }, 2000);
-    }
-}
-
-        // ==================== INITIALISATION ====================
-        function init() {
-            // Restaurer l'état sauvegardé
+                });
+            }if(!currentResto){showToast('Erreur compte','error');return;}localStorage.setItem('resto_id',currentResto);localStorage.setItem('resto_role',userRole);}catch(e){location.href='/login.html';return;}
+            applyTheme();initUI();initWebSocket();chargerCommandes();startPolling();
+            // Restaurer l'état visuel de la cloche
             if (localStorage.getItem('notif_active') === 'true') {
                 notifSoundEnabled = true;
                 updateNotifButton(true);
-                // Tenter de réveiller l'audio au prochain clic
-                document.addEventListener('click', function wakeAudio() {
-                    unlockAudio();
-                    document.removeEventListener('click', wakeAudio);
-                }, { once: true });
             }
+        }
+        function applyTheme(){var s=localStorage.getItem(THEME_KEY);if(s==='dark'){document.body.classList.add('dark');document.getElementById('theme-toggle').textContent='☀️';}else{document.body.classList.remove('dark');document.getElementById('theme-toggle').textContent='🌙';}}
+        function toggleTheme(){document.body.classList.toggle('dark');var d=document.body.classList.contains('dark');localStorage.setItem(THEME_KEY,d?'dark':'light');document.getElementById('theme-toggle').textContent=d?'☀️':'🌙';}
 
-            // Attacher le handler au bouton cloche
-            const notifBtn = document.getElementById('btn-notif');
+        function initUI(){
+            var roles={proprietaire:'🏢 Propriétaire',gerant:'👑 Gérant',serveur:'🍽️ Serveur',superadmin:'👑 Super Admin'};
+            document.getElementById('role-badge').textContent=roles[userRole]||'📋 Staff';
+            var user=JSON.parse(localStorage.getItem('resto_user')||'{}');
+            if(user.est_proprietaire)document.getElementById('nav-proprietaire').style.display='inline-block';
+            var nb=document.getElementById('nav-bar'),ni=[];
+            if(userRole==='proprietaire'||userRole==='gerant'||userRole==='superadmin'){
+                ni.push({href:'/dashboard.html',label:'📊 Dashboard'},{href:'/admin.html',label:'🍽️ Plats'},{href:'/employes.html',label:'👥 Équipe'},{href:'/resto.html',label:'👨‍🍳 Cuisine & Service',active:true},{href:'/qrcodes.html',label:'📱 QR Codes'});
+                var u=JSON.parse(localStorage.getItem('resto_user')||'{}');
+                if(u.est_proprietaire||userRole==='superadmin')ni.push({href:'/subscription.html',label:'💰 Abonnement'});
+            }else if(userRole==='serveur')ni.push({href:'/resto.html',label:'🍽️ Mon service',active:true});
+            nb.innerHTML=ni.map(function(i){return'<a href="'+i.href+'" class="nav-btn'+(i.active?' active':'')+'">'+i.label+'</a>';}).join('');
+            document.getElementById('theme-toggle').addEventListener('click',toggleTheme);
+            if (localStorage.getItem('notif_active') === 'true') {
+                updateNotifButton(true);
+            }
+            
+            // Attacher l'événement cloche à notre nouveau handler
+            var notifBtn = document.getElementById('btn-notif');
             if (notifBtn) {
                 notifBtn.addEventListener('click', handleNotifClick);
             }
-
-            // Déverrouiller l'audio sur première interaction (crucial iOS)
-            const unlockEvents = ['touchstart', 'touchend', 'click'];
-            unlockEvents.forEach(eventType => {
-                document.addEventListener(eventType, function() {
-                    if (!audioUnlocked) {
-                        unlockAudio();
-                    }
-                }, { once: true });
-            });
-
-            // ... (le reste de ton init() reste identique)
-        }
-
-        // ==================== WEBSOCKET ====================
-        // Modifier la partie socket pour appeler notre fonction
-        function initWebSocket() {
-            socket = io({
-                reconnection: true,
-                reconnectionAttempts: 20,
-                reconnectionDelay: 500,
-                reconnectionDelayMax: 5000,
-                timeout: 10000
-            });
-
-            socket.on('connect', function() {
-                console.log('🔗 WS connecté');
-                socket.emit('join_resto', currentResto);
-            });
-
-            socket.on('nouvelle_commande', function() {
-                console.log('📦 Nouvelle commande reçue');
-                chargerCommandes();
-                playNotificationSound(); // Notre fonction unifiée
-            });
-
-            socket.on('statut_change', function() {
-                chargerCommandes();
-            });
-        }
-
-        // ==================== POLLING (fallback si WS déconnecté) ====================
-        function startPolling() {
-            if (pollingTimer) clearInterval(pollingTimer);
-            pollingTimer = setInterval(function() {
-                const oldCount = allCommandes.filter(c => c.statut === 'en_attente').length;
-                chargerCommandes().then(() => {
-                    const newCount = allCommandes.filter(c => c.statut === 'en_attente').length;
-                    if (newCount > oldCount) {
-                        console.log('📦 Nouvelle commande détectée par polling');
-                        playNotificationSound();
-                    }
-                });
-            }, 3000);
-        }
-
-        // ==================== STARTUP ====================
-        document.addEventListener('DOMContentLoaded', function() {
-            initAudioFallback();
-            init();
             
-            // Message spécial pour iOS non-PWA
-            if (isIOS && !isPWA) {
-                setTimeout(() => {
-                    const toast = document.createElement('div');
-                    toast.style.cssText = `
-                        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-                        background: #1a1a1a; color: white; padding: 16px 24px; border-radius: 16px;
-                        z-index: 99999; font-size: 13px; text-align: center; max-width: 90%;
-                        box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: slideUp 0.5s ease;
-                    `;
-                    toast.innerHTML = `
-                        <div style="font-size:16px;margin-bottom:8px;">📱 <b>Pour une meilleure expérience</b></div>
-                        <div style="font-size:12px;opacity:0.8;line-height:1.5;">
-                            Ouvrez dans <b>Safari</b> → Appuyez sur <b>Partager</b> → <b>Sur l'écran d'accueil</b>
-                        </div>
-                        <button onclick="this.parentElement.remove()" style="
-                            margin-top:10px; background:#C6A43F; border:none; color:white;
-                            padding:8px 20px; border-radius:20px; font-weight:600;
-                        ">OK</button>
-                    `;
-                    document.body.appendChild(toast);
-                }, 3000);
-            }
-        });
+            document.getElementById('logout-btn').addEventListener('click',function(){if(socket)socket.disconnect();if(pollingTimer)clearInterval(pollingTimer);localStorage.clear();location.href='/login.html';});
+            document.querySelectorAll('.tab-btn').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab-btn').forEach(function(x){x.classList.remove('active');});this.classList.add('active');currentFilter=this.dataset.status;afficherCommandes();});});
+            document.getElementById('btn-commande-rapide').addEventListener('click',ouvrirCommandeRapide);
+            document.getElementById('cr-cancel').addEventListener('click',fermerCommandeRapide);
+            document.getElementById('cr-close-top').addEventListener('click',fermerCommandeRapide);
+            document.getElementById('cr-submit').addEventListener('click',function(){validerCommandeRapide('en_attente');});
+            document.getElementById('cr-submit-direct').addEventListener('click',function(){validerCommandeRapide('servi');});
+            document.getElementById('cr-search').addEventListener('input',function(){afficherMenuRapide(this.value);});
+            document.getElementById('modal-recu').addEventListener('click',function(e){if(e.target===this)this.style.display='none';});
+            
+            // Déverrouiller l'audio au premier clic/touch (crucial pour iOS)
+            document.addEventListener('touchstart', unlockAudioIOS, { once: true });
+            document.addEventListener('click', unlockAudioIOS, { once: true });
+        }
 
-        // Nettoyage
-        window.addEventListener('beforeunload', function() {
-            if (pollingTimer) clearInterval(pollingTimer);
-            if (socket) socket.disconnect();
-            if (audioContext) audioContext.close();
+        // Fonction pour déverrouiller l'audio sur iOS
+        function unlockAudioIOS() {
+            if (!window._audioCtx) {
+                try {
+                    window._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    if (window._audioCtx.state === 'suspended') {
+                        window._audioCtx.resume();
+                    }
+                    // Jouer un son muet pour déverrouiller
+                    var buf = window._audioCtx.createBuffer(1, 1, 22050);
+                    var src = window._audioCtx.createBufferSource();
+                    src.buffer = buf;
+                    src.connect(window._audioCtx.destination);
+                    src.start(0);
+                } catch(e) {}
+            }
+        }
+
+        // ========== NOUVEAU HANDLER DE LA CLOCHE (Android + iOS) ==========
+        async function handleNotifClick(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Si déjà actif, DÉSACTIVER
+            if (notifSoundEnabled || localStorage.getItem('notif_active') === 'true') {
+                notifSoundEnabled = false;
+                localStorage.setItem('notif_active', 'false');
+                updateNotifButton(false);
+                showToast('🔕 Son désactivé', 'info');
+                return;
+            }
+            
+            // ACTIVER LE SON
+            try {
+                // Créer l'AudioContext si nécessaire
+                if (!window._audioCtx) {
+                    window._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                
+                // Réveiller l'AudioContext
+                if (window._audioCtx.state === 'suspended') {
+                    await window._audioCtx.resume();
+                }
+                
+                // Tester avec un bip silencieux
+                var buffer = window._audioCtx.createBuffer(1, 1, 22050);
+                var source = window._audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(window._audioCtx.destination);
+                source.start(0);
+                
+                // Succès !
+                notifSoundEnabled = true;
+                localStorage.setItem('notif_active', 'true');
+                updateNotifButton(true);
+                
+                // Jouer un bip sonore de test
+                setTimeout(function() { playNotificationSound(); }, 300);
+                
+                showToast('✅ Son activé ! 🔔', 'success');
+                
+                // Sur iPhone, donner l'astuce PWA
+                if (isIOS && !isPWA && !localStorage.getItem('ios_tip_shown')) {
+                    localStorage.setItem('ios_tip_shown', 'true');
+                    setTimeout(function() {
+                        showToast('📱 Astuce: ouvrez dans Safari → Partager → Écran d\'accueil', 'info');
+                    }, 2000);
+                }
+                
+            } catch(e) {
+                console.error('Erreur activation son:', e);
+                notifSoundEnabled = false;
+                localStorage.setItem('notif_active', 'false');
+                updateNotifButton(false);
+                showToast('⚠️ Son non disponible, réessayez', 'warning');
+                return;
+            }
+            
+            // TENTER LES NOTIFICATIONS PUSH (optionnel, ne bloque pas)
+            if ('Notification' in window && Notification.permission === 'default') {
+                try {
+                    // Sur iOS hors PWA, ne pas demander (sera refusé)
+                    if (isIOS && !isPWA) {
+                        console.log('iOS non-PWA, notifications ignorées');
+                    } else {
+                        var perm = await Notification.requestPermission();
+                        if (perm === 'granted' && 'PushManager' in window) {
+                            try {
+                                var reg = await navigator.serviceWorker.ready;
+                                var sub = await reg.pushManager.subscribe({
+                                    userVisibleOnly: true,
+                                    applicationServerKey: urlBase64ToUint8Array(VAPID_KEY)
+                                });
+                                await fetch('/api/push/subscribe', {
+                                    method: 'POST',
+                                    headers: { 
+                                        'Content-Type': 'application/json', 
+                                        'Authorization': 'Bearer ' + localStorage.getItem('resto_token') 
+                                    },
+                                    body: JSON.stringify({ subscription: sub })
+                                });
+                                showToast('✅ Son + Notifications activés !', 'success');
+                            } catch(pushErr) {
+                                console.log('Push non disponible:', pushErr);
+                            }
+                        }
+                    }
+                } catch(notifErr) {
+                    // Silencieux - les notifications sont optionnelles
+                    console.log('Notifications non disponibles:', notifErr);
+                }
+            }
+        }
+
+        function initWebSocket(){
+            socket=io({reconnection:true,reconnectionAttempts:20,reconnectionDelay:500,reconnectionDelayMax:5000,timeout:10000});
+            socket.on('connect',function(){console.log('🔗 WS connecté');socket.emit('join_resto',currentResto);});
+            socket.on('disconnect',function(r){console.log('⚠️ WS déconnecté');if(r==='io server disconnect')socket.connect();});
+            socket.on('nouvelle_commande',function(){chargerCommandes();playNotificationSound();});
+            socket.on('statut_change',function(){chargerCommandes();});
+        }
+        
+        function playNotificationSound() {
+            if (!notifSoundEnabled) {
+                console.log('Son désactivé');
+                return;
+            }
+            try {
+                if (!window._audioCtx) {
+                    window._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                var c = window._audioCtx;
+                if (c.state === 'suspended') {
+                    c.resume();
+                }
+                var o = c.createOscillator();
+                var g = c.createGain();
+                o.connect(g);
+                g.connect(c.destination);
+                o.type = 'sine';
+                o.frequency.setValueAtTime(800, c.currentTime);
+                o.frequency.setValueAtTime(1200, c.currentTime + 0.15);
+                g.gain.setValueAtTime(0.3, c.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.01, c.currentTime + 0.4);
+                o.start(c.currentTime);
+                o.stop(c.currentTime + 0.4);
+            } catch(e) {
+                console.log('Son non disponible:', e);
+            }
+        }
+        
+        function startPolling(){
+            if(pollingTimer)clearInterval(pollingTimer);
+            pollingTimer=setInterval(function(){
+                chargerCommandes();
+            },3000); 
+        }
+
+        async function chargerCommandes(){
+            if(isLoading)return;isLoading=true;
+            try{var t=localStorage.getItem(TOKEN_KEY);var r=await fetch('/api/commandes/'+currentResto,{headers:{'Authorization':'Bearer '+t}});
+                if(r.status===401){localStorage.clear();location.href='/login.html';return;}
+                if(r.status===403){var d=await r.json();if(d.code==='SUBSCRIPTION_EXPIRED'){showToast(d.message||'Abonnement expiré','error');setTimeout(function(){location.href=d.redirect||'/subscription-renew.html';},2000);return;}}
+                if(r.ok){allCommandes=await r.json();afficherCommandes();mettreAJourStats();}
+            }catch(e){}finally{isLoading=false;}
+        }
+
+        function mettreAJourStats(){
+            var c={en_attente:0,cuisine:0,pret:0,servi:0,paye:0};
+            allCommandes.forEach(function(x){if(c[x.statut]!==undefined)c[x.statut]++;});
+            ['attente','cuisine','pret','servi','paye'].forEach(function(s){var e=document.getElementById('count-'+s),v=c[s]||0,o=parseInt(e.textContent)||0;if(v!==o){e.textContent=v;e.classList.remove('pulse');void e.offsetWidth;e.classList.add('pulse');}});
+            document.getElementById('tab-count-attente').textContent=c.en_attente;document.getElementById('tab-count-cuisine').textContent=c.cuisine;
+            document.getElementById('tab-count-pret').textContent=c.pret;document.getElementById('tab-count-servi').textContent=c.servi;
+            document.getElementById('tab-count-paye').textContent=c.paye;document.getElementById('count-all').textContent=allCommandes.length;
+        }
+
+        function getStatutText(s){var m={en_attente:'En attente',cuisine:'En cuisine',pret:'Prête',servi:'Servie',paye:'Payée'};return m[s]||s;}
+        function getTimeAgo(d){if(!d)return'';var n=new Date(),t=new Date(d),m=Math.floor((n-t)/60000);if(m<1)return'À l\'instant';if(m<60)return'Il y a '+m+' min';var h=Math.floor(m/60);if(h<24)return'Il y a '+h+'h';return t.toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});}
+        function isUrgent(d,s){if(s!=='en_attente'&&s!=='cuisine')return false;if(!d)return false;return Math.floor((new Date()-new Date(d))/60000)>15;}
+
+        function getActionsForCommand(statut,role){
+            var actions=[];
+            if(role==='proprietaire'||role==='serveur'||role==='gerant'||role==='superadmin'){
+                if(statut==='en_attente')actions.push({label:'👨‍🍳 En cuisine',action:'cuisine',class:'btn-cuisine'});
+                if(statut==='cuisine')actions.push({label:'✅ Plat prêt',action:'pret',class:'btn-pret'});
+                if(statut==='pret')actions.push({label:'🍽️ Servir',action:'servi',class:'btn-servir'});
+                if(statut==='servi')actions.push({label:'💰 Encaisser',action:'paye',class:'btn-payer'});
+                if(statut!=='paye')actions.push({label:'🗑️ Annuler',action:'delete',class:'btn-delete'});
+            }
+            return actions;
+        }
+
+        function afficherCommandes(){
+            var f=allCommandes.slice();
+            var sp={en_attente:0,cuisine:1,pret:2,servi:3,paye:4};
+            f.sort(function(a,b){return sp[a.statut]!==sp[b.statut]?sp[a.statut]-sp[b.statut]:new Date(a.date_commande)-new Date(b.date_commande);});
+            if(currentFilter!=='all')f=f.filter(function(c){return c.statut===currentFilter;});
+            var c=document.getElementById('commandes-grid');
+            if(!f.length){c.innerHTML='<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Aucune commande</div></div>';return;}
+            c.innerHTML=f.map(function(cmd){
+                var actions=getActionsForCommand(cmd.statut,userRole);
+                var u=isUrgent(cmd.date_commande,cmd.statut),t=getTimeAgo(cmd.date_commande);
+                var d=cmd.details&&cmd.details.length?cmd.details.map(function(d){return'<div class="detail-line"><span><span class="detail-name">'+escapeHtml(d.nom_plat)+'</span><span class="detail-qty">×'+d.quantite+'</span></span><span class="detail-price">'+((d.prix_unitaire||0)*(d.quantite||0)).toLocaleString()+' FCFA</span></div>';}).join(''):'<div class="detail-line">Aucun détail</div>';
+                var ah=actions.length?actions.map(function(act){return'<button class="btn-action '+act.class+'" data-cmd-id="'+cmd.id+'" data-action="'+act.action+'">'+act.label+'</button>';}).join(''):(cmd.statut==='paye'?'<span style="color:#27AE60;">✓ Finalisée</span>':'<span style="color:var(--text-secondary);">⏳ En attente</span>');
+                return'<div class="commande-card'+(u?' urgent':'')+'"><div class="commande-header"><div style="display:flex;gap:10px;align-items:center;"><span class="table-badge">Table '+(cmd.table_numero||cmd.table_id)+'</span>'+(cmd.client_nom?'<span class="client-badge">👤 '+escapeHtml(cmd.client_nom)+'</span>':'')+'</div><span class="statut-badge statut-'+cmd.statut+'">'+getStatutText(cmd.statut)+'</span></div><div class="commande-body">'+d+'<div class="commande-total"><span>Total</span><span>'+(cmd.total||0).toLocaleString()+' FCFA</span></div><div class="commande-actions">'+ah+'</div>'+(t?'<div class="commande-time'+(u?' urgent-text':'')+'">🕐 '+t+(u?' — Action requise':'')+'</div>':'')+'</div></div>';
+            }).join('');
+            c.querySelectorAll('.btn-action').forEach(function(b){b.addEventListener('click',function(){changerStatut(parseInt(this.dataset.cmdId),this.dataset.action,this);});});
+        }
+
+        async function changerStatut(id,ns,btn){
+            if(btn){btn.disabled=true;btn.style.opacity='0.6';}
+            if(ns==='delete'){
+                if(!confirm('Supprimer définitivement cette commande ?')){if(btn){btn.disabled=false;btn.style.opacity='1';}return;}
+                try{
+                    var t=localStorage.getItem(TOKEN_KEY);
+                    var r=await fetch('/api/commande/'+id,{method:'DELETE',headers:{'Authorization':'Bearer '+t}});
+                    if(r.ok){showToast('🗑️ Commande supprimée','success');chargerCommandes();}
+                    else{showToast('Erreur suppression','error');}
+                }catch(e){showToast('Erreur réseau','error');}
+                if(btn){btn.disabled=false;btn.style.opacity='1';}
+                return;
+            }
+            try{var t=localStorage.getItem(TOKEN_KEY);var r=await fetch('/api/commande/'+id+'/statut',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},body:JSON.stringify({statut:ns,restoId:currentResto})});
+                if(r.ok){var m={cuisine:'🔪 En cuisine',pret:'✅ Plat prêt !',servi:'🍽️ Servi',paye:'💰 Payé'};showToast(m[ns]||'Statut mis à jour','success');
+                    if(ns==='paye'){
+                        var cmd=allCommandes.find(function(c){return c.id===id;});
+                        if(cmd){
+                            var items=[];
+                            if(cmd.details){
+                                cmd.details.forEach(function(d){
+                                    items.push({
+                                        nom: d.nom_plat||'Plat',
+                                        quantite: d.quantite||1,
+                                        prix: d.prix_unitaire||0
+                                    });
+                                });
+                            }
+                            genererRecu(cmd.client_nom||'Client',cmd.table_numero||cmd.table_id,items,cmd.total||0,cmd.id);
+                        }
+                    }
+                    chargerCommandes();
+                }else if(r.status===400){var d=await r.json();showToast(d.message||'Transition non autorisée','warning');}else{showToast('Erreur','error');}
+            }catch(e){showToast('Erreur réseau','error');}finally{if(btn){btn.disabled=false;btn.style.opacity='1';}}
+        }
+
+        function showToast(m,t){var c=document.getElementById('toast-container'),to=document.createElement('div');to.className='toast '+(t||'info');to.textContent=m;c.appendChild(to);setTimeout(function(){to.style.animation='slideOutRight 0.3s ease forwards';setTimeout(function(){to.remove();},300);},3500);}
+        function escapeHtml(s){if(!s)return'';var d=document.createElement('div');d.textContent=String(s);return d.innerHTML;}
+
+        // ==================== COMMANDE RAPIDE ====================
+        async function ouvrirCommandeRapide(){
+            crPanier=[];crMenu=[];
+            try{var t=localStorage.getItem(TOKEN_KEY);var tr=await fetch('/api/tables/'+currentResto,{headers:{'Authorization':'Bearer '+t}});var mr=await fetch('/api/admin/menu/'+currentResto,{headers:{'Authorization':'Bearer '+t}});
+                if(tr.ok){var ta=await tr.json();document.getElementById('cr-table').innerHTML='<option value="">Sélectionnez...</option>'+ta.map(function(t){return'<option value="'+t.numero_table+'">🍽️ Table '+t.numero_table+'</option>';}).join('');}
+                if(mr.ok){crMenu=await mr.json();afficherMenuRapide();}
+            }catch(e){}
+            document.getElementById('modal-commande-rapide').style.display='flex';document.body.style.overflow='hidden';document.getElementById('cr-search').value='';actualiserResume();
+        }
+        function fermerCommandeRapide(){document.getElementById('modal-commande-rapide').style.display='none';document.body.style.overflow='';crPanier=[];}
+        function afficherMenuRapide(filter){
+            var con=document.getElementById('cr-menu-list');var plats=crMenu.filter(function(p){return p.disponible!==false;});
+            if(filter)plats=plats.filter(function(p){return p.nom_plat.toLowerCase().includes(filter.toLowerCase())||(p.categorie&&p.categorie.toLowerCase().includes(filter.toLowerCase()));});
+            var cats={};plats.forEach(function(p){var c=p.categorie||'Autre';if(!cats[c])cats[c]=[];cats[c].push(p);});
+            if(!plats.length){con.innerHTML='<div style="text-align:center;color:var(--text-secondary);padding:20px;">Aucun plat</div>';return;}
+            con.innerHTML=Object.entries(cats).map(function(e){var cat=e[0],items=e[1];return'<div style="margin-bottom:6px;"><div style="font-size:10px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:1px;padding:4px 8px;">'+cat+'</div>'+items.map(function(p){var inC=crPanier.find(function(i){return i.menuId===p.id;});return'<div class="cr-menu-item" data-id="'+p.id+'" data-nom="'+escapeHtml(p.nom_plat)+'" data-prix="'+p.prix+'" style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;cursor:pointer;border-radius:8px;'+(inC?'background:var(--gold-light);':'')+'"><span style="font-size:13px;flex:1;">'+escapeHtml(p.nom_plat)+'</span><span style="font-size:12px;font-weight:600;color:var(--gold);margin:0 10px;">'+p.prix.toLocaleString()+' F</span><span style="background:'+(inC?'#27AE60':'#f0f0f0')+';color:'+(inC?'white':'#666')+';border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">'+(inC?'✓':'+')+'</span></div>';}).join('')+'</div>';}).join('');
+            con.querySelectorAll('.cr-menu-item').forEach(function(item){item.addEventListener('click',function(){togglePlatPanier(parseInt(this.dataset.id),this.dataset.nom,parseInt(this.dataset.prix));});});
+        }
+        function togglePlatPanier(id,nom,prix){var ex=crPanier.find(function(i){return i.menuId===id;});if(ex)crPanier=crPanier.filter(function(i){return i.menuId!==id;});else crPanier.push({menuId:id,nom:nom,prix:prix,quantite:1});actualiserResume();afficherMenuRapide(document.getElementById('cr-search').value);}
+        
+        function actualiserResume(){
+    var con=document.getElementById('cr-resume'),tl=document.getElementById('cr-total-line');
+    if(!crPanier.length){
+        con.innerHTML='<div style="text-align:center;color:#bbb;padding:30px;font-size:13px;width:100%;">🛒 Aucun plat ajouté</div>';
+        con.style.display='block';
+        con.style.textAlign='center';
+        tl.style.display='none';
+        return;
+    }
+    con.style.display='block';
+    con.style.textAlign='left';
+    con.style.overflowY='auto';
+    con.style.maxHeight='250px';
+    var total=crPanier.reduce(function(s,i){return s+(i.prix*i.quantite);},0);
+    con.innerHTML=crPanier.map(function(item,idx){
+        var sousTotal=item.prix*item.quantite;
+        return'<div style="background:#fff;border:1px solid #e8e5df;border-radius:10px;padding:10px 12px;margin-bottom:6px;">'+
+            '<div style="font-weight:600;font-size:13px;color:#1a1a1a;">'+escapeHtml(item.nom)+'</div>'+
+            '<div style="font-size:11px;color:#999;margin:4px 0;">'+item.prix.toLocaleString()+' F × '+item.quantite+' = <b style="color:#C6A43F;">'+sousTotal.toLocaleString()+' F</b></div>'+
+            '<div style="display:flex;align-items:center;gap:6px;margin-top:6px;">'+
+                '<button data-idx="'+idx+'" data-delta="-1" style="width:28px;height:28px;border-radius:50%;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:16px;text-align:center;line-height:26px;font-weight:600;color:#666;">−</button>'+
+                '<span style="min-width:20px;text-align:center;font-weight:600;">'+item.quantite+'</span>'+
+                '<button data-idx="'+idx+'" data-delta="1" style="width:28px;height:28px;border-radius:50%;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:16px;text-align:center;line-height:26px;font-weight:600;color:#666;">+</button>'+
+                '<button data-idx="'+idx+'" data-action="remove" style="margin-left:auto;padding:5px 10px;border-radius:15px;border:1px solid #f5c6cb;background:#fff;color:#E74C3C;cursor:pointer;font-size:11px;">🗑️</button>'+
+            '</div>'+
+        '</div>';
+    }).join('');
+    tl.style.display='flex';document.getElementById('cr-total').textContent=total.toLocaleString()+' FCFA';
+    con.querySelectorAll('[data-delta]').forEach(function(b){
+        b.addEventListener('click',function(e){
+            e.stopPropagation();
+            var idx=parseInt(this.dataset.idx),d=parseInt(this.dataset.delta);
+            crPanier[idx].quantite=Math.max(1,Math.min(99,crPanier[idx].quantite+d));
+            actualiserResume();
         });
+    });
+    con.querySelectorAll('[data-action="remove"]').forEach(function(b){
+        b.addEventListener('click',function(e){
+            e.stopPropagation();
+            crPanier.splice(parseInt(this.dataset.idx),1);
+            actualiserResume();
+            afficherMenuRapide(document.getElementById('cr-search').value);
+        });
+    });
+}
+            
+        async function validerCommandeRapide(statut){
+            statut=statut||'en_attente';
+            var table=document.getElementById('cr-table').value,client=document.getElementById('cr-client').value.trim()||'Client';
+            if(!table){showToast('Sélectionnez une table','error');return;}if(!crPanier.length){showToast('Ajoutez au moins un plat','error');return;}
+            var items=crPanier.map(function(i){return{menuId:i.menuId,quantite:i.quantite,prix:i.prix,nom:i.nom};}),total=crPanier.reduce(function(s,i){return s+(i.prix*i.quantite);},0);
+            var btn=document.getElementById('cr-submit');btn.disabled=true;btn.textContent='Enregistrement...';
+            try{var t=localStorage.getItem(TOKEN_KEY);var r=await fetch('/api/commande-manuelle',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},body:JSON.stringify({restoId:currentResto,tableId:parseInt(table),clientName:client,items:items,total:total,source:'manuelle',statut:statut})});
+                if(r.ok){showToast('✅ Commande enregistrée !','success');fermerCommandeRapide();chargerCommandes();}
+                else{var e=await r.json();showToast(e.error||'Erreur','error');}
+            }catch(e){showToast('Erreur réseau','error');}finally{btn.disabled=false;btn.textContent='👨‍🍳 En cuisine';}
+        }
+
+        function genererRecu(client,table,items,total,commandeId){
+            var now=new Date(),ds=now.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}),hs=now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+            var nom = (window.restoName || 'Mon établissement');
+            nom = nom.replace(/[^a-zA-Z0-9\séèêëàâçùûôîïÉÈÊËÀÂÇÙÛÔÎÏ-]/g, '');
+            if (!nom || nom.trim() === '') nom = 'Restaurant';
+            var nomHTML = nom
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;')
+                .replace(/★/g, '⭐')
+                .replace(/⭐/g, '⭐')
+                .replace(/é/g, '&eacute;')
+                .replace(/è/g, '&egrave;')
+                .replace(/ê/g, '&ecirc;')
+                .replace(/à/g, '&agrave;')
+                .replace(/ç/g, '&ccedil;')
+                .replace(/ù/g, '&ugrave;')
+                .replace(/ô/g, '&ocirc;')
+                .replace(/î/g, '&icirc;')
+                .replace(/É/g, '&Eacute;')
+                .replace(/È/g, '&Egrave;')
+                .replace(/À/g, '&Agrave;')
+                .replace(/Ç/g, '&Ccedil;');
+            document.getElementById('recu-print').innerHTML='<div style="text-align:center;margin-bottom:16px;"><div style="font-size:22px;font-weight:bold;">🍽️ '+nom.replace(/â/g,'Etoile').replace(/â/g,'').replace(//g,'').replace(//g,'')+'</div><div style="font-size:11px;color:#888;">'+ds+' à '+hs+'</div><div style="font-size:11px;color:#888;">Commande #'+commandeId+'</div></div><div style="border-top:1px dashed #ddd;border-bottom:1px dashed #ddd;padding:8px 0;margin-bottom:10px;font-size:12px;color:#666;">Table : '+table+' | Client : '+escapeHtml(client)+'</div><table style="width:100%;font-size:12px;margin-bottom:10px;">'+items.map(function(i){return'<tr><td style="padding:3px 0;">'+escapeHtml(i.nom)+' ×'+i.quantite+'</td><td style="text-align:right;">'+((i.prix||0)*(i.quantite||1)).toLocaleString()+' F</td></tr>';}).join('')+'</table><div style="border-top:2px solid #000;padding-top:8px;display:flex;justify-content:space-between;font-size:16px;font-weight:bold;"><span>TOTAL</span><span>'+total.toLocaleString()+' FCFA</span></div><div style="text-align:center;margin-top:16px;font-size:11px;color:#888;">Merci de votre visite !</div><div style="display:flex;gap:8px;margin-top:16px;"><button onclick="window.print()" style="flex:1;padding:10px;background:#C6A43F;color:white;border:none;border-radius:20px;font-weight:600;cursor:pointer;">🖨️ Imprimer</button><button onclick="document.getElementById(\'modal-recu\').style.display=\'none\'" style="flex:1;padding:10px;background:#f0f0f0;border:none;border-radius:20px;cursor:pointer;">Fermer</button></div>';
+            document.getElementById('modal-recu').style.display='flex';
+        }
+
+        // ==================== VAPID KEY ====================
+        const VAPID_KEY = 'BNDoy5XCwYhAopADoXbYzeJ9b9_HkQGxC1XpXKrzCn2yolXXwy3mOoGHFAJh8wgTioF9GkW6Yq0ogXGY81BCpTA';
+
+        function urlBase64ToUint8Array(b64) {
+            const pad = '='.repeat((4 - b64.length % 4) % 4);
+            const base64 = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+            return new Uint8Array([...atob(base64)].map(c => c.charCodeAt(0)));
+        }
+
+        window.addEventListener('beforeunload',function(){if(pollingTimer)clearInterval(pollingTimer);if(socket)socket.disconnect();});
+        document.addEventListener('DOMContentLoaded',init);
+    })();
     </script>
 </body>
 </html>
