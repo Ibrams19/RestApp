@@ -537,6 +537,26 @@
             var f=allCommandes.slice();
             var sp={en_attente:0,cuisine:1,pret:2,servi:3,paye:4};
             f.sort(function(a,b){return sp[a.statut]!==sp[b.statut]?sp[a.statut]-sp[b.statut]:new Date(a.date_commande)-new Date(b.date_commande);});
+            
+            // ===== NOUVEAU : Filtrer les commandes terminées =====
+            var aujourdhui = new Date();
+            aujourdhui.setHours(0, 0, 0, 0); // Début du jour
+            
+            f = f.filter(function(cmd) {
+                // Toujours afficher les commandes en cours
+                if (cmd.statut === 'en_attente' || cmd.statut === 'cuisine' || cmd.statut === 'pret') {
+                    return true;
+                }
+                // Pour les commandes servies/payées, ne garder que celles d'aujourd'hui
+                if (cmd.statut === 'servi' || cmd.statut === 'paye') {
+                    var dateCmd = new Date(cmd.date_commande);
+                    dateCmd.setHours(0, 0, 0, 0);
+                    return dateCmd.getTime() === aujourdhui.getTime();
+                }
+                return true;
+            });
+            // ===== FIN DU NOUVEAU FILTRE =====
+            
             if(currentFilter!=='all')f=f.filter(function(c){return c.statut===currentFilter;});
             var c=document.getElementById('commandes-grid');
             if(!f.length){c.innerHTML='<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Aucune commande</div></div>';return;}
