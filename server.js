@@ -2262,6 +2262,10 @@ app.use((req, res) => {
   res.status(404).sendFile('404.html', { root: __dirname });
 });
 
+// TEST VARIABLES MAILJET
+console.log('🔍 MAILJET_API_KEY présent:', process.env.MAILJET_API_KEY ? 'OUI (' + process.env.MAILJET_API_KEY.substring(0,5) + '...)' : 'NON');
+console.log('🔍 MAILJET_SECRET_KEY présent:', process.env.MAILJET_SECRET_KEY ? 'OUI' : 'NON');
+
 // ==================== LANCEMENT ====================
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, '0.0.0.0', () => {
