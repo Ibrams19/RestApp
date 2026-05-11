@@ -140,6 +140,29 @@
             background: #333 !important;
             color: #ccc !important;
         }
+        .periode-btn {
+            background: var(--surface) !important;
+            border: 1px solid var(--border) !important;
+            color: var(--text-secondary) !important;
+        }
+        .periode-btn:hover {
+            border-color: #3498DB !important;
+            color: #3498DB !important;
+        }
+        .periode-btn.active {
+            background: #3498DB !important;
+            color: white !important;
+            border-color: #3498DB !important;
+        }
+        body.dark .periode-btn {
+            background: var(--surface-dark) !important;
+            border-color: var(--border-dark) !important;
+            color: var(--text-secondary-dark) !important;
+        }
+        body.dark .periode-btn.active {
+            background: #3498DB !important;
+            color: white !important;
+        }
     </style>
 </head>
 <body>
@@ -168,6 +191,14 @@
         <button class="tab-btn" data-status="pret">✅ Prêtes<span class="tab-count" id="tab-count-pret">0</span></button>
         <button class="tab-btn" data-status="servi">🍽️ Servies<span class="tab-count" id="tab-count-servi">0</span></button>
         <button class="tab-btn" data-status="paye">💰 Payées<span class="tab-count" id="tab-count-paye">0</span></button>
+    </div>
+    <!-- Nouveau : Filtres de période -->
+    <div class="tabs-container" id="periode-filters" style="padding-top:0;padding-bottom:12px;">
+        <button class="tab-btn periode-btn active" data-periode="all">📅 Tout</button>
+        <button class="tab-btn periode-btn" data-periode="aujourdhui">☀️ Aujourd'hui</button>
+        <button class="tab-btn periode-btn" data-periode="hier">📆 Hier</button>
+        <button class="tab-btn periode-btn" data-periode="7jours">📊 7 derniers jours</button>
+        <button class="tab-btn periode-btn" data-periode="mois">🗓️ Ce mois</button>
     </div>
     <div class="commandes-grid" id="commandes-grid"></div>
 
@@ -273,6 +304,7 @@
         }
 
         function init(){
+            var currentResto=null,currentFilter='all',currentPeriode='all',allCommandes=[],userRole=null,userId=null,pollingTimer=null,socket=null,isLoading=false;
             var token=localStorage.getItem(TOKEN_KEY);
             if(!token){location.href='/login.html';return;}
             try{var p=JSON.parse(atob(token.split('.')[1]));userRole=p.role;userId=p.id;currentResto=p.resto_id;
@@ -325,6 +357,16 @@
             if (notifBtn) {
                 notifBtn.addEventListener('click', handleNotifClick);
             }
+
+            // Ajoute après les écouteurs des tab-btn existants
+            document.querySelectorAll('.periode-btn').forEach(function(b){
+                b.addEventListener('click', function(){
+                    document.querySelectorAll('.periode-btn').forEach(function(x){x.classList.remove('active');});
+                    this.classList.add('active');
+                    currentPeriode = this.dataset.periode;
+                    afficherCommandes();
+                });
+            });
             
             document.getElementById('logout-btn').addEventListener('click',function(){if(socket)socket.disconnect();if(pollingTimer)clearInterval(pollingTimer);localStorage.clear();location.href='/login.html';});
             document.querySelectorAll('.tab-btn').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.tab-btn').forEach(function(x){x.classList.remove('active');});this.classList.add('active');currentFilter=this.dataset.status;afficherCommandes();});});
@@ -534,32 +576,72 @@
         }
 
         function afficherCommandes(){
-            var f=allCommandes.slice();
-            var sp={en_attente:0,cuisine:1,pret:2,servi:3,paye:4};
+            var f = allCommandes.slice();
+            var sp = {en_attente:0,cuisine:1,pret:2,servi:3,paye:4};
             f.sort(function(a,b){return sp[a.statut]!==sp[b.statut]?sp[a.statut]-sp[b.statut]:new Date(a.date_commande)-new Date(b.date_commande);});
             
-            // ===== NOUVEAU : Filtrer les commandes terminées =====
-            var aujourdhui = new Date();
-            aujourdhui.setHours(0, 0, 0, 0); // Début du jour
+            // ===== FILTRE PAR PÉRIODE =====
+            var maintenant = new Date();
+            var debutPeriode = null;
             
-            f = f.filter(function(cmd) {
-                // Toujours afficher les commandes en cours
-                if (cmd.statut === 'en_attente' || cmd.statut === 'cuisine' || cmd.statut === 'pret') {
-                    return true;
-                }
-                // Pour les commandes servies/payées, ne garder que celles d'aujourd'hui
-                if (cmd.statut === 'servi' || cmd.statut === 'paye') {
+            switch(currentPeriode) {
+                case 'aujourdhui':
+                    debutPeriode = new Date();
+                    debutPeriode.setHours(0, 0, 0, 0);
+                    break;
+                case 'hier':
+                    debutPeriode = new Date();
+                    debutPeriode.setDate(debutPeriode.getDate() - 1);
+                    debutPeriode.setHours(0, 0, 0, 0);
+                    var finHier = new Date();
+                    finHier.setHours(0, 0, 0, 0); // Aujourd'hui à minuit
+                    break;
+                case '7jours':
+                    debutPeriode = new Date();
+                    debutPeriode.setDate(debutPeriode.getDate() - 7);
+                    debutPeriode.setHours(0, 0, 0, 0);
+                    break;
+                case 'mois':
+                    debutPeriode = new Date(maintenant.getFullYear(), maintenant.getMonth(), 1);
+                    debutPeriode.setHours(0, 0, 0, 0);
+                    break;
+                default:
+                    // 'all' - pas de filtre de période
+                    break;
+            }
+            
+            if (debutPeriode) {
+                f = f.filter(function(cmd) {
                     var dateCmd = new Date(cmd.date_commande);
-                    dateCmd.setHours(0, 0, 0, 0);
-                    return dateCmd.getTime() === aujourdhui.getTime();
-                }
-                return true;
-            });
-            // ===== FIN DU NOUVEAU FILTRE =====
+                    
+                    if (currentPeriode === 'hier') {
+                        // Pour "Hier" : entre hier minuit et aujourd'hui minuit
+                        return dateCmd >= debutPeriode && dateCmd < finHier;
+                    } else {
+                        // Pour les autres périodes : après la date de début
+                        return dateCmd >= debutPeriode;
+                    }
+                });
+            }
+            // ===== FIN FILTRE PÉRIODE =====
             
-            if(currentFilter!=='all')f=f.filter(function(c){return c.statut===currentFilter;});
-            var c=document.getElementById('commandes-grid');
-            if(!f.length){c.innerHTML='<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">Aucune commande</div></div>';return;}
+            // ===== FILTRE PAR STATUT =====
+            if(currentFilter !== 'all') {
+                f = f.filter(function(c){return c.statut === currentFilter;});
+            }
+            
+            var c = document.getElementById('commandes-grid');
+            if(!f.length){
+                var msg = 'Aucune commande';
+                if (currentPeriode === 'aujourdhui') msg = 'Aucune commande aujourd\'hui';
+                else if (currentPeriode === 'hier') msg = 'Aucune commande hier';
+                else if (currentPeriode === '7jours') msg = 'Aucune commande ces 7 derniers jours';
+                else if (currentPeriode === 'mois') msg = 'Aucune commande ce mois';
+                
+                c.innerHTML='<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">'+msg+'</div></div>';
+                return;
+            }
+            
             c.innerHTML=f.map(function(cmd){
                 var actions=getActionsForCommand(cmd.statut,userRole);
                 var u=isUrgent(cmd.date_commande,cmd.statut),t=getTimeAgo(cmd.date_commande);
