@@ -282,7 +282,7 @@
         }
     (function() {
         var TOKEN_KEY='resto_token',THEME_KEY='resto_theme',POLLING_INTERVAL=8000;
-        currentPeriode = 'all';
+        var currentResto=null,currentFilter='all',currentPeriode='all',allCommandes=[],userRole=null,userId=null,pollingTimer=null,socket=null,isLoading=false;
         var previousStats={en_attente:0,cuisine:0,pret:0,servi:0,paye:0};
         var crPanier=[],crMenu=[];
 
