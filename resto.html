@@ -304,53 +304,138 @@
         }
 
         // ==================== GESTIONNAIRE DE CLIC SUR LA CLOCHE ====================
-        async function handleNotifClick() {
-            console.log('🔔 Clic cloche - début handler');
+async function handleNotifClick() {
+    console.log('🔔 Clic cloche - début handler, iOS:', isIOS);
+    
+    // Si déjà actif, désactiver
+    if (notifSoundEnabled) {
+        notifSoundEnabled = false;
+        localStorage.setItem('notif_active', 'false');
+        updateNotifButton(false);
+        showToast('🔕 Son désactivé', 'info');
+        return;
+    }
+
+    // ===== ÉTAPE 1 : ACTIVER LE SON (prioritaire) =====
+    try {
+        const unlocked = await unlockAudio();
+        
+        if (unlocked) {
+            notifSoundEnabled = true;
+            localStorage.setItem('notif_active', 'true');
+            updateNotifButton(true);
             
-            // Si déjà actif, désactiver
-            if (notifSoundEnabled) {
-                notifSoundEnabled = false;
-                localStorage.setItem('notif_active', 'false');
-                updateNotifButton(false);
-                showToast('🔕 Son désactivé', 'info');
-                return;
-            }
-
-            // Activer
-            try {
-                // 1. Demander la permission de notification (Android)
-                if ('Notification' in window && Notification.permission === 'default') {
-                    const permission = await Notification.requestPermission();
-                    console.log('📬 Permission notification:', permission);
-                }
-
-                // 2. Déverrouiller l'audio (crucial pour iOS)
-                const unlocked = await unlockAudio();
-                
-                if (unlocked) {
-                    notifSoundEnabled = true;
-                    localStorage.setItem('notif_active', 'true');
-                    updateNotifButton(true);
-                    
-                    // Test immédiat
-                    setTimeout(() => playNotificationSound(), 100);
-                    
-                    showToast('✅ Son activé ! 🔔', 'success');
+            // Test immédiat du son
+            setTimeout(() => playNotificationSound(), 200);
+            
+            // Message adapté selon le navigateur
+            if (isIOS) {
+                if (isPWA) {
+                    showToast('✅ Son activé ! Bonne réception des commandes 🔔', 'success');
                 } else {
-                    showToast('⚠️ Appuyez à nouveau pour activer le son', 'warning');
+                    showToast('✅ Son activé ! Pensez à installer l\'app pour les notifications', 'info');
+                }
+            } else {
+                showToast('✅ Son activé ! 🔔', 'success');
+            }
+        } else {
+            // Sur iOS, proposer de réessayer
+            if (isIOS) {
+                showToast('⚠️ Appuyez à nouveau pour activer le son', 'warning');
+            } else {
+                showToast('⚠️ Réessayez - son non disponible', 'warning');
+            }
+            return;
+        }
+    } catch(e) {
+        console.error('❌ Erreur activation audio:', e);
+        showToast('❌ Son non disponible - Réessayez', 'warning');
+        return;
+    }
+
+    // ===== ÉTAPE 2 : NOTIFICATIONS (optionnel, ne bloque pas le son) =====
+    
+    // Sur iOS avec Safari en mode PWA, tenter les notifications
+    if ('Notification' in window) {
+        const currentPermission = Notification.permission;
+        console.log('📬 Permission notification:', currentPermission);
+        
+        // Ne demander la permission QUE si ce n'est pas déjà "denied"
+        if (currentPermission === 'default') {
+            try {
+                // Vérifier si les notifications sont possibles
+                if (isIOS && !isPWA) {
+                    console.log('📱 iOS non-PWA - notifications non supportées');
+                    // Ne rien faire, le son fonctionne déjà
+                } else {
+                    const permission = await Notification.requestPermission();
+                    console.log('📬 Permission accordée:', permission);
                     
-                    // Sur iOS, suggérer l'installation PWA
-                    if (isIOS && !isPWA) {
-                        setTimeout(() => {
-                            showToast('📱 Conseil: installez l\'app sur l\'écran d\'accueil pour de meilleures performances', 'info');
-                        }, 2000);
+                    if (permission === 'granted' && 'PushManager' in window) {
+                        try {
+                            const reg = await navigator.serviceWorker.ready;
+                            const sub = await reg.pushManager.subscribe({
+                                userVisibleOnly: true,
+                                applicationServerKey: urlBase64ToUint8Array(VAPID_KEY)
+                            });
+                            
+                            await fetch('/api/push/subscribe', {
+                                method: 'POST',
+                                headers: { 
+                                    'Content-Type': 'application/json', 
+                                    'Authorization': 'Bearer ' + localStorage.getItem('resto_token') 
+                                },
+                                body: JSON.stringify({ subscription: sub })
+                            });
+                            
+                            console.log('✅ Push activé');
+                            showToast('✅ Notifications et son activés !', 'success');
+                        } catch(pushError) {
+                            console.log('⚠️ Push non disponible:', pushError);
+                            // Le son fonctionne déjà, c'est l'essentiel
+                        }
                     }
                 }
-            } catch(e) {
-                console.error('❌ Erreur activation:', e);
-                showToast('❌ Échec de l\'activation', 'error');
+            } catch(notifError) {
+                console.log('⚠️ Notifications non disponibles:', notifError);
+                // Sur iOS, c'est normal - ne pas afficher d'erreur
+                if (!isIOS) {
+                    showToast('💡 Le son fonctionne, les notifications sont optionnelles', 'info');
+                }
             }
+        } else if (currentPermission === 'denied' && isIOS) {
+            // Sur iOS, c'est normal que ce soit refusé
+            console.log('📱 iOS - notifications non supportées sur ce navigateur');
         }
+    }
+    
+    // Message spécial pour iOS non-PWA après la première activation
+    if (isIOS && !isPWA && !localStorage.getItem('ios_tip_shown')) {
+        localStorage.setItem('ios_tip_shown', 'true');
+        setTimeout(() => {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+                background: #1a1a1a; color: white; padding: 16px 20px; border-radius: 16px;
+                z-index: 99999; font-size: 13px; text-align: center; max-width: 90%;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: slideUp 0.5s ease;
+            `;
+            toast.innerHTML = `
+                <div style="font-size:16px;margin-bottom:8px;">📱 <b>Pour recevoir les commandes</b></div>
+                <div style="font-size:12px;opacity:0.9;line-height:1.5;margin-bottom:10px;">
+                    ✅ Le son est activé !<br>
+                    🔔 Pour les notifications :<br>
+                    Ouvrez dans <b>Safari</b> → <b>Partager</b> → <b>Écran d'accueil</b>
+                </div>
+                <button onclick="this.parentElement.remove()" style="
+                    background:#C6A43F; border:none; color:white;
+                    padding:8px 20px; border-radius:20px; font-weight:600;
+                ">Compris 👍</button>
+            `;
+            document.body.appendChild(toast);
+        }, 2000);
+    }
+}
 
         // ==================== INITIALISATION ====================
         function init() {
