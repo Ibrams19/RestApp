@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0d0d0d">
-    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -61,6 +60,7 @@
         .badge-trial{background:rgba(198,164,63,0.15);color:#C6A43F;}
         .badge-expired{background:rgba(231,76,60,0.15);color:#E74C3C;}
         .badge-suspended{background:rgba(149,165,166,0.15);color:#95A5A6;}
+        .badge-pending{background:rgba(243,156,18,0.15);color:#F39C12;} /* NOUVEAU */
         .actions-cell{display:flex;gap:6px;flex-wrap:wrap;}
         .btn-sm{padding:7px 14px;border-radius:20px;font-size:11px;font-weight:500;cursor:pointer;transition:all var(--transition);font-family:var(--font-sans);border:1px solid #333;background:transparent;color:#888;white-space:nowrap;}
         .btn-sm:hover{border-color:#888;color:#fff;}
@@ -70,7 +70,22 @@
         .btn-sm.warning:hover{background:var(--warning);color:#fff;border-color:var(--warning);}
         .btn-sm.danger{color:var(--danger);border-color:rgba(231,76,60,0.3);}
         .btn-sm.danger:hover{background:var(--danger);color:#fff;border-color:var(--danger);}
+        .btn-sm.gold{color:var(--gold);border-color:rgba(198,164,63,0.3);} /* NOUVEAU */
+        .btn-sm.gold:hover{background:var(--gold);color:#0d0d0d;border-color:var(--gold);} /* NOUVEAU */
         .empty-state{text-align:center;padding:50px;color:var(--text-secondary);}
+
+        /* NOUVEAU : Section paiements */
+        .section-title{font-family:var(--font-serif);font-size:22px;font-weight:600;margin:40px 0 16px;letter-spacing:-0.3px;}
+        .payment-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.04);gap:12px;flex-wrap:wrap;}
+        .payment-row:last-child{border-bottom:none;}
+        .payment-info{flex:1;min-width:200px;}
+        .payment-resto{font-weight:600;color:#f0ece4;font-size:14px;}
+        .payment-details{color:#888;font-size:12px;margin-top:2px;}
+        .payment-amount{font-weight:700;color:#C6A43F;font-size:16px;white-space:nowrap;min-width:100px;text-align:right;}
+        .btn-confirm-payment{background:#27AE60;color:white;border:none;padding:8px 18px;border-radius:20px;cursor:pointer;font-weight:600;font-size:12px;transition:all 0.3s;white-space:nowrap;}
+        .btn-confirm-payment:hover{background:#219A52;transform:translateY(-1px);}
+        .btn-confirm-payment:disabled{opacity:0.5;cursor:not-allowed;}
+        .no-pending{text-align:center;color:#666;padding:30px;font-size:14px;}
 
         .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity var(--transition);}
         .modal-overlay.open{opacity:1;pointer-events:all;}
@@ -153,6 +168,16 @@
             </tbody>
         </table>
     </div>
+
+    <!-- NOUVEAU : Demandes de paiement -->
+    <h2 class="section-title">💳 Demandes de paiement en attente</h2>
+    <div class="table-wrapper" style="margin-top:0;">
+        <div id="pending-list" style="padding:20px;">
+            <div class="no-pending">Chargement des demandes...</div>
+        </div>
+    </div>
+    <!-- FIN NOUVEAU -->
+
 </div>
 
 <!-- MODALE AJOUT -->
@@ -228,17 +253,20 @@
         document.getElementById('btn-cancel-add').addEventListener('click', closeAddModal);
         document.getElementById('btn-confirm-add').addEventListener('click', ajouterRestaurant);
         document.getElementById('btn-close-success').addEventListener('click', closeAddModal);
-        document.getElementById('btn-refresh').addEventListener('click', chargerDonnees);
+        document.getElementById('btn-refresh').addEventListener('click', function() { chargerDonnees(); loadPendingPayments(); }); // NOUVEAU : + loadPendingPayments
         document.getElementById('search-input').addEventListener('input', afficherRestaurants);
         document.getElementById('modal-add').addEventListener('click', function(e) { if (e.target === this) closeAddModal(); });
         document.addEventListener('keydown', function(e) { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(function(m) { m.classList.remove('open'); }); });
         chargerDonnees();
+        loadPendingPayments(); // NOUVEAU
     }
 
     function openAddModal() {
         document.getElementById('modal-add-form').style.display = 'block';
         document.getElementById('modal-add-success').style.display = 'none';
         document.getElementById('modal-add').classList.add('open');
+        // Générer un mot de passe
+        document.getElementById('add-password').value = generatePassword();
         document.getElementById('add-nom').focus();
     }
 
@@ -262,21 +290,93 @@
         } catch(e) {}
     }
 
-    function getJoursRestants(r) {
-    var now = new Date();
-    var endDate = null;
-    if (r.subscription_status === 'trial' && r.trial_ends_at) {
-        endDate = new Date(r.trial_ends_at);
-    } else if (r.subscription_status === 'active' && r.subscription_ends_at) {
-        endDate = new Date(r.subscription_ends_at);
+    // ==================== NOUVEAU : PAIEMENTS EN ATTENTE ====================
+    async function loadPendingPayments() {
+        var container = document.getElementById('pending-list');
+        try {
+            var res = await fetch('/api/superadmin/pending-payments', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            var data = await res.json();
+            
+            if (!data.requests || data.requests.length === 0) {
+                container.innerHTML = '<div class="no-pending">✅ Aucune demande de paiement en attente</div>';
+                return;
+            }
+            
+            container.innerHTML = data.requests.map(function(req) {
+                var planNames = { 'monthly': 'Mensuel', 'quarterly': 'Trimestriel', 'yearly': 'Annuel' };
+                var planName = planNames[req.plan_type] || req.plan_type;
+                var date = new Date(req.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+                
+                return '<div class="payment-row">' +
+                    '<div class="payment-info">' +
+                        '<div class="payment-resto">🍽️ ' + escapeHTML(req.restaurant_name || 'N/A') + '</div>' +
+                        '<div class="payment-details">' +
+                            planName + ' · ' + date +
+                            '<br><span style="font-size:10px;color:#666;">Ref: ' + escapeHTML(req.ref || '') + '</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="payment-amount">' + (req.amount || 0).toLocaleString() + ' FCFA</div>' +
+                    '<button class="btn-confirm-payment" onclick="confirmPayment(' + req.id + ', this)">✅ Confirmer</button>' +
+                '</div>';
+            }).join('');
+        } catch(e) {
+            container.innerHTML = '<div class="no-pending">Erreur de chargement</div>';
+        }
     }
-    if (!endDate) return '<span style="color:#666;">-</span>';
-    var jours = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
-    if (jours < 0) return '<span style="color:#E74C3C;font-weight:600;">⚠️ Expiré</span>';
-    if (jours <= 3) return '<span style="color:#E74C3C;font-weight:600;">' + jours + 'j ⚠️</span>';
-    if (jours <= 7) return '<span style="color:#F39C12;font-weight:600;">' + jours + 'j</span>';
-    return '<span style="color:#27AE60;">' + jours + 'j</span>';
-}
+
+    // Fonction globale pour le onclick
+    window.confirmPayment = async function(transactionId, btn) {
+        if (!confirm('Confirmer ce paiement ? L\'abonnement sera activé immédiatement.')) return;
+        btn.disabled = true;
+        btn.textContent = '⏳...';
+        try {
+            var res = await fetch('/api/superadmin/confirm-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ transactionId: transactionId })
+            });
+            var data = await res.json();
+            if (data.success) {
+                showToast('✅ ' + data.message, 'success');
+                loadPendingPayments();
+                chargerDonnees(); // Rafraîchir aussi la liste des restaurants
+            } else {
+                showToast('❌ ' + (data.error || 'Erreur'), 'error');
+                btn.disabled = false;
+                btn.textContent = '✅ Confirmer';
+            }
+        } catch(e) {
+            showToast('Erreur réseau', 'error');
+            btn.disabled = false;
+            btn.textContent = '✅ Confirmer';
+        }
+    };
+
+    function escapeHTML(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.textContent = String(str);
+        return div.innerHTML;
+    }
+    // ==================== FIN NOUVEAU ====================
+
+    function getJoursRestants(r) {
+        var now = new Date();
+        var endDate = null;
+        if (r.subscription_status === 'trial' && r.trial_ends_at) {
+            endDate = new Date(r.trial_ends_at);
+        } else if (r.subscription_status === 'active' && r.subscription_ends_at) {
+            endDate = new Date(r.subscription_ends_at);
+        }
+        if (!endDate) return '<span style="color:#666;">-</span>';
+        var jours = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+        if (jours < 0) return '<span style="color:#E74C3C;font-weight:600;">⚠️ Expiré</span>';
+        if (jours <= 3) return '<span style="color:#E74C3C;font-weight:600;">' + jours + 'j ⚠️</span>';
+        if (jours <= 7) return '<span style="color:#F39C12;font-weight:600;">' + jours + 'j</span>';
+        return '<span style="color:#27AE60;">' + jours + 'j</span>';
+    }
 
     function afficherRestaurants() {
         var search = (document.getElementById('search-input').value || '').toLowerCase();

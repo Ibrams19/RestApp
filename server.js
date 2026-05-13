@@ -1836,12 +1836,14 @@ app.get('/api/restaurant/transactions', authMiddleware, async (req, res) => {
   res.json(data || []);
 });
 
-// Paiement - CORRECTION : durée en mois, pas en minutes
+// Paiement - demande de paiement manuel
 app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
   const { plan } = req.body;
-    if (req.user.role === 'gerant' && !req.user.est_proprietaire) {
-      return res.status(403).json({ error: 'Accès réservé au propriétaire' });
-    }
+  
+  if (req.user.role === 'gerant' && !req.user.est_proprietaire) {
+    return res.status(403).json({ error: 'Accès réservé au propriétaire' });
+  }
+  
   const restoId = req.user.resto_id;
   const profileId = req.user.id;
 
@@ -1860,51 +1862,42 @@ app.post('/api/subscription/renew', authMiddleware, async (req, res) => {
   }
 
   const config = plans[plan];
-  const startDate = new Date();
-  const endDate = new Date();
-  endDate.setMonth(endDate.getMonth() + config.months); // CORRECTION : mois, pas minutes
 
   try {
-    await supabase
-      .from('restaurants')
-      .update({ 
-        subscription_status: 'active', 
-        subscription_ends_at: endDate.toISOString() 
-      })
-      .eq('id', restoId);
-
+    // Créer une transaction en attente (au lieu d'activer directement)
     const transactionRef = `PAY_${restoId}_${Date.now().toString(36)}`;
+    
     await supabase.from('transactions').insert({
       resto_id: restoId,
       transaction_ref: transactionRef,
       plan_type: plan,
       amount: config.amount,
-      status: 'paid',
-      start_date: startDate.toISOString(),
-      end_date: endDate.toISOString(),
+      status: 'pending', // ← EN ATTENTE au lieu de 'paid'
+      start_date: new Date().toISOString(),
+      end_date: null, // Sera défini à la confirmation
       initiated_by: profileId,
-      payment_date: new Date().toISOString()
+      payment_date: null // Sera défini à la confirmation
     });
 
-    logSecurity('INFO', 'Abonnement renouvelé', { 
+    logSecurity('INFO', 'Demande de paiement créée', { 
       restoId, 
       plan, 
       amount: config.amount,
-      endDate: endDate.toISOString()
+      ref: transactionRef
     });
 
     res.json({ 
       success: true, 
-      message: `✅ Abonnement ${config.name} activé avec succès ! Valable jusqu'au ${endDate.toLocaleDateString('fr-FR')}.`,
-      end_date: endDate,
+      message: `✅ Votre demande pour la formule ${config.name} (${config.amount.toLocaleString()} FCFA) a été enregistrée. Vous recevrez une confirmation après vérification du paiement.`,
       plan: config.name,
-      amount: config.amount
+      amount: config.amount,
+      ref: transactionRef
     });
   } catch (error) {
-    logSecurity('ERROR', 'Erreur paiement', { restoId, error: error.message });
+    logSecurity('ERROR', 'Erreur demande paiement', { restoId, error: error.message });
     res.status(500).json({ 
       error: 'payment_failed',
-      message: 'Le paiement a échoué. Veuillez réessayer.'
+      message: 'Erreur lors de la demande. Veuillez réessayer.'
     });
   }
 });
@@ -1942,6 +1935,96 @@ app.get('/api/superadmin/stats', checkRole(['superadmin']), async (req, res) => 
     nbEmployes: nbEmployes || 0,
     restaurants: restaurants || []
   });
+});
+
+// Super admin : voir les paiements en attente
+app.get('/api/superadmin/pending-payments', checkRole(['superadmin']), async (req, res) => {
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*, restaurants(nom)')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false });
+
+  if (error) return res.status(500).json({ error: error.message });
+  
+  const formatted = data.map(t => ({
+    id: t.id,
+    resto_id: t.resto_id,
+    restaurant_name: t.restaurants?.nom || 'N/A',
+    plan_type: t.plan_type,
+    amount: t.amount,
+    ref: t.transaction_ref,
+    created_at: t.created_at
+  }));
+  
+  res.json({ requests: formatted });
+});
+
+// Super admin : confirmer un paiement
+app.post('/api/superadmin/confirm-payment', checkRole(['superadmin']), async (req, res) => {
+  const { transactionId } = req.body;
+  
+  if (!transactionId) {
+    return res.status(400).json({ error: 'transactionId requis' });
+  }
+
+  // Récupérer la transaction
+  const { data: transaction } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('id', transactionId)
+    .eq('status', 'pending')
+    .single();
+
+  if (!transaction) {
+    return res.status(404).json({ error: 'Transaction introuvable ou déjà traitée' });
+  }
+
+  // Calculer la durée selon le plan
+  const plans = {
+    monthly: 1,
+    quarterly: 3,
+    yearly: 12
+  };
+  
+  const months = plans[transaction.plan_type] || 1;
+  const endDate = new Date();
+  endDate.setMonth(endDate.getMonth() + months);
+
+  try {
+    // Mettre à jour l'abonnement du restaurant
+    await supabase
+      .from('restaurants')
+      .update({ 
+        subscription_status: 'active', 
+        subscription_ends_at: endDate.toISOString() 
+      })
+      .eq('id', transaction.resto_id);
+
+    // Marquer la transaction comme payée
+    await supabase
+      .from('transactions')
+      .update({ 
+        status: 'paid',
+        payment_date: new Date().toISOString(),
+        end_date: endDate.toISOString()
+      })
+      .eq('id', transactionId);
+
+    logSecurity('INFO', 'Paiement confirmé par superadmin', { 
+      transactionId, 
+      restoId: transaction.resto_id,
+      endDate: endDate.toISOString()
+    });
+
+    res.json({ 
+      success: true, 
+      message: `Paiement confirmé ! Abonnement actif jusqu'au ${endDate.toLocaleDateString('fr-FR')}.` 
+    });
+  } catch (error) {
+    logSecurity('ERROR', 'Erreur confirmation paiement', { error: error.message });
+    res.status(500).json({ error: 'Erreur lors de la confirmation' });
+  }
 });
 // ==================== PROPRIÉTAIRE ====================
 

@@ -353,18 +353,35 @@
     </div>
 
     <!-- Modale confirmation -->
-    <div class="modal-overlay" id="modal-overlay">
-        <div class="modal-dialog">
-            <div class="modal-icon">💳</div>
-            <div class="modal-title" id="modal-title">Confirmer la souscription</div>
-            <div class="modal-text" id="modal-text">Vous allez souscrire à la formule.</div>
-            <div class="modal-price" id="modal-price">0 FCFA</div>
-            <div class="modal-actions">
-                <button class="modal-btn modal-btn-cancel" id="modal-cancel">Annuler</button>
-                <button class="modal-btn modal-btn-confirm" id="modal-confirm">Confirmer</button>
-            </div>
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal-dialog">
+        <div class="modal-icon">📱</div>
+        <div class="modal-title" id="modal-title">Paiement par Wave / Orange Money</div>
+        <div class="modal-text" id="modal-text">
+            Veuillez envoyer le montant par Wave ou Orange Money au numéro ci-dessous.<br>
+            <strong>Votre abonnement sera activé après vérification du paiement.</strong>
+        </div>
+        <div class="modal-price" id="modal-price">0 FCFA</div>
+        
+        <!-- Instructions de paiement -->
+        <div style="background:rgba(198,164,63,0.1);border:1px solid rgba(198,164,63,0.2);border-radius:12px;padding:16px;margin-bottom:16px;text-align:center;">
+            <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Numéro Wave / Orange Money</div>
+            <div style="font-size:24px;font-weight:700;color:#fff;margin-bottom:4px;">+221 71 150 42 43</div>
+            <div style="font-size:12px;color:#888;">RestApp 7★</div>
+        </div>
+        
+        <div style="color:#999;font-size:12px;margin-bottom:20px;line-height:1.5;">
+            Après avoir effectué le paiement, votre abonnement sera activé manuellement dans un délai de quelques minutes à quelques heures.
+        </div>
+        
+        <div class="modal-actions">
+            <button class="modal-btn modal-btn-cancel" id="modal-cancel">Annuler</button>
+            <button class="modal-btn modal-btn-confirm" id="modal-confirm">
+                ✅ J'ai effectué le paiement
+            </button>
         </div>
     </div>
+</div>
 
     <!-- Toast -->
     <div class="toast-container" id="toast-container"></div>
@@ -499,7 +516,7 @@
 
             const confirmBtn = document.getElementById('modal-confirm');
             confirmBtn.disabled = true;
-            confirmBtn.textContent = 'Traitement…';
+            confirmBtn.textContent = 'Envoi en cours…';
 
             try {
                 const res = await fetch('/api/subscription/renew', {
@@ -515,19 +532,17 @@
 
                 if (res.ok && data.success) {
                     closeModal();
-                    showToast(`✅ ${data.message || 'Abonnement activé avec succès !'}`, 'success');
-                    setTimeout(() => {
-                        window.location.href = '/dashboard.html';
-                    }, 2000);
+                    showToast('✅ Votre demande a été envoyée ! Vous serez notifié après vérification.', 'success');
+                    setTimeout(() => getCurrentSubscription(), 1500);
                 } else {
-                    showToast(data.message || data.error || 'Erreur lors du paiement.', 'error');
+                    showToast(data.message || data.error || 'Erreur lors de la demande.', 'error');
                 }
             } catch(e) {
                 showToast('Erreur de connexion au serveur.', 'error');
             } finally {
                 isProcessing = false;
                 confirmBtn.disabled = false;
-                confirmBtn.textContent = 'Confirmer';
+                confirmBtn.textContent = "✅ J'ai effectué le paiement";
             }
         }
 
