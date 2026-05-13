@@ -38,6 +38,15 @@ app.get('/', (req, res) => {
   res.redirect('/index.html');
 });
 app.use(express.static(__dirname));
+// DÉSACTIVER LE CACHE pour les fichiers HTML (force le rechargement)
+app.use((req, res, next) => {
+    if (req.url.endsWith('.html') || req.url === '/' || !req.url.includes('.')) {
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.set('Pragma', 'no-cache');
+        res.set('Expires', '0');
+    }
+    next();
+});
 app.use(express.static('frontend/client'));
 app.use(morgan(':date[iso] :method :url :status :response-time ms - :remote-addr'));
 
