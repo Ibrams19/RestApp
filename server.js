@@ -2123,6 +2123,48 @@ app.post('/api/proprietaire/ajouter-etablissement', authMiddleware, async (req, 
     await supabase.from('tables').insert({ resto_id: restaurant.id, numero_table: i });
   }
 
+  // ========== NOUVEAU : Créer un profil gérant pour ce restaurant ==========
+  const { data: proprietaire } = await supabase
+    .from('profiles')
+    .select('email, nom, prenom')
+    .eq('id', req.user.id)
+    .single();
+
+  if (proprietaire) {
+    const tokenUnique = crypto.randomBytes(16).toString('hex');
+    const lienUnique = `${PUBLIC_URL}/magic.html?token=${tokenUnique}`;
+
+    const { data: newProfile, error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        nom: proprietaire.nom || nomRestaurant,
+        prenom: proprietaire.prenom || '',
+        resto_id: restaurant.id,
+        role: 'gerant',
+        email: proprietaire.email,
+        token_unique: tokenUnique,
+        lien_unique: lienUnique,
+        first_login: false,
+        est_proprietaire: true,
+        mot_de_passe: req.body.motDePasse || null // Sera défini via lien magique
+      })
+      .select()
+      .single();
+
+    if (!profileError && newProfile) {
+      // Envoyer un email avec le lien magique
+      sendEmail(proprietaire.email, `Accès à votre établissement - ${nomRestaurant}`, `
+        <h2>Votre nouvel établissement est prêt !</h2>
+        <p><strong>${nomRestaurant}</strong> a été créé avec succès.</p>
+        <p>Vous avez 30 jours d'essai gratuit.</p>
+        <p>Cliquez ci-dessous pour accéder à cet établissement :</p>
+        <a href="${lienUnique}" style="display:inline-block;padding:12px 24px;background:#C6A43F;color:#fff;border-radius:40px;text-decoration:none;font-weight:600;">Accéder à ${nomRestaurant}</a>
+        <p style="color:#999;font-size:12px;">Ce lien est valable 7 jours.</p>
+      `);
+    }
+  }
+  // ========== FIN NOUVEAU ==========
+
   logSecurity('INFO', 'Nouvel établissement créé par propriétaire', { nom: restaurant.nom, proprietaire_id: req.user.id });
 
   res.json({ success: true, restaurant });
