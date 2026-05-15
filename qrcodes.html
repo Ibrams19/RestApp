@@ -106,7 +106,7 @@
         <a href="/employes.html" class="nav-btn">👥 Équipe</a>
         <a href="/resto.html" class="nav-btn">👨‍🍳 Cuisine</a>
         <a href="/qrcodes.html" class="nav-btn active">📱 QR Codes</a>
-        <a href="/subscription.html" class="nav-btn">💰 Abonnement</a>
+        <a href="/subscription.html" class="nav-btn" id="nav-subscription">💰 Abonnement</a>
     </nav>
 
     <div class="container">
@@ -158,6 +158,11 @@
             }
 
             initEvents();
+            // Cacher Abonnement si non-propriétaire
+            const user = JSON.parse(localStorage.getItem('resto_user') || '{}');
+            if (userRole === 'gerant' && !user.est_proprietaire) {
+                document.getElementById('nav-subscription').style.display = 'none';
+            }
             chargerTables();
         }
 

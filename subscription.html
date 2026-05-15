@@ -387,6 +387,20 @@
     <div class="toast-container" id="toast-container"></div>
 
     <script>
+        const token = localStorage.getItem('resto_token');
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                const user = JSON.parse(localStorage.getItem('resto_user') || '{}');
+                if (!payload.est_proprietaire && payload.role !== 'superadmin') {
+                    window.location.href = '/dashboard.html';
+                }
+            } catch(e) {
+                window.location.href = '/login.html';
+            }
+        } else {
+            window.location.href = '/login.html';
+        }
     (function() {
         'use strict';
 
