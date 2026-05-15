@@ -2132,7 +2132,7 @@ app.post('/api/proprietaire/ajouter-etablissement', authMiddleware, async (req, 
     await supabase.from('tables').insert({ resto_id: restaurant.id, numero_table: i });
   }
 
-  // ========== NOUVEAU : Créer un profil gérant pour ce restaurant ==========
+    // ========== CRÉER UN GÉRANT POUR CE RESTAURANT (CORRIGÉ) ==========
   const { data: proprietaire } = await supabase
     .from('profiles')
     .select('email, nom, prenom')
@@ -2142,26 +2142,26 @@ app.post('/api/proprietaire/ajouter-etablissement', authMiddleware, async (req, 
   if (proprietaire) {
     const tokenUnique = crypto.randomBytes(16).toString('hex');
     const lienUnique = `${PUBLIC_URL}/magic.html?token=${tokenUnique}`;
+    // Email unique pour éviter les conflits de contrainte UNIQUE
+    const gerantEmail = `${req.user.id}_${restaurant.id}@gerant.restapp.com`;
 
-    const { data: newProfile, error: profileError } = await supabase
+    const { error: profileError } = await supabase
       .from('profiles')
       .insert({
         nom: proprietaire.nom || nomRestaurant,
         prenom: proprietaire.prenom || '',
         resto_id: restaurant.id,
         role: 'gerant',
-        email: proprietaire.email,
+        email: gerantEmail,
         token_unique: tokenUnique,
         lien_unique: lienUnique,
-        first_login: false,
-        est_proprietaire: true,
-        mot_de_passe: req.body.motDePasse || null // Sera défini via lien magique
-      })
-      .select()
-      .single();
+        first_login: true,
+        est_proprietaire: true
+      });
 
-    if (!profileError && newProfile) {
-      // Envoyer un email avec le lien magique
+    if (profileError) {
+      console.error('❌ Erreur création gérant auto:', profileError.message);
+    } else {
       sendEmail(proprietaire.email, `Accès à votre établissement - ${nomRestaurant}`, `
         <h2>Votre nouvel établissement est prêt !</h2>
         <p><strong>${nomRestaurant}</strong> a été créé avec succès.</p>
@@ -2278,13 +2278,40 @@ app.post('/api/superadmin/login-as', checkRole(['superadmin']), async (req, res)
 
   if (!restaurant) return res.status(404).json({ error: 'Restaurant non trouvé' });
 
-  const { data: profile } = await supabase
+  // Chercher D'ABORD un gérant avec est_proprietaire=true...
+  
+  let { data: profile } = await supabase
     .from('profiles')
     .select('id, email, role, est_proprietaire')
     .eq('resto_id', resto_id)
-    .neq('role', 'superadmin')
+    .eq('role', 'gerant')
+    .eq('est_proprietaire', true)
     .limit(1)
     .single();
+
+  // Si pas de gérant propriétaire, chercher n'importe quel gérant
+  if (!profile) {
+    const { data: gerant } = await supabase
+      .from('profiles')
+      .select('id, email, role, est_proprietaire')
+      .eq('resto_id', resto_id)
+      .eq('role', 'gerant')
+      .limit(1)
+      .single();
+    profile = gerant;
+  }
+
+  // Si toujours pas, chercher n'importe quel profil non superadmin
+  if (!profile) {
+    const { data: anyone } = await supabase
+      .from('profiles')
+      .select('id, email, role, est_proprietaire')
+      .eq('resto_id', resto_id)
+      .neq('role', 'superadmin')
+      .limit(1)
+      .single();
+    profile = anyone;
+  }
 
   if (!profile) return res.status(404).json({ error: 'Aucun gérant trouvé pour ce restaurant' });
 

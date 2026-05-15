@@ -491,7 +491,7 @@
         }
     }
 
-    async function seConnecterEnTantQue(restoId) {
+        async function seConnecterEnTantQue(restoId) {
         try {
             var r = await fetch('/api/superadmin/login-as', {
                 method: 'POST',
@@ -504,7 +504,14 @@
                 localStorage.setItem('resto_id', d.restaurant.id);
                 localStorage.setItem('resto_role', 'gerant');
                 window.location.href = '/dashboard.html';
-            } else { var d = await r.json(); showToast(d.error || 'Erreur', 'error'); }
+            } else { 
+                var d = await r.json(); 
+                if (d.error === 'Aucun gérant trouvé pour ce restaurant') {
+                    showToast('⚠️ Aucun gérant pour ce restaurant. Créez-en un via la page Propriétaire.', 'error');
+                } else {
+                    showToast(d.error || 'Erreur', 'error');
+                }
+            }
         } catch(e) { showToast('Erreur réseau', 'error'); }
     }
 
