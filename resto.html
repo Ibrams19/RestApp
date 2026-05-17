@@ -671,7 +671,7 @@
                     var u=isUrgent(cmd.date_commande,cmd.statut),t=getTimeAgo(cmd.date_commande);
                     var d=cmd.details&&cmd.details.length?cmd.details.map(function(d){return'<div class="detail-line"><span><span class="detail-name">'+escapeHtml(d.nom_plat||'')+'</span><span class="detail-qty">×'+(d.quantite||0)+'</span></span><span class="detail-price">'+((d.prix_unitaire||0)*(d.quantite||0)).toLocaleString()+' FCFA</span></div>';}).join(''):'<div class="detail-line">Aucun détail</div>';
                     var ah=actions.length?actions.map(function(act){return'<button class="btn-action '+act.class+'" data-cmd-id="'+cmd.id+'" data-action="'+act.action+'">'+act.label+'</button>';}).join(''):(cmd.statut==='paye'?'<span style="color:#27AE60;">✓ Finalisée</span>':'<span style="color:var(--text-secondary);">⏳ En attente</span>');
-                    return'<div class="commande-card'+(u?' urgent':'')+'"><div class="commande-header"><div style="display:flex;gap:10px;align-items:center;"><span class="table-badge">Table '+(cmd.table_numero||cmd.table_id)+'</span>'+(cmd.client_nom?'<span class="client-badge">👤 '+escapeHtml(cmd.client_nom)+'</span>':'')+'</div><span class="statut-badge statut-'+cmd.statut+'">'+getStatutText(cmd.statut)+'</span></div><div class="commande-body">'+d+'<div class="commande-total"><span>Total</span><span>'+(cmd.total||0).toLocaleString()+' FCFA</span></div><div class="commande-actions">'+ah+'</div>'+(t?'<div class="commande-time'+(u?' urgent-text':'')+'">🕐 '+t+(u?' — Action requise':'')+'</div>':'')+'</div></div>';
+                   return'<div class="commande-card'+(u?' urgent':'')+'"><div class="commande-header"><div style="display:flex;gap:10px;align-items:center;"><span class="table-badge">Table '+(cmd.table_numero||cmd.table_id)+'</span>'+(cmd.client_nom?'<span class="client-badge">👤 '+escapeHtml(cmd.client_nom)+'</span>':'')+'</div><span class="statut-badge statut-'+cmd.statut+'">'+getStatutText(cmd.statut)+'</span></div><div class="commande-body">'+d+'<div class="commande-total"><span>Total</span><span>'+(cmd.total||0).toLocaleString()+' FCFA</span></div><div class="commande-actions">'+ah+'</div>'+(t?'<div class="commande-time'+(u?' urgent-text':'')+'">🕐 '+t+(u?' — Action requise':'')+'</div>':'')+'</div></div>';
                 }).join('');
                 c.querySelectorAll('.btn-action').forEach(function(b){b.addEventListener('click',function(){changerStatut(parseInt(this.dataset.cmdId),this.dataset.action,this);});});
             } catch(err) {
@@ -707,7 +707,7 @@
                                     });
                                 });
                             }
-                            genererRecu(cmd.client_nom||'Client',cmd.table_numero||cmd.table_id,items,cmd.total||0,cmd.id);
+                            genererRecu(cmd.client_nom||'Client',cmd.table_numero||cmd.table_id,items,cmd.total||0,cmd.numero_commande||cmd.id);
                         }
                     }
                     chargerCommandes();

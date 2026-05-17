@@ -44,7 +44,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Fond décoratif subtil */
         body::before {
             content: '';
             position: fixed;
@@ -268,26 +267,6 @@
             letter-spacing: 0.3px;
         }
 
-        .btn-demo {
-            display: block;
-            width: 100%;
-            margin-top: 10px;
-            padding: 10px;
-            background: transparent;
-            border: 1px dashed #d5cfc0;
-            border-radius: 40px;
-            color: #999;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all var(--transition);
-            font-family: var(--font-sans);
-            letter-spacing: 0.3px;
-        }
-        .btn-demo:hover {
-            border-color: var(--gold);
-            color: var(--gold);
-        }
-
         @media (max-width: 480px) {
             .card {
                 padding: 32px 20px;
@@ -332,7 +311,6 @@
                     <a href="/forgot-password.html">Mot de passe oublié ?</a>
                 </div>
                 <button type="submit" class="btn-submit" id="login-btn">Se connecter</button>
-                <button type="button" class="btn-demo" id="btn-demo-fill"> Essayer la démo (demo7etoiles@restapp.net)</button>
             </form>
 
             <!-- Formulaire Inscription -->
@@ -360,7 +338,7 @@
                         placeholder="Ex: Le DAKAR, Speed Burger..." required>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" for="register-email">Email du gérant ou Propriétaire*</label>
+                    <label class="form-label" for="register-email">Email du gérant ou Propriétaire *</label>
                     <input type="email" id="register-email" class="form-input"
                         placeholder="contact@monetablissement.com" autocomplete="email" required>
                 </div>
@@ -407,13 +385,11 @@
             try {
                 const payload = JSON.parse(atob(token.split('.')[1]));
 
-                // Vérifier expiration
                 if (payload.exp && payload.exp * 1000 < Date.now()) {
                     localStorage.removeItem(TOKEN_KEY);
                     return;
                 }
 
-                // Rediriger selon le rôle
                 if (payload.role === 'superadmin') {
                     window.location.href = '/superadmin.html';
                 } else if (payload.role === 'proprietaire') {
@@ -445,7 +421,6 @@
                     registerForm.style.display = isLogin ? 'none' : 'block';
                     hideMessage();
 
-                    // Focus sur le premier champ
                     if (isLogin) {
                         document.getElementById('login-email').focus();
                     } else {
@@ -473,7 +448,6 @@
         function saveSession(data) {
             localStorage.setItem(TOKEN_KEY, data.token);
 
-            // Stockage minimal (le reste est dans le token JWT)
             if (data.user) {
                 localStorage.setItem('resto_user', JSON.stringify({
                     id: data.user.id,
@@ -588,7 +562,7 @@
                 const res = await fetch('/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                   body: JSON.stringify({
+                    body: JSON.stringify({
                         email,
                         motDePasse: password,
                         nomRestaurant: nom,
@@ -620,35 +594,19 @@
 
         // ==================== INIT ====================
         function init() {
-        checkExistingSession();
-        initTabs();
-        // Ouvrir l'onglet inscription si ?tab=register
-        if (window.location.search.includes('tab=register')) {
-            document.querySelectorAll('.tab')[1].click();
-        }
+            checkExistingSession();
+            initTabs();
+            
+            // Ouvrir l'onglet inscription si ?tab=register
+            if (window.location.search.includes('tab=register')) {
+                document.querySelectorAll('.tab')[1].click();
+            }
 
-        // Pré-remplir l'email si présent dans l'URL (bouton Démo)
-        const urlParams = new URLSearchParams(window.location.search);
-        const demoEmail = urlParams.get('email');
-        if (demoEmail) {
-            document.getElementById('login-email').value = demoEmail;
-            document.getElementById('login-password').focus();
-            showMessage('Mode démo : entrez le mot de passe demo1234', 'info');
-        }
-
-        document.getElementById('login-form').addEventListener('submit', login);
-
-        // Bouton démo
-        document.getElementById('btn-demo-fill').addEventListener('click', () => {
-            document.getElementById('login-email').value = 'demo7etoiles@restapp.net';                
-            document.getElementById('login-password').value = '';
-            document.getElementById('login-password').focus();
-             showMessage('Démo : mot de passe = demo1234', 'info');
-        });
+            document.getElementById('login-form').addEventListener('submit', login);
             document.getElementById('register-form').addEventListener('submit', register);
         }
 
-            document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded', init);
     })();
     </script>
 </body>

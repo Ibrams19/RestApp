@@ -831,7 +831,17 @@ app.post('/api/commande', commandLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Table invalide' });
   }
 
-  const name = clientName ? sanitizeString(clientName).substring(0, 50) : 'Client';
+    const name = clientName ? sanitizeString(clientName).substring(0, 50) : 'Client';
+
+  // Récupérer le prochain numéro de commande pour ce restaurant
+  const { data: lastCmd } = await supabase
+    .from('commandes')
+    .select('numero_commande')
+    .eq('resto_id', restoId)
+    .order('numero_commande', { ascending: false })
+    .limit(1);
+
+  const nextNum = (lastCmd?.[0]?.numero_commande || 0) + 1;
 
   const { data: commande, error: commandeError } = await supabase
     .from('commandes')
@@ -840,7 +850,8 @@ app.post('/api/commande', commandLimiter, async (req, res) => {
       table_id: tableIdFinal, 
       client_nom: name, 
       total: Math.round(Number(total)),
-      statut: 'en_attente'
+      statut: 'en_attente',
+      numero_commande: nextNum
     })
     .select()
     .single();
@@ -936,6 +947,16 @@ app.post('/api/commande-manuelle', authMiddleware, async (req, res) => {
     if (tableByNumero) tableIdFinal = tableByNumero.id;
   }
 
+    // Récupérer le prochain numéro de commande pour ce restaurant
+  const { data: lastCmd } = await supabase
+    .from('commandes')
+    .select('numero_commande')
+    .eq('resto_id', restoId)
+    .order('numero_commande', { ascending: false })
+    .limit(1);
+
+  const nextNum = (lastCmd?.[0]?.numero_commande || 0) + 1;
+
   const { data: commande, error: commandeError } = await supabase
     .from('commandes')
     .insert({ 
@@ -944,7 +965,8 @@ app.post('/api/commande-manuelle', authMiddleware, async (req, res) => {
       client_nom: name, 
       total: Math.round(Number(total)),
       statut: req.body.statut || 'en_attente',
-      source: commandeSource
+      source: commandeSource,
+      numero_commande: nextNum
     })
     .select()
     .single();
@@ -1077,8 +1099,9 @@ app.get('/api/commandes/:restoId', async (req, res) => {
 
   if (error) return res.status(500).json({ error: error.message });
 
-  const result = commandes.map(cmd => ({
+   const result = commandes.map(cmd => ({
     id: cmd.id,
+    numero_commande: cmd.numero_commande || cmd.id,
     table_id: cmd.table_id,
     table_numero: cmd.tables?.numero_table,
     client_nom: cmd.client_nom || 'Anonyme',
