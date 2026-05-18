@@ -1636,6 +1636,7 @@ const upload = multer({
   }
 });
 
+// Route UPLOAD photo
 app.post('/api/upload-plat-photo/:platId', authMiddleware, upload.single('photo'), async (req, res) => {
   const { platId } = req.params;
   const file = req.file;
@@ -1643,18 +1644,6 @@ app.post('/api/upload-plat-photo/:platId', authMiddleware, upload.single('photo'
   if (!file) {
     return res.status(400).json({ error: 'Aucune photo envoyée' });
   }
-
-// Route séparée pour supprimer une photo
-app.delete('/api/delete-photo/:platId', authMiddleware, async (req, res) => {
-  const { platId } = req.params;
-  const { data: plat } = await supabase.from('menus').select('photo_url').eq('id', platId).single();
-  if (plat?.photo_url) {
-    const path = plat.photo_url.split('/').slice(-2).join('/');
-    await supabase.storage.from('plat-photos').remove([path]);
-  }
-  await supabase.from('menus').update({ photo_url: null }).eq('id', platId);
-  res.json({ success: true });
-});
 
   const fileName = `plat_${platId}_${Date.now()}.jpg`;
   const { error } = await supabase.storage
@@ -1674,6 +1663,18 @@ app.delete('/api/delete-photo/:platId', authMiddleware, async (req, res) => {
   await supabase.from('menus').update({ photo_url: urlData.publicUrl }).eq('id', platId);
   
   res.json({ success: true, photoUrl: urlData.publicUrl });
+});
+
+// Route DELETE photo (séparée, pas imbriquée)
+app.delete('/api/delete-photo/:platId', authMiddleware, async (req, res) => {
+  const { platId } = req.params;
+  const { data: plat } = await supabase.from('menus').select('photo_url').eq('id', platId).single();
+  if (plat?.photo_url) {
+    const path = plat.photo_url.split('/').slice(-2).join('/');
+    await supabase.storage.from('plat-photos').remove([path]);
+  }
+  await supabase.from('menus').update({ photo_url: null }).eq('id', platId);
+  res.json({ success: true });
 });
 
 // ==================== EMPLOYÉS ====================
