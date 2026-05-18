@@ -506,29 +506,6 @@
                     // Bannière spéciale compte démo (Le 7★ Gourmet)
                     const user = JSON.parse(localStorage.getItem('resto_user') || '{}');
                     const container = document.getElementById('subscription-alert-container');
-                    
-                    // Bannière spéciale compte démo (Le 7★ Gourmet)
-                    if (user.email === 'demo7etoiles@restapp.net') {
-                        container.innerHTML = `
-                            <div style="background: linear-gradient(135deg, #FFF8E1, #f5eedb); border: 2px solid #C6A43F; border-radius: 16px; padding: 20px 24px; margin-bottom: 24px; text-align: center;">
-                                <h3 style="font-family: var(--font-serif); font-size: 18px; margin-bottom: 6px;">Vous testez la <span style="color:#C6A43F;">version démo</span></h3>
-                                <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
-                                    Prêt à créer votre propre établissement ?<br>30 jours d'essai gratuit, sans engagement.
-                                </p>
-                                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap;">
-                                    <a href="https://wa.me/221711504243?text=Bonjour%20RestApp%2C%20je%20souhaite%20cr%C3%A9er%20mon%20compte" 
-                                    target="_blank" 
-                                    style="display: inline-block; padding: 10px 20px; background: #25D366; color: white; border-radius: 40px; text-decoration: none; font-weight: 600; font-size: 13px;">
-                                    📱 WhatsApp
-                                    </a>
-                                    <a href="mailto:contact@restapps.net?subject=Cr%C3%A9ation%20de%20compte%20RestApp&body=Bonjour%2C%20je%20souhaite%20cr%C3%A9er%20mon%20compte%20RestApp%207%E2%98%85" 
-                                    style="display: inline-block; padding: 10px 20px; background: #C6A43F; color: white; border-radius: 40px; text-decoration: none; font-weight: 600; font-size: 13px;">
-                                    ✉️ Email
-                                    </a>
-                                </div>
-                            </div>`;
-                        return;
-                    }
 
                     if (data.status === 'trial' && data.days_left !== undefined) {
                         if (data.days_left <= 3) {
@@ -1014,7 +991,7 @@ function afficherDernieresCommandes(commandes) {
         };
         const s = statutColors[c.statut] || { bg: '#f0f0f0', color: '#666', text: c.statut };
         return `<tr style="border-bottom:1px solid var(--border);">
-            <td style="padding:8px;font-weight:600;color:var(--gold);">#${String(c.id).slice(-4)}</td>
+            <td style="padding:8px;font-weight:600;color:var(--gold);">#${c.numero_commande || c.id}</td>
             <td style="padding:8px;">Table ${c.table_numero || '?'}</td>
             <td style="padding:8px;">${escapeHtml(c.client_nom || 'Anonyme')}</td>
             <td style="padding:8px;font-weight:600;">${(c.total || 0).toLocaleString()} FCFA</td>
