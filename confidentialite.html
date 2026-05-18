@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0d0d0d">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <title>Politique de confidentialité | RestApp 7★</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #faf8f5; --surface: #fff; --gold: #C6A43F; --text: #1a1a1a;
+            --text-secondary: #6b6b6b; --border: #e8e5df;
+            --font-sans: 'Inter', 'Segoe UI', sans-serif;
+            --font-serif: 'Playfair Display', 'Georgia', serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: var(--font-sans); background: var(--bg); color: var(--text);
+            min-height: 100vh; line-height: 1.7; -webkit-font-smoothing: antialiased;
+        }
+        .header {
+            background: rgba(255,255,255,0.9); backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border); padding: 0 28px; height: 68px;
+            display: flex; align-items: center; position: sticky; top: 0; z-index: 100;
+        }
+        .logo { font-family: var(--font-serif); font-size: 20px; font-weight: 600; }
+        .logo span { color: var(--gold); }
+        .container { max-width: 800px; margin: 0 auto; padding: 40px 24px 80px; }
+        h1 { font-family: var(--font-serif); font-size: 32px; margin-bottom: 8px; }
+        .date { color: var(--text-secondary); font-size: 13px; margin-bottom: 32px; }
+        h2 { font-family: var(--font-serif); font-size: 20px; margin: 32px 0 12px; color: var(--gold); }
+        p, li { color: var(--text-secondary); font-size: 14px; margin-bottom: 12px; }
+        ul { padding-left: 20px; margin-bottom: 16px; }
+        .footer {
+            text-align: center; padding: 32px 20px; border-top: 1px solid var(--border);
+            font-size: 12px; color: #bbb;
+        }
+        .footer a { color: #bbb; text-decoration: none; margin: 0 8px; }
+        .footer a:hover { color: var(--gold); }
+        .back-link {
+            display: inline-block; color: var(--text-secondary); text-decoration: none;
+            font-size: 13px; margin-bottom: 24px; transition: all 0.3s;
+        }
+        .back-link:hover { color: var(--gold); }
+        @media (max-width: 768px) {
+            .container { padding: 24px 16px 60px; }
+            h1 { font-size: 26px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo">🍽️ RestApp <span>7★</span></div>
+</div>
+
+<div class="container">
+    <a href="/" class="back-link">← Retour à l'accueil</a>
+    <h1>Politique de confidentialité</h1>
+    <p class="date">Dernière mise à jour : 18 mai 2026</p>
+
+    <h2>1. Introduction</h2>
+    <p>
+        RestApp 7★ s'engage à protéger la vie privée de ses utilisateurs. Cette politique 
+        explique comment nous collectons, utilisons et protégeons vos données personnelles.
+    </p>
+
+    <h2>2. Données collectées</h2>
+    <p>Nous collectons uniquement les informations nécessaires au fonctionnement du service :</p>
+    <ul>
+        <li><strong>Email</strong> — pour la connexion et les communications</li>
+        <li><strong>Nom du restaurant</strong> — pour personnaliser votre espace</li>
+        <li><strong>Téléphone</strong> — optionnel, pour le support</li>
+        <li><strong>Adresse</strong> — optionnelle, pour le profil établissement</li>
+        <li><strong>Données de commandes</strong> — plats, montants, dates (liées à votre restaurant)</li>
+    </ul>
+
+    <h2>3. Utilisation des données</h2>
+    <p>Vos données sont utilisées exclusivement pour :</p>
+    <ul>
+        <li>Fournir le service RestApp (gestion de menu, commandes, statistiques)</li>
+        <li>Vous contacter en cas de problème technique</li>
+        <li>Vous informer sur votre abonnement</li>
+    </ul>
+    <p>Nous ne vendons, ne louons et ne partageons <strong>jamais</strong> vos données avec des tiers.</p>
+
+    <h2>4. Stockage et sécurité</h2>
+    <p>
+        Vos données sont stockées sur des serveurs sécurisés via <strong>Supabase</strong>, 
+        une plateforme certifiée SOC 2. Toutes les communications sont chiffrées (HTTPS). 
+        Les mots de passe sont hashés avec bcrypt (12 tours de salage).
+    </p>
+
+    <h2>5. Conservation des données</h2>
+    <p>
+        Vos données sont conservées tant que votre compte est actif. À la suppression de votre compte, 
+        toutes vos données sont définitivement effacées de nos serveurs sous 30 jours.
+    </p>
+
+    <h2>6. Vos droits</h2>
+    <p>Conformément à la réglementation, vous disposez des droits suivants :</p>
+    <ul>
+        <li><strong>Accès</strong> — obtenir une copie de vos données</li>
+        <li><strong>Rectification</strong> — corriger des informations inexactes</li>
+        <li><strong>Suppression</strong> — demander l'effacement de vos données</li>
+        <li><strong>Portabilité</strong> — récupérer vos données dans un format structuré</li>
+    </ul>
+    <p>Pour exercer ces droits, contactez-nous à l'adresse ci-dessous.</p>
+
+    <h2>7. Cookies</h2>
+    <p>
+        RestApp utilise uniquement des cookies techniques essentiels au fonctionnement 
+        (session d'authentification). Aucun cookie publicitaire ou de tracking n'est utilisé.
+    </p>
+
+    <h2>8. Contact</h2>
+    <p>
+        Pour toute question relative à cette politique :<br>
+        📧 <strong>contact@restapps.net</strong><br>
+        📱 <strong>+221 71 150 42 43</strong> (WhatsApp)
+    </p>
+</div>
+
+<div class="footer">
+    © 2026 RestApp 7★ — 
+    <a href="/confidentialite.html">Confidentialité</a> · 
+    <a href="/conditions.html">Conditions</a> · 
+    <a href="mailto:contact@restapps.net">contact@restapps.net</a>
+</div>
+
+</body>
+</html>
