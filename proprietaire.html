@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#0d0d0d">
-    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -16,12 +15,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
     <style>
-        :root { --bg:#faf8f5; --surface:#fff; --gold:#C6A43F; --gold-dark:#a8872a; --text:#1a1a1a; --text-secondary:#6b6b6b; --border:#e8e5df; --danger:#d9534f; --success:#27AE60; --shadow-sm:0 1px 3px rgba(0,0,0,0.03); --shadow-md:0 2px 16px rgba(0,0,0,0.05); --shadow-lg:0 8px 40px rgba(0,0,0,0.08); --radius-md:16px; --radius-lg:24px; --radius-xl:60px; --transition:0.25s cubic-bezier(0.4,0,0.2,1); --font-sans:'Inter','Segoe UI',sans-serif; --font-serif:'Playfair Display','Georgia',serif; }
+        :root { --bg:#faf8f5; --surface:#fff; --gold:#C6A43F; --gold-dark:#a8872a; --text:#1a1a1a; --text-secondary:#6b6b6b; --border:#e8e5df; --danger:#d9534f; --success:#27AE60; --warning:#F39C12; --shadow-sm:0 1px 3px rgba(0,0,0,0.03); --shadow-md:0 2px 16px rgba(0,0,0,0.05); --shadow-lg:0 8px 40px rgba(0,0,0,0.08); --radius-md:16px; --radius-lg:24px; --radius-xl:60px; --transition:0.25s cubic-bezier(0.4,0,0.2,1); --font-sans:'Inter','Segoe UI',sans-serif; --font-serif:'Playfair Display','Georgia',serif; }
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:var(--font-sans);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;}
         .header{background:rgba(255,255,255,0.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 28px;height:68px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;}
         .logo{font-family:var(--font-serif);font-size:20px;font-weight:600;}
         .logo span{color:var(--gold);}
+        .header-right{display:flex;align-items:center;gap:12px;}
         .btn-logout{background:transparent;border:1px solid #e0dcd3;color:#999;padding:8px 18px;border-radius:40px;cursor:pointer;font-size:13px;font-weight:500;transition:all var(--transition);}
         .btn-logout:hover{border-color:var(--danger);color:var(--danger);}
         .container{max-width:1200px;margin:0 auto;padding:30px 24px 60px;}
@@ -38,17 +38,18 @@
         .btn-add{padding:10px 20px;border-radius:40px;background:var(--gold);color:#fff;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all var(--transition);font-family:var(--font-sans);}
         .btn-add:hover{background:var(--gold-dark);}
 
-        .etablissements-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;}
-        .etablissement-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm);transition:all var(--transition);cursor:pointer;}
+        .etablissements-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;}
+        .etablissement-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm);transition:all var(--transition);}
         .etablissement-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px);border-color:var(--gold);}
         .etablissement-nom{font-family:var(--font-serif);font-size:20px;font-weight:600;margin-bottom:4px;}
-        .etablissement-type{font-size:12px;color:var(--text-secondary);margin-bottom:12px;}
-        .etablissement-stats{display:flex;gap:20px;font-size:13px;color:var(--text-secondary);}
+        .etablissement-type{font-size:12px;color:var(--text-secondary);margin-bottom:8px;}
+        .etablissement-stats{display:flex;gap:20px;font-size:13px;color:var(--text-secondary);margin-bottom:8px;}
         .etablissement-stats strong{color:var(--gold);}
-        .badge-status{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-top:8px;}
+        .badge-status{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;}
         .badge-active{background:#E8F5E9;color:#27AE60;}
         .badge-trial{background:#FFF8E1;color:#E67E22;}
         .badge-expired{background:#FDE8E8;color:#E74C3C;}
+        .jours-restants{font-size:11px;margin-top:4px;}
 
         .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
         .modal-dialog{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 24px;max-width:440px;width:90%;box-shadow:var(--shadow-lg);}
@@ -61,8 +62,11 @@
         .btn-cancel{padding:9px 20px;border-radius:40px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;font-size:13px;}
         .btn-confirm{padding:9px 20px;border-radius:40px;background:var(--gold);color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:600;}
         .btn-confirm:hover{background:var(--gold-dark);}
-        .btn-basculer{padding:6px 14px;border-radius:20px;background:var(--gold);color:#fff;border:none;cursor:pointer;font-size:11px;font-weight:600;margin-top:10px;font-family:var(--font-sans);}
+        .btn-basculer{padding:7px 16px;border-radius:20px;background:var(--gold);color:#fff;border:none;cursor:pointer;font-size:11px;font-weight:600;font-family:var(--font-sans);}
         .btn-basculer:hover{background:var(--gold-dark);}
+        .btn-outline{padding:7px 16px;border-radius:20px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;font-size:11px;font-family:var(--font-sans);}
+        .btn-outline:hover{border-color:var(--gold);color:var(--gold);}
+        .card-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
 
         .empty-state{text-align:center;padding:60px;color:var(--text-secondary);grid-column:1/-1;}
         .empty-state-icon{font-size:48px;margin-bottom:12px;opacity:0.5;}
@@ -79,7 +83,9 @@
 <body>
     <header class="header">
         <div class="logo">🏢 <span>Mes</span> établissements</div>
-        <button class="btn-logout" id="logout-btn">Quitter</button>
+        <div class="header-right">
+            <button class="btn-logout" id="logout-btn">Quitter</button>
+        </div>
     </header>
 
     <div class="container">
@@ -140,6 +146,17 @@
             }
             function showToast(m,t){const c=document.getElementById('toast-container'),to=document.createElement('div');to.className='toast '+t;to.textContent=m;c.appendChild(to);setTimeout(()=>{to.style.opacity='0';to.style.transition='opacity 0.3s';setTimeout(()=>to.remove(),300);},3000);}
 
+            function getJoursRestants(r){
+                var now=new Date(),endDate=null;
+                if(r.subscription_status==='trial'&&r.trial_ends_at)endDate=new Date(r.trial_ends_at);
+                else if(r.subscription_status==='active'&&r.subscription_ends_at)endDate=new Date(r.subscription_ends_at);
+                if(!endDate)return'';
+                var jours=Math.ceil((endDate-now)/(1000*60*60*24));
+                if(jours<0)return'<span style="color:#E74C3C;">⚠️ Expiré</span>';
+                if(jours<=7)return'<span style="color:#F39C12;">'+jours+'j restants</span>';
+                return'<span style="color:#27AE60;">'+jours+'j restants</span>';
+            }
+
             async function chargerDonnees(){
                 try{
                     const[etsRes,statsRes]=await Promise.all([
@@ -154,23 +171,30 @@
                     if(!ets.length){grid.innerHTML='<div class="empty-state"><div class="empty-state-icon">🏪</div><p>Aucun établissement</p></div>';return;}
                     grid.innerHTML=ets.map(function(e){
                         const s=stats.etablissements?.find(function(x){return x.id===e.id;});
+                        var sc=e.subscription_status==='active'?'badge-active':(e.subscription_status==='trial'?'badge-trial':'badge-expired');
+                        var sl=e.subscription_status==='active'?'Actif':(e.subscription_status==='trial'?'Essai':'Expiré');
+                        var badgeAbonnement = '<span class="badge-status '+sc+'">'+sl+'</span>';
+                        var joursRestants = getJoursRestants(e);
+                        
                         return '<div class="etablissement-card">'+
-                            '<div class="etablissement-nom">'+e.nom+'</div>'+
-                            '<div class="etablissement-type">'+(e.type_etablissement||'Restaurant')+'</div>'+
-                            '<div class="etablissement-stats">'+
-                            '<span>💰 <strong>'+(s?.ca||0).toLocaleString()+' FCFA</strong></span>'+
-                            '<span>📋 <strong>'+(s?.nbCommandes||0)+'</strong> commandes</span>'+
+                            '<div style="display:flex;justify-content:space-between;align-items:flex-start;">'+
+                                '<div class="etablissement-nom">'+e.nom+'</div>'+
+                                badgeAbonnement+
                             '</div>'+
-                            '<button class="btn-basculer" data-id="'+e.id+'">➡️ Gérer cet établissement</button>'+
-                            '<button class="btn-equipe" data-id="'+e.id+'" style="margin-top:8px;padding:6px 14px;border-radius:20px;background:transparent;border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;font-size:11px;font-family:var(--font-sans);">👥 Gérer l\'équipe</button>'+
+                            '<div class="etablissement-type">'+(e.type_etablissement||'Restaurant')+'</div>'+
+                            (joursRestants?'<div class="jours-restants">'+joursRestants+'</div>':'')+
+                            '<div class="etablissement-stats">'+
+                                '<span>💰 <strong>'+(s?.ca||0).toLocaleString()+' FCFA</strong></span>'+
+                                '<span>📋 <strong>'+(s?.nbCommandes||0)+'</strong> commandes</span>'+
+                            '</div>'+
+                            '<div class="card-actions">'+
+                                '<button class="btn-basculer" data-id="'+e.id+'">➡️ Gérer</button>'+
+                                '<button class="btn-outline btn-equipe" data-id="'+e.id+'">👥 Équipe</button>'+
+                            '</div>'+
                         '</div>';
                     }).join('');
                     grid.querySelectorAll('.btn-basculer').forEach(function(b){b.addEventListener('click',function(){basculerEtablissement(b.dataset.id);});});
-                    grid.querySelectorAll('.btn-equipe').forEach(function(b){
-                        b.addEventListener('click',function(){
-                        basculerEtablissement(b.dataset.id, '/employes.html');
-                        });
-                    });
+                    grid.querySelectorAll('.btn-equipe').forEach(function(b){b.addEventListener('click',function(){basculerEtablissement(b.dataset.id,'/employes.html');});});
                 }catch(e){}
             }
 
