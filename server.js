@@ -96,8 +96,11 @@ const VALID_TRANSITIONS = {
 };
 
 const VALID_ROLES = ['proprietaire', 'gerant', 'serveur', 'superadmin'];
-const VALID_CATEGORIES = ['Entrée', 'Plat', 'Dessert', 'Boisson', 'Accompagnement', 'Pâtisserie', 'Crêpe', 'Glace', 'Brunch', 'Petit-déjeuner'];
-
+const VALID_CATEGORIES = [
+    'Entrée', 'Plat', 'Dessert', 'Boisson', 'Accompagnement', 
+    'Pâtisserie', 'Crêpe', 'Glace', 'Brunch', 'Petit-déjeuner',
+    'Pizza', 'Burger', 'Sandwich', 'Boisson chaude'
+];
 function validateEmail(email) {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(String(email).toLowerCase());
