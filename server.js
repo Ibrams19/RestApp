@@ -1644,26 +1644,6 @@ app.post('/api/upload-plat-photo/:platId', authMiddleware, upload.single('photo'
     return res.status(400).json({ error: 'Aucune photo envoyée' });
   }
 
-  const fileName = `plat_${platId}_${Date.now()}.jpg`;
-  const { error } = await supabase.storage
-    .from('plat-photos')
-    .upload(`plats/${fileName}`, file.buffer, { 
-      contentType: file.mimetype,
-      cacheControl: '3600',
-      upsert: true
-    });
-
-  if (error) {
-    logSecurity('ERROR', 'Erreur upload photo', { platId, error: error.message });
-    return res.status(500).json({ error: 'Erreur lors de l\'upload de la photo' });
-  }
-
-  const { data: urlData } = supabase.storage.from('plat-photos').getPublicUrl(`plats/${fileName}`);
-  await supabase.from('menus').update({ photo_url: urlData.publicUrl }).eq('id', platId);
-  
-  res.json({ success: true, photoUrl: urlData.publicUrl });
-});
-
 // Route séparée pour supprimer une photo
 app.delete('/api/delete-photo/:platId', authMiddleware, async (req, res) => {
   const { platId } = req.params;
