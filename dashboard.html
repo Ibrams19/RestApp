@@ -503,8 +503,6 @@
 
                 if (res.ok) {
                     const data = await res.json();
-                    // Bannière spéciale compte démo (Le 7★ Gourmet)
-                    const user = JSON.parse(localStorage.getItem('resto_user') || '{}');
                     const container = document.getElementById('subscription-alert-container');
 
                     if (data.status === 'trial' && data.days_left !== undefined) {
